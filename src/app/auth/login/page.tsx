@@ -45,9 +45,13 @@ const LoginPage: NextPage = () => {
             } else {
                 console.log(result)
             }
-        } catch (err: any) {
-            console.error('error', err.errors[0].longMessage)
-            setError(err.errors[0].longMessage)
+        } catch (err: unknown) {
+            if (err && typeof err === 'object' && 'errors' in err && Array.isArray(err.errors) && err.errors[0]?.longMessage) {
+                console.error('error', err.errors[0].longMessage)
+                setError(err.errors[0].longMessage)
+            } else {
+                setError('An unexpected error occurred')
+            }
         } finally {
             setLoading(false)
         }

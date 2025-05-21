@@ -1,13 +1,12 @@
-// boilerplate for header component with export default
-// make this a link that will navigate to /teacher/login
-'use client'
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
-import { useRouter, usePathname } from 'next/navigation';
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { usePathname } from 'next/navigation';
+
 export default function GuestHeader() {
-    const router = useRouter();
     return (
         <header className="flex justify-between items-center px-4 sm:px-6 py-4 sm:py-6 bg-[#DBEAFE] border-b border-[#60A5FA]/20">
             <Link href="/" className="flex items-center">
