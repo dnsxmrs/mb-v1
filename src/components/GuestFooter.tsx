@@ -9,12 +9,15 @@ export default function GuestFooter() {
                     </p>
 
                     <div className="flex items-center justify-center space-x-4 sm:space-x-6">
-                        <a
-                            href="mailto:valerieannesangalang14@gmail.com"
-                            className="text-xs sm:text-sm hover:text-[#60A5FA] transition-colors duration-200"
+                        <div>
+                            <span className="text-xs sm:text-sm">Contact us at: </span>
+                            <a
+                                href="mailto:valerieannesangalang14@gmail.com"
+                                className="text-xs sm:text-sm hover:text-[#60A5FA] transition-colors duration-200"
                         >
                             valerieannesangalang14@gmail.com
                         </a>
+                        </div>
                         <a
                             href="#"
                             className="hover:text-[#60A5FA] transition-colors duration-200"

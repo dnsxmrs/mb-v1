@@ -34,11 +34,11 @@ export default function GuestHeader() {
                 <SignedIn>
                     <Link href="/dashboard" className='mr-2 sm:mr-4'>
                         <button className="bg-[#1E40AF] hover:bg-[#3B82F6] text-white text-xs sm:text-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-medium transition duration-200 shadow-sm">
-                            Dashboard
+                            Go to Dashboard
                         </button>
                     </Link>
                     <div className="scale-90 sm:scale-100">
-                        <UserButton showName />
+                        <UserButton />
                     </div>
                 </SignedIn>
             </div>
