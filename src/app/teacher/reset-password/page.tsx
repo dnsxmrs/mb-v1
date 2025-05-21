@@ -35,7 +35,7 @@ const ForgotPasswordPage: NextPage = () => {
         strategy: 'reset_password_email_code',
         identifier: email,
       })
-      .then((_) => {
+      .then(() => {
         setSuccessfulCreation(true)
         setError('')
       })
