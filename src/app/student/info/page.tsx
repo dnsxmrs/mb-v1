@@ -2,18 +2,17 @@ import { redirect } from "next/navigation";
 // import { cookies } from "next/headers";
 import StudentInfoForm from "./StudentInfoForm";
 
-type Props = {
-  params: { [key: string]: string }
-  searchParams: { [key: string]: string | string[] | undefined }
-}
+type PageProps = {
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
 
-export default async function StudentInfo({
-  searchParams,
-}: Props) {
+export default function StudentInfo({ searchParams }: PageProps) {
   // const cookieStore = await cookies();
   // const hasConsent = cookieStore.get("privacy_consent");
 
-  if (!searchParams.code) {
+  const code = searchParams?.code;
+
+  if (!code || Array.isArray(code)) {
     redirect("/");
   }
 
@@ -24,7 +23,7 @@ export default async function StudentInfo({
 
   return (
     <div className="h-[85vh] flex items-center justify-center p-4">
-      <StudentInfoForm code={searchParams.code as string} />
+      <StudentInfoForm code={code} />
     </div>
   );
-} 
+}
