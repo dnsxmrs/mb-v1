@@ -2,11 +2,14 @@ import { redirect } from "next/navigation";
 // import { cookies } from "next/headers";
 import StudentInfoForm from "./StudentInfoForm";
 
+type Props = {
+  params: { [key: string]: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
 export default async function StudentInfo({
   searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
+}: Props) {
   // const cookieStore = await cookies();
   // const hasConsent = cookieStore.get("privacy_consent");
 
