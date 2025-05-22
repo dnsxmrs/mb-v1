@@ -1,6 +1,7 @@
 // import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import StudentInfoForm from "./StudentInfoForm";
+import { env } from "process";
 
 interface Props {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -8,6 +9,10 @@ interface Props {
 
 export default function StudentInfoPage({ searchParams }: Props) {
   const code = searchParams.code;
+
+  if (env.NODE_ENV === "development") {
+    console.log("Type of searchParams", typeof searchParams);
+  }
 
   if (!code || Array.isArray(code)) {
     redirect("/");
