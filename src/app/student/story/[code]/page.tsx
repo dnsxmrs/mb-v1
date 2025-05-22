@@ -32,7 +32,7 @@ const stories = {
 export default async function StoryPage({
   params,
 }: {
-  params: { storyId: string };
+  params: { code: string };
 }) {
   // Check if user has given consent and provided info
   const cookieStore = await cookies();
@@ -40,10 +40,10 @@ export default async function StoryPage({
   const studentInfo = cookieStore.get("student_info");
 
   if (!hasConsent || !studentInfo) {
-    redirect("/student?code=" + params.storyId);
+    redirect("/student/info?code=" + params.code);
   }
 
-  const story = stories[params.storyId as keyof typeof stories];
+  const story = stories[params.code as keyof typeof stories];
   if (!story) {
     // If story doesn't exist, redirect to home page
     redirect("/");
