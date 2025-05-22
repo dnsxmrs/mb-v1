@@ -3,15 +3,16 @@ import { redirect } from "next/navigation";
 import StudentInfoForm from "./StudentInfoForm";
 import { env } from "process";
 
-export default function StudentInfoPage({
+export default async function StudentInfoPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: { code?: string | string[] }
 }) {
   const code = searchParams.code;
 
   if (env.NODE_ENV === "development") {
     console.log("Type of searchParams", typeof searchParams);
+    console.log("Code value:", code);
   }
 
   if (!code || Array.isArray(code)) {
