@@ -5,7 +5,7 @@ import StudentInfoForm from "./StudentInfoForm";
 export default async function StudentInfo({
   searchParams,
 }: {
-  searchParams: { code?: string };
+  searchParams: { [key: string]: string | string[] | undefined }
 }) {
   // const cookieStore = await cookies();
   // const hasConsent = cookieStore.get("privacy_consent");
@@ -21,7 +21,7 @@ export default async function StudentInfo({
 
   return (
     <div className="h-[85vh] flex items-center justify-center p-4">
-      <StudentInfoForm code={searchParams.code} />
+      <StudentInfoForm code={searchParams.code as string} />
     </div>
   );
 } 
