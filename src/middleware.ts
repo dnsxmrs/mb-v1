@@ -1,8 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+
+//  how to make a general route public with url starting with /student  
 const isPublicRoute = createRouteMatcher([
   '/auth/login', 
   '/auth/reset-password',
+  '/student(.*)',
   '/'
 ])
 

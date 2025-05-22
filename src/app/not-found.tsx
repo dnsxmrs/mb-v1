@@ -32,7 +32,7 @@ export default function NotFound() {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1E40AF] mb-6 sm:mb-8">
               Page Not Found
             </h2>
-            <p className="text-base sm:text-lg md:text-xl text-[#3B82F6] mb-8 sm:mb-12 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-[#1E40AF] mb-8 sm:mb-12 max-w-2xl mx-auto">
               Sorry, we couldn&apos;t find the page you&apos;re looking for.
             </p>
             <Link 
