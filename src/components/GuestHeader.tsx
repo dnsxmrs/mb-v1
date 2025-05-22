@@ -28,12 +28,12 @@ export default function GuestHeader() {
                 <div className="flex items-center space-x-3 sm:space-x-4">
                     <SignedOut>
                         <div className="bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-xs sm:text-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-medium transition duration-200 shadow-sm">
-                            {pathname === '/auth/login' || pathname === '/auth/reset-password' ? (
+                            {pathname === '/login' || pathname === '/reset-password' ? (
                                 <Link href="/" className="w-full h-full block">
                                     Home
                                 </Link>
                             ) : (
-                                <Link href="/auth/login" className="w-full h-full block">
+                                <Link href="/login" className="w-full h-full block">
                                     For Teachers
                                 </Link>
                             )}

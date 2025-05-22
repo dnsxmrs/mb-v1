@@ -1,8 +1,22 @@
+import GuestFooter from "@/components/GuestFooter";
+import GuestHeader from "@/components/GuestHeader";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
-export default async function Home() {
+export default function Home() {
+  async function handleSubmit(formData: FormData) {
+    'use server'
+    const code = formData.get('code') as string;
+
+    // Mock validation - in real app, validate against database
+    if (code && code.length >= 4) {
+      redirect(`/student/info?code=${code}`);
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
+      <GuestHeader />
       <div className="relative flex flex-col min-h-screen bg-white">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
@@ -41,16 +55,24 @@ export default async function Home() {
               {/* Code Input Section */}
               <div className="bg-white/80 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-sm border border-[#DBEAFE] w-full max-w-md">
                 <h3 className="text-lg sm:text-xl font-semibold text-[#1E3A8A] mb-4">Magsimula na ng Pag-aaral</h3>
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    placeholder="Ilagay ang iyong code dito"
-                    className="w-full px-4 sm:px-5 py-2.5 sm:py-3 text-[#1E3A8A] text-center bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm text-sm sm:text-base"
-                  />
-                </div>
-                <button className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2.5 sm:py-3 transition duration-200 shadow-sm">
-                  I-submit ang Code
-                </button>
+                <form action={handleSubmit} className="space-y-4">
+                  <div>
+                    <input
+                      type="text"
+                      name="code"
+                      placeholder="Ilagay ang iyong code dito"
+                      className="w-full px-4 sm:px-5 py-2.5 sm:py-3 text-[#1E3A8A] text-center bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm text-sm sm:text-base"
+                      required
+                      minLength={4}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2.5 sm:py-3 transition duration-200 shadow-sm"
+                  >
+                    I-submit ang Code
+                  </button>
+                </form>
               </div>
             </div>
 
@@ -108,6 +130,7 @@ export default async function Home() {
           </div>
         </main>
       </div>
+      <GuestFooter />
     </div>
   );
 }

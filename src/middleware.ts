@@ -1,16 +1,19 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { env } from "process";
 
-
-//  how to make a general route public with url starting with /student  
 const isPublicRoute = createRouteMatcher([
-  '/auth/login', 
-  '/auth/reset-password',
-  '/student(.*)',
+  '/login', 
+  '/reset-password',
+  '/privacy-statement',
+  '/student(.*)', 
   '/'
 ])
 
 export default clerkMiddleware(async (auth, req) => {
     if (!isPublicRoute(req)) {
+      if (env.NODE_ENV === "development") {
+        console.log("Protected route: " + req.url)
+      }
         await auth.protect()
     }
 })
