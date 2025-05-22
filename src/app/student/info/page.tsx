@@ -4,9 +4,9 @@ import StudentInfoForm from "./StudentInfoForm";
 import { env } from "process";
 
 export default async function StudentInfoPage({
-  searchParams,
+  searchParams
 }: {
-  searchParams: { code?: string | string[] }
+  searchParams: { code: string }
 }) {
   const code = searchParams.code;
 
