@@ -40,7 +40,6 @@ const ForgotPasswordPage: NextPage = () => {
         setError('')
       })
       .catch((err) => {
-        console.error('error', err.errors[0].longMessage)
         setError(err.errors[0].longMessage)
       })
   }
@@ -108,6 +107,24 @@ const ForgotPasswordPage: NextPage = () => {
           {/* Form Container */}
           <div className="relative z-10 w-full max-w-md mx-auto">
             <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl shadow-sm border border-[#DBEAFE]">
+              <button
+                onClick={() => router.back()}
+                className="flex items-center text-[#1E3A8A] hover:text-[#3B82F6] mb-4 transition-colors duration-200"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Back
+              </button>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#1E3A8A] mb-4 sm:mb-6 text-center">
                 Forgot Password?
               </h1>
