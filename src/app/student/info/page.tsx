@@ -3,19 +3,28 @@ import { redirect } from "next/navigation";
 import StudentInfoForm from "./StudentInfoForm";
 import { env } from "process";
 
+type tParams = Promise<{ code: string }>;
+
 export default async function StudentInfoPage({
+  params,
   searchParams
 }: {
+  params: tParams;
   searchParams: { code: string }
 }) {
-  const code = searchParams.code;
+  const { code: paramsCode } = await params;
+  const searchParamsCode =  await searchParams.code;
 
   if (env.NODE_ENV === "development") {
+    console.log("Type of params", typeof params);
     console.log("Type of searchParams", typeof searchParams);
-    console.log("Code value:", code);
+    console.log("paramsCode:", paramsCode);
+    console.log("searchParamsCode:", searchParamsCode);
   }
 
-  if (!code || Array.isArray(code)) {
+  const code = paramsCode || searchParamsCode;
+
+  if (!code) {
     redirect("/");
   }
   // removed this for instance of users sharing a device
