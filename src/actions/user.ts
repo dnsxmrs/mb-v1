@@ -101,7 +101,7 @@ export async function createUser(data: CreateUserData) {
                         last_name: data.last_name,
                         userId: user.id
                     },
-                    redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`
+                    // redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`
                 })
             } catch (clerkError) {
                 console.error('Error sending Clerk invitation:', clerkError)
@@ -150,7 +150,7 @@ export async function inviteUser(data: InviteUserData) {
                 last_name: data.last_name,
                 userId: user.id
             },
-            redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
+            // redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
         })
 
         revalidatePath('/user-management')
@@ -186,7 +186,7 @@ export async function resendInvitation(userId: number) {
                 last_name: user.last_name,
                 userId: user.id
             },
-            redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`
+            // redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`
         })
 
         return {
