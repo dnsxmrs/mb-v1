@@ -1,22 +1,79 @@
 "use client";
 
 import { useState } from "react";
-import { handleStudentInfoSubmit } from "./actions";
+import { useRouter } from "next/navigation";
+import { useFormStatus } from "react-dom";
+import { handleStudentInfoSubmit } from "../../../actions/student";
 
 interface StudentInfoFormProps {
   code: string;
 }
 
+// Submit button component that uses useFormStatus
+// This button will be disabled if the checkbox is not checked
+function SubmitButton({ isChecked }: { isChecked: boolean }) {
+    const { pending } = useFormStatus()
+
+    return (
+        <button
+            type="submit"
+            // set back to disabled if pending or checkbox is not checked or if the formstatus changes
+            // this will prevent the user from submitting the form if the checkbox is not checked
+            // or if the form is pending
+            // or if the form is done processing
+            disabled={pending || !isChecked}
+            className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2.5 sm:py-3 transition duration-200 shadow-sm flex items-center justify-center"
+        >
+            {pending ? (
+              // add a loading spinner
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Magpatuloy...
+              </div>
+            ) : (
+                'Magpatuloy'
+            )}
+        </button>
+    )
+}
+
 export default function StudentInfoForm({ code }: StudentInfoFormProps) {
   const [isChecked, setIsChecked] = useState(false);
+  const [clientError, setClientError] = useState('')
+  const router = useRouter()
+
+  async function handleFormAction(formData: FormData) {
+    setClientError('')
+
+    const name = formData.get("name") as string;
+    const section = formData.get("section") as string;
+    if (!name || !section) {
+      setClientError('Pakiusap, punan ang lahat ng kinakailangang impormasyon.');
+      return;
+    }
+
+    const result = await handleStudentInfoSubmit(formData, code);
+
+    if (result.success && result.redirectTo) {
+      router.push(`/student/story/${code}`);
+    } else if (result.error) {
+      setClientError(result.error);
+    }
+  }
 
   return (
     <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 sm:p-8">
       <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A8A] mb-6 text-center">
         Magbigay ng Impormasyon
       </h1>
-      
-      <form action={(formData) => handleStudentInfoSubmit(formData, code)} className="space-y-6">
+
+      {clientError && (
+        <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-xl">
+          <p className="text-sm text-red-600 text-center">{clientError}</p>
+        </div>
+      )}
+
+      <form action={handleFormAction} className="space-y-6">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             Pangalan
@@ -58,18 +115,10 @@ export default function StudentInfoForm({ code }: StudentInfoFormProps) {
           </label>
         </div>
 
-        <button
-          type="submit"
-          disabled={!isChecked}
-          className={`w-full font-medium rounded-lg px-6 py-3 transition duration-200 shadow-sm ${
-            isChecked 
-              ? "bg-[#3B82F6] hover:bg-[#60A5FA] text-white" 
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-        >
-          Magpatuloy
-        </button>
+      {/*  use the submitbutton and pass the ischecked */}
+
+        <SubmitButton isChecked={isChecked} />
       </form>
     </div>
   );
-} 
+}

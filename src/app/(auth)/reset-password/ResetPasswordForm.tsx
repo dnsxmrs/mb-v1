@@ -12,6 +12,8 @@ const ResetPasswordForm = () => {
   const [successfulCreation, setSuccessfulCreation] = useState(false)
   const [secondFactor, setSecondFactor] = useState(false)
   const [error, setError] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
 
   const router = useRouter()
   const { isLoaded, signIn, setActive } = useSignIn()
@@ -33,18 +35,25 @@ const ResetPasswordForm = () => {
   // Send the password reset code to the user's email
   async function create(e: React.FormEvent) {
     e.preventDefault()
-    await signIn
-      ?.create({
+    setIsCreating(true)
+    setError('')
+
+    try {
+      await signIn?.create({
         strategy: 'reset_password_email_code',
         identifier: email,
       })
-      .then(() => {
-        setSuccessfulCreation(true)
-        setError('')
-      })
-      .catch((err) => {
+      setSuccessfulCreation(true)
+      setError('')
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'errors' in err && Array.isArray(err.errors) && err.errors[0]?.longMessage) {
         setError(err.errors[0].longMessage)
-      })
+      } else {
+        setError('An unexpected error occurred')
+      }
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   // Reset the user's password.
@@ -52,40 +61,48 @@ const ResetPasswordForm = () => {
   // signed in and redirected to the home page
   async function reset(e: React.FormEvent) {
     e.preventDefault()
+    setIsResetting(true)
+    setError('')
+
     // confirm first if password and confirmPassword are the same
     if (password !== confirmPassword) {
       setError('Passwords do not match')
+      setIsResetting(false)
       return
     }
 
-    await signIn
-      ?.attemptFirstFactor({
+    try {
+      const result = await signIn?.attemptFirstFactor({
         strategy: 'reset_password_email_code',
         code,
         password,
       })
-      .then((result) => {
-        // Check if 2FA is required
-        if (result.status === 'needs_second_factor') {
-          setSecondFactor(true)
-          setError('')
-        } else if (result.status === 'complete') {
-          // Set the active session to
-          // the newly created session (user is now signed in)
-          setActive({ session: result.createdSessionId })
-          setError('')
-          toast.success('Password reset successful')
-          router.push('/dashboard')
-        } else {
-          if (env.NODE_ENV === "development") {
-            console.log(result)
-          }
+
+      if (result?.status === 'needs_second_factor') {
+        setSecondFactor(true)
+        setError('')
+      } else if (result?.status === 'complete') {
+        // Set the active session to
+        // the newly created session (user is now signed in)
+        await setActive?.({ session: result.createdSessionId })
+        setError('')
+        toast.success('Password reset successful')
+        router.push('/dashboard')
+      } else {
+        if (env.NODE_ENV === "development") {
+          console.log(result)
         }
-      })
-      .catch((err) => {
+      }
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'errors' in err && Array.isArray(err.errors) && err.errors[0]?.longMessage) {
         console.error('error', err.errors[0].longMessage)
         setError(err.errors[0].longMessage)
-      })
+      } else {
+        setError('An unexpected error occurred')
+      }
+    } finally {
+      setIsResetting(false)
+    }
   }
 
   return (
@@ -112,7 +129,15 @@ const ResetPasswordForm = () => {
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#1E3A8A] mb-4 sm:mb-6 text-center">
           Forgot Password?
         </h1>
-        
+
+        {error && (
+          <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-xl">
+            <p className="text-sm text-red-600 text-center">
+              {error}
+            </p>
+          </div>
+        )}
+
         <form onSubmit={!successfulCreation ? create : reset} className="space-y-3 sm:space-y-4">
           {!successfulCreation && (
             <>
@@ -132,11 +157,18 @@ const ResetPasswordForm = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 transition duration-200 shadow-sm"
+                disabled={isCreating}
+                className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 transition duration-200 shadow-sm flex items-center justify-center"
               >
-                Send password reset code
+                {isCreating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </>
+                ) : (
+                  'Send password reset code'
+                )}
               </button>
-              {error && <p className="text-red-500 text-xs sm:text-sm mt-1.5 sm:mt-2">{error}</p>}
             </>
           )}
 
@@ -183,11 +215,18 @@ const ResetPasswordForm = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 transition duration-200 shadow-sm"
+                disabled={isResetting}
+                className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 transition duration-200 shadow-sm flex items-center justify-center"
               >
-                Reset Password
+                {isResetting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Resetting...
+                  </>
+                ) : (
+                  'Reset Password'
+                )}
               </button>
-              {error && <p className="text-red-500 text-xs sm:text-sm mt-1.5 sm:mt-2">{error}</p>}
             </>
           )}
 

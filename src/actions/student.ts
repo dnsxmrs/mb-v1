@@ -1,17 +1,21 @@
+// src/actions/student.ts
 'use server';
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 export async function handleStudentInfoSubmit(formData: FormData, code: string) {
   const name = formData.get("name") as string;
   const section = formData.get("section") as string;
 
-  if (!name || !section) return;
+  if (!name || !section) return { success: false, error: "Pakiusap, punan ang lahat ng kinakailangang impormasyon." };
+
+  if (name.length < 2 || section.length < 2) {
+    return { success: false, error: "Ang pangalan at seksyon ay dapat hindi bababa sa 2 karakter." };
+  }
 
   const cookieStore = cookies();
 
-  (await cookieStore).set("student_info", JSON.stringify({ name, section }), {
+  (await cookieStore).set("student_info", JSON.stringify({ name, section, authorizedCode: code }), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -25,5 +29,5 @@ export async function handleStudentInfoSubmit(formData: FormData, code: string) 
     maxAge: 60 * 60 * 24 * 30,
   });
 
-  redirect(`/student/story/${code}`);
+  return { success: true, redirectTo: `/student/story/${code}` };
 }

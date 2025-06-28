@@ -1,19 +1,32 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
-  '/login', 
+  '/login',
   '/reset-password',
   '/privacy-statement',
-  '/student(.*)', 
+  '/student(.*)',
   '/'
 ])
 
 export default clerkMiddleware(async (auth, req) => {
-    if (!isPublicRoute(req)) {
-        console.log("Protected route: " + req.url)
-        await auth.protect()
+    // check if a user is logged in
+    const { userId } = await auth();
+    const isAuthenticated = !!userId;
+    const url = new URL(req.url);
+
+    if (!isPublicRoute(req) && !isAuthenticated) {
+        console.log('🚫 Unauthorized access to protected route');
+        await auth.protect();
     }
-})
+
+      if (isPublicRoute(req) && isAuthenticated) {
+        // Allow access to privacy statement even when authenticated
+        if (url.pathname === '/privacy-statement') {
+            return NextResponse.next();
+        }
+      }
+});
 
 export const config = {
   matcher: [

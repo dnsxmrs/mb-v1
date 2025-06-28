@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 
 export default function GuestHeader() {
     const pathname = usePathname();
-    
+
     return (
         <header className="w-full bg-[#DBEAFE] border-b border-[#60A5FA]/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex justify-between items-center">
@@ -46,7 +46,8 @@ export default function GuestHeader() {
                                 Go to Dashboard
                             </button>
                         </Link>
-                        <div className="scale-90 sm:scale-100">
+                        {/* center the user button in the div */}
+                        <div className="scale-90 sm:scale-120 flex items-center justify-center">
                             <UserButton />
                         </div>
                     </SignedIn>

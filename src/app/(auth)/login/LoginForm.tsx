@@ -8,6 +8,7 @@ import { env } from 'process'
 const LoginForm = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
 
@@ -23,17 +24,17 @@ const LoginForm = () => {
 
     if (!isLoaded) {
         return (
-          <div className="relative z-10 w-full max-w-md mx-auto">
-            <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl shadow-sm border border-[#DBEAFE]">
-              {/* Loading Animation */}
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="text-gray-600 text-sm sm:text-base animate-pulse">Loading...</p>
-              </div>
+            <div className="relative z-10 w-full max-w-md mx-auto">
+                <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl shadow-sm border border-[#DBEAFE]">
+                    {/* Loading Animation */}
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p className="text-gray-600 text-sm sm:text-base animate-pulse">Loading...</p>
+                    </div>
+                </div>
             </div>
-          </div>
         )
-      }
+    }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -90,10 +91,18 @@ const LoginForm = () => {
                     </div>
 
                     {/* Header */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-5">
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
                         <p className="text-gray-600 text-sm sm:text-base">Please sign in to your account</p>
                     </div>
+
+                    {error && (
+                        <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-xl">
+                            <p className="text-sm text-red-600 text-center">
+                                {error}
+                            </p>
+                        </div>
+                    )}
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -111,11 +120,6 @@ const LoginForm = () => {
                                     className="w-full px-4 py-3 text-gray-900 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                                     required
                                 />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                                    </svg>
-                                </div>
                             </div>
                         </div>
 
@@ -125,18 +129,61 @@ const LoginForm = () => {
                             </label>
                             <div className="relative">
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     id="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-4 py-3 text-gray-900 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                                    className="w-full px-4 py-3 pr-20 text-gray-900 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                                     required
                                 />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                </div>
+                                {/* Eye Icon Button */}
+                                <button
+                                    type="button"
+                                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-blue-600 focus:outline-none transition-colors duration-200"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? (
+                                        // Eye Off Icon
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={1.5}
+                                            stroke="currentColor"
+                                            className="w-5 h-5"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M3 3l18 18M10.477 10.477a3 3 0 004.242 4.242M6.672 6.672A8.963 8.963 0 003 12c1.5 3.5 5.03 6 9 6a8.96 8.96 0 004.776-1.318M9.53 9.53a3 3 0 014.94 2.47c0 .647-.207 1.244-.56 1.73M12 4.5c3.727 0 6.885 2.534 8.25 6-.376.94-.92 1.798-1.607 2.54"
+                                            />
+                                        </svg>
+
+                                    ) : (
+                                        // Eye Icon
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={1.5}
+                                            stroke="currentColor"
+                                            className="w-5 h-5"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                            />
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M2.458 12C3.732 7.943 7.522 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7z"
+                                            />
+                                        </svg>
+
+                                    )}
+                                </button>
                             </div>
                         </div>
 
@@ -166,14 +213,6 @@ const LoginForm = () => {
                                 'Sign In'
                             )}
                         </button>
-
-                        {error && (
-                            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-                                <p className="text-sm text-red-600 text-center">
-                                    {error}
-                                </p>
-                            </div>
-                        )}
                     </form>
                 </div>
             </div>
@@ -181,4 +220,4 @@ const LoginForm = () => {
     )
 }
 
-export default LoginForm 
+export default LoginForm

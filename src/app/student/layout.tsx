@@ -1,5 +1,11 @@
 import GuestHeader from '@/components/GuestHeader'
 import GuestFooter from '@/components/GuestFooter'
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Student Dashboard",
+    description: "Dashboard for students to manage their courses and assignments",
+};
 
 export default function StudentLayout({
     children,

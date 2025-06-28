@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "prisma generate && next dev --turbopack",
+    "build": "prisma db pull && prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/backend": "^2.3.0",
     "@clerk/nextjs": "^6.19.5",
+    "@prisma/client": "^6.8.2",
+    "lucide-react": "^0.525.0",
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
