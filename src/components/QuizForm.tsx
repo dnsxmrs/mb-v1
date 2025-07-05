@@ -1,13 +1,19 @@
 'use client'
 
 import { Trash2, Plus } from 'lucide-react'
+import { useSystemConfig } from '@/hooks/useSystemConfig'
+
+interface Choice {
+    id: number
+    text: string
+}
 
 interface QuizItem {
     id?: number
     quizNumber: number
     question: string
-    choices: string[]
-    correctAnswer: string
+    choices: Choice[]
+    correctAnswer: number | null // store the id of the correct choice
 }
 
 interface QuizFormProps {
@@ -16,13 +22,23 @@ interface QuizFormProps {
     disabled?: boolean
 }
 
+let choiceIdCounter = 1
+
 export default function QuizForm({ quizItems, onQuizItemsChange, disabled = false }: QuizFormProps) {
+    const { config } = useSystemConfig()
+
     const addQuizItem = () => {
+        const defaultChoicesCount = config?.defaultChoicesCount || 2
+        const defaultChoices = Array.from({ length: defaultChoicesCount }, () => ({
+            id: choiceIdCounter++,
+            text: ''
+        }))
+
         const newQuizItem: QuizItem = {
             quizNumber: quizItems.length + 1,
             question: '',
-            choices: ['', '', '', ''],
-            correctAnswer: ''
+            choices: defaultChoices,
+            correctAnswer: null
         }
         onQuizItemsChange([...quizItems, newQuizItem])
     }
@@ -37,7 +53,7 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
         onQuizItemsChange(renumberedItems)
     }
 
-    const updateQuizItem = (index: number, field: keyof QuizItem, value: string | number | string[]) => {
+    const updateQuizItem = (index: number, field: keyof QuizItem, value: string | number | null) => {
         const updatedItems = quizItems.map((item, i) =>
             i === index ? { ...item, [field]: value } : item
         )
@@ -48,8 +64,39 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
         const updatedItems = quizItems.map((item, i) => {
             if (i === quizIndex) {
                 const newChoices = [...item.choices]
-                newChoices[choiceIndex] = value
+                newChoices[choiceIndex] = { ...newChoices[choiceIndex], text: value }
                 return { ...item, choices: newChoices }
+            }
+            return item
+        })
+        onQuizItemsChange(updatedItems)
+    }
+
+    const addChoice = (quizIndex: number) => {
+        const updatedItems = quizItems.map((item, i) => {
+            if (i === quizIndex) {
+                return {
+                    ...item,
+                    choices: [...item.choices, { id: choiceIdCounter++, text: '' }]
+                }
+            }
+            return item
+        })
+        onQuizItemsChange(updatedItems)
+    }
+
+    const removeChoice = (quizIndex: number, choiceIndex: number) => {
+        const minChoicesCount = config?.minChoicesCount || 2
+        const updatedItems = quizItems.map((item, i) => {
+            if (i === quizIndex && item.choices.length > minChoicesCount) {
+                const removedChoice = item.choices[choiceIndex]
+                const newChoices = item.choices.filter((_, idx) => idx !== choiceIndex)
+                // If the removed choice was the correct answer, unset correctAnswer
+                let correctAnswer = item.correctAnswer
+                if (removedChoice.id === item.correctAnswer) {
+                    correctAnswer = null
+                }
+                return { ...item, choices: newChoices, correctAnswer }
             }
             return item
         })
@@ -88,7 +135,6 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
 
             {quizItems.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                    <div className="text-gray-400 text-4xl mb-2">❓</div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No quiz questions yet</h3>
                     <p className="text-gray-600 mb-4">Add questions to create an interactive quiz for your story</p>
                     <button
@@ -137,31 +183,53 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                             </label>
                                             <div className="space-y-2">
                                                 {quizItem.choices.map((choice, choiceIndex) => (
-                                                    <div key={choiceIndex} className="flex items-center gap-3">
+                                                    <div key={choice.id} className="flex items-center gap-3">
                                                         <input
                                                             type="radio"
                                                             name={`correct-answer-${quizIndex}`}
-                                                            checked={quizItem.correctAnswer === choice && choice.trim() !== ''}
-                                                            onChange={() => updateQuizItem(quizIndex, 'correctAnswer', choice)}
+                                                            checked={quizItem.correctAnswer === choice.id}
+                                                            onChange={() => updateQuizItem(quizIndex, 'correctAnswer', choice.id)}
                                                             className="text-blue-600 focus:ring-blue-500"
-                                                            disabled={disabled || choice.trim() === ''}
+                                                            disabled={disabled || choice.text.trim() === ''}
                                                         />
                                                         <span className="text-sm font-medium text-gray-600 w-6">
                                                             {String.fromCharCode(65 + choiceIndex)}.
                                                         </span>
                                                         <input
                                                             type="text"
-                                                            value={choice}
+                                                            value={choice.text}
                                                             onChange={(e) => updateChoice(quizIndex, choiceIndex, e.target.value)}
                                                             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                             placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`}
                                                             disabled={disabled}
                                                         />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeChoice(quizIndex, choiceIndex)}
+                                                            disabled={disabled || quizItem.choices.length <= (config?.minChoicesCount || 2)}
+                                                            className="text-red-400 hover:text-red-600"
+                                                            title="Remove choice"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                 ))}
                                             </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => addChoice(quizIndex)}
+                                                disabled={disabled || quizItem.choices.length >= (config?.maxChoicesCount || 10)}
+                                                className="mt-2 text-blue-600 hover:underline disabled:text-gray-400 disabled:cursor-not-allowed"
+                                            >
+                                                + Add Choice {config?.maxChoicesCount && quizItem.choices.length >= config.maxChoicesCount ? `(Max: ${config.maxChoicesCount})` : ''}
+                                            </button>
                                             <p className="text-xs text-gray-500 mt-2">
                                                 Select the radio button next to the correct answer
+                                                {config && (
+                                                    <span className="block mt-1">
+                                                        Choices: {config.minChoicesCount} - {config.maxChoicesCount} allowed
+                                                    </span>
+                                                )}
                                             </p>
                                         </div>
                                     </div>

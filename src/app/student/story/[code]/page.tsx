@@ -1,34 +1,39 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import LoadingLink from "@/components/LoadingLink";
+import UnauthorizedRedirect from "@/components/UnauthorizedRedirect";
+import { getStoryByCode } from "@/actions/code";
+import { convertToEmbedUrl, isValidYouTubeUrl } from "@/utils/youtube";
+import { ArrowRight } from "lucide-react";
+import { Metadata } from "next";
 
-// Mock stories data - in a real app, this would come from a database
-const stories = {
-  "STORY1": {
-    title: "Ang Matalinong Maya",
-    content: `Isang araw, may isang maya na naghahanap ng pagkain sa kagubatan. Nakakita siya ng isang malaking piraso ng tinapay, pero hindi niya ito mabuhat dahil sa laki nito.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ code: string }>
+}): Promise<Metadata> {
+  const { code } = await params;
 
-    "Paano ko kaya ito mabubuhat?" tanong ng maya sa sarili.
+  try {
+    const storyResult = await getStoryByCode(code);
 
-    Biglang may dumating na isang grupo ng mga maya. "Tulungan natin siya!" sabi ng isa.
-
-    Kaya't pinaghati-hatian nila ang tinapay at dinala ito sa kanilang pugad. Natuto ang maya na ang pagtutulungan ay makakatulong sa paglutas ng mga problema.`,
-    moral: "Ang pagtutulungan ay nagbubunga ng tagumpay."
-  },
-  "STORY2": {
-    title: "Ang Masipag na Langgam",
-    content: `Sa isang mainit na araw ng tag-araw, may isang langgam na nag-iipon ng pagkain para sa tag-ulan. Habang siya ay abala sa paghahanap ng pagkain, nakakita siya ng isang tipaklong na nagpapahinga sa ilalim ng puno.
-
-    "Bakit ka nag-iipon ng pagkain?" tanong ng tipaklong.
-
-    "Para may makain tayo kapag tag-ulan na," sagot ng langgam.
-
-    "Hayaan mo na! Mag-enjoy ka muna!" sabi ng tipaklong.
-
-    Nang dumating ang tag-ulan, nagutom ang tipaklong habang ang langgam ay may sapat na pagkain.`,
-    moral: "Ang paghahanda sa hinaharap ay mahalaga."
+    if (storyResult.success && storyResult.data) {
+      const { story } = storyResult.data;
+      return {
+        title: `${story.title} | Magandang Buhay!`,
+        description: story.description || `Read the story "${story.title}" by ${story.author}`,
+      };
+    }
+  } catch (error) {
+    console.error('Error generating metadata:', error);
   }
-};
+
+  // Fallback metadata if story is not found
+  return {
+    title: "Story | Magandang Buhay!",
+    description: "View the story",
+  };
+}
 
 export default async function StoryPage({
   params,
@@ -36,6 +41,7 @@ export default async function StoryPage({
   params: Promise<{ code: string }>
 }) {
   const { code } = await params;
+
   // Check if user has given consent and provided info
   const cookieStore = await cookies();
   const hasConsent = cookieStore.get("privacy_consent");
@@ -45,28 +51,22 @@ export default async function StoryPage({
     redirect("/student/info?code=" + code);
   }
 
-  const { name, authorizedCode } = JSON.parse(studentInfo.value);
+  const { authorizedCode } = JSON.parse(studentInfo.value);
 
   if (authorizedCode !== code) {
-    return (
-      <div className="h-[85vh] flex flex-col items-center justify-center mx-4">        <h1 className="text-3xl font-extrabold text-blue-700 mb-2">Unauthorized Access</h1>
-        <p className="text-gray-500 mb-6 text-center">You are not authorized to access this story. You can only access the story you were originally assigned.</p>
-        <LoadingLink
-          href={`/student/story/${authorizedCode}`}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-        >
-          Go to your assigned story
-        </LoadingLink>
-      </div>
-    );
+    return <UnauthorizedRedirect authorizedCode={authorizedCode} />;
   }
 
-  const story = stories[code as keyof typeof stories];
-  if (!story) {
-    // If story doesn't exist, return a page that says "Story not found" with button to redirect home
+  // Get story from database using the code
+  const storyResult = await getStoryByCode(code);
+
+  if (!storyResult.success || !storyResult.data) {
     return (
-      <div className="h-[85vh] flex flex-col items-center justify-center mx-4">        <h1 className="text-3xl font-extrabold text-blue-700 mb-2">Story not found</h1>
-        <p className="text-gray-500 mb-6 text-center">Sorry, the story you are looking for does not exist or the code is invalid.</p>
+      <div className="h-[85vh] flex flex-col items-center justify-center mx-4">
+        <h1 className="text-3xl font-extrabold text-blue-700 mb-2">Story not found</h1>
+        <p className="text-gray-500 mb-6 text-center">
+          {storyResult.error || "Sorry, the story you are looking for does not exist or the code is invalid."}
+        </p>
         <LoadingLink
           href="/"
           className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
@@ -75,26 +75,85 @@ export default async function StoryPage({
         </LoadingLink>
       </div>
     );
-    // redirect("/");
   }
 
+  const { story } = storyResult.data;
+
   return (
-    <div className="h-[85vh] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+    <div className="py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full overflow-hidden">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#1E3A8A] mb-2">{story.title}</h1>
-            <p className="text-gray-600">Para kay: {name}</p>
+            <h1 className="text-3xl font-bold text-[#1E3A8A] mb-2 break-words">{story.title}</h1>
+            <p className="text-gray-500 text-sm mb-2 italic">ni {story.author}</p>
+            {story.description && (
+              <p className="text-gray-600 mt-2 break-words text-justify whitespace-pre-line">{story.description}</p>
+            )}
           </div>
 
+          {/* Story Content - You can display the file link or embed content here */}
           <div className="prose prose-lg max-w-none">
-            <p className="whitespace-pre-line text-gray-700">{story.content}</p>
+            {story.fileLink && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-[#1E3A8A] mb-3">Story Content:</h2>
+                {/* Check if it's a video/YouTube link */}
+                {isValidYouTubeUrl(story.fileLink) ? (
+                  <div className="aspect-video w-full max-w-full">
+                    <iframe
+                      src={convertToEmbedUrl(story.fileLink)}
+                      title={story.title}
+                      className="w-full h-full rounded-lg"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                  </div>
+                ) : (
+                  <a
+                    href={story.fileLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition break-all"
+                  >
+                    <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Open Story File
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* Subtitles if available */}
+            {story.subtitles && story.subtitles.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-[#1E3A8A] mb-3">Story Subtitles:</h2>
+                <div className="bg-gray-50 p-4 rounded-lg overflow-hidden">
+                  {story.subtitles.map((subtitle, index) => (
+                    <p key={index} className="mb-2 text-gray-700 break-words">
+                      {subtitle}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-            <h2 className="text-lg font-semibold text-[#1E3A8A] mb-2">Aral:</h2>
-            <p className="text-blue-800">{story.moral}</p>
-          </div>
+          {/* Continue to Quiz Button */}
+          {story.QuizItems && story.QuizItems.length > 0 && (
+            <div className="flex justify-end">
+              <div className="rounded-xl">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-lg font-medium text-[#1E3A8A]">Ready for the quiz?</h3>
+                  <LoadingLink
+                    href={`/student/quiz/${code}`}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+                  >
+                    Take the Quiz <ArrowRight className="" />
+                  </LoadingLink>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

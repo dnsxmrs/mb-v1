@@ -22,3 +22,20 @@ export function extractYouTubeVideoId(url: string): string | null {
 export function isValidYouTubeUrl(url: string): boolean {
     return extractYouTubeVideoId(url) !== null
 }
+
+// Helper function to convert YouTube URLs to embeddable format
+export function convertToEmbedUrl(url: string): string {
+    try {
+        const videoId = extractYouTubeVideoId(url);
+        
+        if (!videoId) {
+            return url; // Return original URL if not a YouTube URL
+        }
+        
+        // Use youtube-nocookie.com for better privacy and to avoid connection issues
+        return `https://www.youtube-nocookie.com/embed/${videoId}`;
+    } catch (error) {
+        console.error('Error converting YouTube URL:', error);
+        return url;
+    }
+}

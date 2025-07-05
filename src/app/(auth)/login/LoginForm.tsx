@@ -52,7 +52,33 @@ const LoginForm = () => {
             })
 
             if (result?.status === 'complete') {
+                // Set the session first
                 await setActive({ session: result.createdSessionId })
+
+                // Update user status from invited to active using API
+                try {
+                    console.log('Calling API to update user status for:', email)
+
+                    const response = await fetch('/api/user/update-status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email }),
+                    })
+
+                    const statusResult = await response.json()
+                    console.log('API response:', statusResult)
+
+                    if (!statusResult.success) {
+                        console.error('Failed to update user status:', statusResult.error)
+                    } else {
+                        console.log('User status updated successfully:', statusResult.message)
+                    }
+                } catch (statusError) {
+                    console.error('Error calling update status API:', statusError)
+                }
+
                 toast.success('Login successful')
                 router.push('/dashboard')
             } else {

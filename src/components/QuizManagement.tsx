@@ -4,17 +4,35 @@ import { useState, useEffect } from 'react'
 import { getStoriesWithQuiz } from '@/actions/story'
 import { getQuizItemsByStory } from '@/actions/quiz'
 
+interface Choice {
+    id: number
+    createdAt: Date
+    updatedAt: Date
+    text: string
+    quizItemId: number
+}
+
+interface QuizItem {
+    id: number
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    quizNumber: number
+    storyId: number
+    question: string
+    correctAnswer: string
+    choices: Choice[]
+}
+
 interface Story {
     id: number
     title: string
     description: string | null
-    QuizItems?: {
-        id: number
-        quizNumber: number
-        question: string
-        choices: string[]
-        correctAnswer: string
-    }[]
+    fileLink: string
+    subtitles: string[]
+    createdAt: Date
+    updatedAt: Date
+    QuizItems?: QuizItem[]
     _count: {
         QuizItems: number
         Codes: number
@@ -162,9 +180,9 @@ export default function QuizManagement() {
                                             <div className="space-y-2">
                                                 {quizItem.choices.map((choice, choiceIndex) => (
                                                     <div
-                                                        key={choiceIndex}
+                                                        key={choice.id}
                                                         className={`flex items-center gap-2 p-2 rounded text-sm ${
-                                                            choice === quizItem.correctAnswer
+                                                            choice.text === quizItem.correctAnswer
                                                                 ? 'bg-green-50 text-green-800 border border-green-200'
                                                                 : 'bg-gray-50 text-gray-700'
                                                         }`}
@@ -172,8 +190,8 @@ export default function QuizManagement() {
                                                         <span className="font-medium">
                                                             {String.fromCharCode(65 + choiceIndex)}.
                                                         </span>
-                                                        <span>{choice}</span>
-                                                        {choice === quizItem.correctAnswer && (
+                                                        <span>{choice.text}</span>
+                                                        {choice.text === quizItem.correctAnswer && (
                                                             <span className="ml-auto text-green-600 font-medium">✓ Correct</span>
                                                         )}
                                                     </div>

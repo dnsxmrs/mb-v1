@@ -1,15 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useUser } from '@clerk/nextjs'
 import toast from 'react-hot-toast'
 import { getUsers, deleteUser } from '@/actions/user'
 import Modal from '@/components/Modal'
 import UserForm from '@/components/UserForm'
-import InvitationManager from '@/components/InvitationManager'
+// import InvitationManager from '@/components/InvitationManager'
 
 interface User {
     id: number
-    clerkId: string | null
     email: string
     first_name: string
     last_name: string
@@ -23,12 +23,13 @@ interface User {
 }
 
 export default function UserManagement() {
+    const { user: currentUser } = useUser()
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-    const [isInvitationManagerOpen, setIsInvitationManagerOpen] = useState(false)
+    // const [isInvitationManagerOpen, setIsInvitationManagerOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User | null>(null)
     const [deleteConfirm, setDeleteConfirm] = useState<User | null>(null)
 
@@ -81,6 +82,11 @@ export default function UserManagement() {
         }
     }
 
+    // Check if the user is the current logged-in user
+    const isCurrentUser = (user: User) => {
+        return currentUser?.emailAddresses?.[0]?.emailAddress === user.email
+    }
+
     const handleFormSuccess = () => {
         // Determine the action based on which modal was open
         if (isCreateModalOpen) {
@@ -88,7 +94,7 @@ export default function UserManagement() {
         } else if (isEditModalOpen) {
             toast.success('User has been updated successfully!')
         }
-        
+
         setIsCreateModalOpen(false)
         setIsEditModalOpen(false)
         setSelectedUser(null)
@@ -134,7 +140,7 @@ export default function UserManagement() {
                     <p className="text-gray-600 mt-1">Manage users, roles, and permissions</p>
                 </div>
                 <div className="flex space-x-3">
-                    <button
+                    {/* <button
                         onClick={() => setIsInvitationManagerOpen(true)}
                         className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
                     >
@@ -142,7 +148,7 @@ export default function UserManagement() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 1.05a3 3 0 002.11 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                         <span>Invitations</span>
-                    </button>
+                    </button> */}
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
@@ -248,15 +254,27 @@ export default function UserManagement() {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                     </svg>
                                                 </button>
-                                                <button
-                                                    onClick={() => setDeleteConfirm(user)}
-                                                    className="text-red-600 hover:text-red-900 transition-colors"
-                                                    title="Delete user"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
+                                                {isCurrentUser(user) ? (
+                                                    <button
+                                                        disabled
+                                                        className="text-gray-400 cursor-not-allowed"
+                                                        title="You cannot delete your own account"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setDeleteConfirm(user)}
+                                                        className="text-red-600 hover:text-red-900 transition-colors"
+                                                        title="Delete user"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -356,10 +374,10 @@ export default function UserManagement() {
             </Modal>
 
             {/* Invitation Manager */}
-            <InvitationManager
+            {/* <InvitationManager
                 isOpen={isInvitationManagerOpen}
                 onClose={() => setIsInvitationManagerOpen(false)}
-            />
+            /> */}
         </div>
     )
 }

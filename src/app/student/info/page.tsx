@@ -1,8 +1,20 @@
-// import { cookies } from "next/headers";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import StudentInfoForm from "./StudentInfoForm";
 import { env } from "process";
 import { handleCodeSubmit } from "@/actions/code";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: 'Student Information | Magandang Buhay!',
+  description: 'Provide your information',
+}
+
+interface StudentData {
+  name?: string;
+  section?: string;
+  hasConsent?: boolean;
+}
 
 export default async function StudentInfoPage({
   searchParams,
@@ -23,11 +35,35 @@ export default async function StudentInfoPage({
     redirect("/");
   }
 
+  // Check for existing student session data
+  const cookieStore = await cookies();
+  const studentInfoCookie = cookieStore.get("student_info");
+  const privacyConsentCookie = cookieStore.get("privacy_consent");
+
+  let existingStudentData: StudentData = {};
+
+  if (studentInfoCookie) {
+    try {
+      const parsedData = JSON.parse(studentInfoCookie.value);
+      existingStudentData = {
+        name: parsedData.name || '',
+        section: parsedData.section || '',
+      };
+    } catch (error) {
+      console.error('Error parsing student info cookie:', error);
+    }
+  }
+
+  if (privacyConsentCookie && privacyConsentCookie.value === 'true') {
+    existingStudentData.hasConsent = true;
+  }
+
   if (env.NODE_ENV === "development") {
     console.log("Type of searchParams", typeof searchParams);
     console.log("code", code);
     console.log("formData", formData);
     console.log("result", result);
+    console.log("existingStudentData", existingStudentData);
   }
 
   // removed this for instance of users sharing a device (they have to input their info every time)
@@ -37,7 +73,10 @@ export default async function StudentInfoPage({
 
   return (
     <div className="h-[85vh] flex items-center justify-center p-4">
-      <StudentInfoForm code={code.toString()} />
+      <StudentInfoForm
+        code={code.toString()}
+        initialData={existingStudentData}
+      />
     </div>
   );
 }

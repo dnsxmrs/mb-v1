@@ -1,11 +1,11 @@
+// src/actions/story.ts
 'use server'
 
-import { PrismaClient } from '@/generated/prisma'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/utils/prisma'
 
 export interface CreateStoryData {
     title: string
+    author?: string
     description?: string
     fileLink: string
     subtitles?: string[]
@@ -13,6 +13,7 @@ export interface CreateStoryData {
 
 export interface UpdateStoryData {
     title?: string
+    author?: string
     description?: string
     fileLink?: string
     subtitles?: string[]
@@ -27,6 +28,7 @@ export async function getStories() {
             select: {
                 id: true,
                 title: true,
+                author: true,
                 description: true,
                 fileLink: true,
                 subtitles: true,
@@ -99,6 +101,7 @@ export async function createStory(data: CreateStoryData) {
         const story = await prisma.story.create({
             data: {
                 title: data.title,
+                author: data.author || 'Anonymous',
                 description: data.description || null,
                 fileLink: data.fileLink,
                 subtitles: data.subtitles || []
@@ -121,6 +124,7 @@ export async function updateStory(id: number, data: UpdateStoryData) {
             },
             data: {
                 ...(data.title && { title: data.title }),
+                ...(data.author !== undefined && { author: data.author || 'Anonymous' }),
                 ...(data.description !== undefined && { description: data.description || null }),
                 ...(data.fileLink && { fileLink: data.fileLink }),
                 ...(data.subtitles !== undefined && { subtitles: data.subtitles }),
@@ -185,6 +189,7 @@ export async function getStoriesWithQuiz() {
             select: {
                 id: true,
                 title: true,
+                author: true,
                 description: true,
                 fileLink: true,
                 subtitles: true,
@@ -192,7 +197,10 @@ export async function getStoriesWithQuiz() {
                 updatedAt: true,
                 QuizItems: {
                     where: { deletedAt: null },
-                    orderBy: { quizNumber: 'asc' }
+                    orderBy: { quizNumber: 'asc' },
+                    include: {
+                        choices: true
+                    }
                 },
                 _count: {
                     select: {

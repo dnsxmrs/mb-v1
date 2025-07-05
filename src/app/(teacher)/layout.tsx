@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import TeacherNav from './components/TeacherNav'
+import TeacherNav from './TeacherNav'
 
 export const metadata: Metadata = {
-  title: "Student Dashboard",
-  description: "Dashboard for students to manage their courses and assignments",
+  title: "Teacher Module",
+  description: "Dashboard for teachers to manage their stories and students",
 };
 
 export default function TeacherLayout({

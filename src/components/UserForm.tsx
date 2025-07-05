@@ -200,10 +200,13 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                     </label>
                     <select
                         id="status"
-                        name="status"
-                        defaultValue={user?.status || 'active'}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        name={user ? "status" : ""}
+                        defaultValue={user?.status || 'invited'}
+                        required={!!user}
+                        disabled={!user}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            !user ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''
+                        }`}
                     >
                         {STATUSES.map(status => (
                             <option key={status.value} value={status.value}>
@@ -211,31 +214,16 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                             </option>
                         ))}
                     </select>
+                    {!user && (
+                        <>
+                            <input type="hidden" name="status" value="invited" />
+                            <p className="text-xs text-gray-500 mt-1">
+                                New users are automatically set to &quot;Invited&quot; status
+                            </p>
+                        </>
+                    )}
                 </div>
             </div>
-
-            {/* Invitation Option for New Users */}
-            {/* {!user && (
-                <div className="border-t pt-4">
-                    <div className="flex items-center space-x-3">
-                        <input
-                            type="checkbox"
-                            id="sendInvitation"
-                            name="sendInvitation"
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            onChange={(e) => setInviteMode(e.target.checked)}
-                            defaultChecked
-                        />
-                        <label htmlFor="sendInvitation" className="text-sm font-medium text-gray-700">
-                            Send invitation email via Clerk
-                        </label>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1 ml-7">
-                        User will receive an email invitation to join the platform.
-                        No password field required when using invitations.
-                    </p>
-                </div>
-            )} */}
 
             <div className="flex justify-end space-x-3 pt-4">
                 <button

@@ -10,22 +10,22 @@ const isPublicRoute = createRouteMatcher([
 ])
 
 export default clerkMiddleware(async (auth, req) => {
-    // check if a user is logged in
-    const { userId } = await auth();
-    const isAuthenticated = !!userId;
-    const url = new URL(req.url);
+  // check if a user is logged in
+  const { userId } = await auth();
+  const isAuthenticated = !!userId;
+  const url = new URL(req.url);
 
-    if (!isPublicRoute(req) && !isAuthenticated) {
-        console.log('🚫 Unauthorized access to protected route');
-        await auth.protect();
+  if (!isPublicRoute(req) && !isAuthenticated) {
+    console.log('🚫 Unauthorized access to protected route: ',);
+    await auth.protect();
+  }
+
+  if (isPublicRoute(req) && isAuthenticated) {
+    // Allow access to privacy statement even when authenticated
+    if (url.pathname === '/privacy-statement') {
+      return NextResponse.next();
     }
-
-      if (isPublicRoute(req) && isAuthenticated) {
-        // Allow access to privacy statement even when authenticated
-        if (url.pathname === '/privacy-statement') {
-            return NextResponse.next();
-        }
-      }
+  }
 });
 
 export const config = {

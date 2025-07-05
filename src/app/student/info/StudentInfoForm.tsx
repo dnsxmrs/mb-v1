@@ -2,69 +2,63 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFormStatus } from "react-dom";
 import { handleStudentInfoSubmit } from "../../../actions/student";
 
 interface StudentInfoFormProps {
   code: string;
+  initialData?: {
+    name?: string;
+    section?: string;
+    hasConsent?: boolean;
+  };
 }
 
-// Submit button component that uses useFormStatus
-// This button will be disabled if the checkbox is not checked
-function SubmitButton({ isChecked }: { isChecked: boolean }) {
-    const { pending } = useFormStatus()
-
-    return (
-        <button
-            type="submit"
-            // set back to disabled if pending or checkbox is not checked or if the formstatus changes
-            // this will prevent the user from submitting the form if the checkbox is not checked
-            // or if the form is pending
-            // or if the form is done processing
-            disabled={pending || !isChecked}
-            className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2.5 sm:py-3 transition duration-200 shadow-sm flex items-center justify-center"
-        >
-            {pending ? (
-              // add a loading spinner
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Magpatuloy...
-              </div>
-            ) : (
-                'Magpatuloy'
-            )}
-        </button>
-    )
-}
-
-export default function StudentInfoForm({ code }: StudentInfoFormProps) {
-  const [isChecked, setIsChecked] = useState(false);
+export default function StudentInfoForm({ code, initialData }: StudentInfoFormProps) {
+  const [isChecked, setIsChecked] = useState(initialData?.hasConsent || false);
   const [clientError, setClientError] = useState('')
+  const [name, setName] = useState(initialData?.name || '')
+  const [section, setSection] = useState(initialData?.section || '')
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  async function handleFormAction(formData: FormData) {
+  // No need for useEffect to read cookies since we get the data from props
+  // The server-side page component handles cookie reading and passes the data
+
+  async function handleFormAction() {
     setClientError('')
+    setIsLoading(true)
 
-    const name = formData.get("name") as string;
-    const section = formData.get("section") as string;
-    if (!name || !section) {
-      setClientError('Pakiusap, punan ang lahat ng kinakailangang impormasyon.');
-      return;
-    }
+    try {
+      // Use state values instead of formData for validation and submission
+      if (!name || !section) {
+        setClientError('Pakiusap, punan ang lahat ng kinakailangang impormasyon.');
+        return;
+      }
 
-    const result = await handleStudentInfoSubmit(formData, code);
+      // Create new FormData with current state values
+      const submissionFormData = new FormData();
+      submissionFormData.append('name', name);
+      submissionFormData.append('section', section);
 
-    if (result.success && result.redirectTo) {
-      router.push(`/student/story/${code}`);
-    } else if (result.error) {
-      setClientError(result.error);
+      const result = await handleStudentInfoSubmit(submissionFormData, code);
+
+      if (result.success && result.redirectTo) {
+        router.push(`/student/story/${code}`);
+      } else if (result.error) {
+        setClientError(result.error);
+      }
+    } catch (error) {
+      setClientError('Nagkaroon ng error. Subukan ulit.');
+      console.error('Form submission error:', error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 sm:p-8">
-      <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A8A] mb-6 text-center">
-        Magbigay ng Impormasyon
+      <h1 className="text-xl sm:text-2xl font-bold text-[#1E3A8A] mb-6 text-center">
+        Ano ang iyong pangalan at seksyon?
       </h1>
 
       {clientError && (
@@ -73,7 +67,7 @@ export default function StudentInfoForm({ code }: StudentInfoFormProps) {
         </div>
       )}
 
-      <form action={handleFormAction} className="space-y-6">
+      <form onSubmit={(e) => { e.preventDefault(); handleFormAction(); }} className="space-y-6">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             Pangalan
@@ -82,6 +76,8 @@ export default function StudentInfoForm({ code }: StudentInfoFormProps) {
             type="text"
             id="name"
             name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
             className="w-full px-4 py-2.5 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]"
             placeholder="Ilagay ang iyong pangalan"
@@ -96,6 +92,8 @@ export default function StudentInfoForm({ code }: StudentInfoFormProps) {
             type="text"
             id="section"
             name="section"
+            value={section}
+            onChange={(e) => setSection(e.target.value)}
             required
             className="w-full px-4 py-2.5 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]"
             placeholder="Ilagay ang iyong seksyon"
@@ -115,9 +113,21 @@ export default function StudentInfoForm({ code }: StudentInfoFormProps) {
           </label>
         </div>
 
-      {/*  use the submitbutton and pass the ischecked */}
-
-        <SubmitButton isChecked={isChecked} />
+        {/*  use the submitbutton and pass the ischecked */}
+        <button
+          type="submit"
+          disabled={isLoading || !isChecked}
+          className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm sm:text-base font-medium rounded-lg px-4 sm:px-6 py-2.5 sm:py-3 transition duration-200 shadow-sm flex items-center justify-center"
+        >
+          {isLoading ? (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Magpatuloy...
+            </div>
+          ) : (
+            'Magpatuloy'
+          )}
+        </button>
       </form>
     </div>
   );

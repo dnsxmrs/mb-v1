@@ -11,6 +11,7 @@ import Modal from '@/components/Modal'
 interface Story {
     id: number
     title: string
+    author: string
     description: string | null
     fileLink: string
     subtitles: string[]
@@ -20,8 +21,11 @@ interface Story {
         id: number
         quizNumber: number
         question: string
-        choices: string[]
-        correctAnswer: string
+        choices: {
+            id: number
+            text: string
+        }[]
+        correctAnswer: number
     }[]
     _count: {
         QuizItems: number
@@ -50,8 +54,20 @@ export default function StoryList() {
         try {
             const result = await getStoriesWithQuiz()
             if (result.success && result.data) {
-                setStories(result.data)
-                
+                // Transform the data to match frontend structure
+                const transformedStories = result.data.map(story => ({
+                    ...story,
+                    QuizItems: story.QuizItems?.map(quiz => ({
+                        ...quiz,
+                        choices: quiz.choices.map((choice) => ({
+                            id: choice.id,
+                            text: choice.text
+                        })),
+                        correctAnswer: quiz.choices.find((choice) => choice.text === quiz.correctAnswer)?.id || 1
+                    }))
+                }))
+                setStories(transformedStories)
+
                 // Generate thumbnails for all stories
                 const thumbnailMap = result.data.reduce((acc: Record<number, string | null>, story) => {
                     const videoId = extractYouTubeVideoId(story.fileLink)
@@ -196,9 +212,13 @@ export default function StoryList() {
 
                                 {/* Content */}
                                 <div className="p-4">
-                                    <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2">
+                                    <h3 className="font-semibold text-lg text-gray-900 mb-1 line-clamp-2">
                                         {story.title}
                                     </h3>
+
+                                    <p className="text-gray-500 text-sm mb-2 italic">
+                                        by {story.author}
+                                    </p>
 
                                     {story.description && (
                                         <p className="text-gray-600 text-sm mb-3 line-clamp-3">

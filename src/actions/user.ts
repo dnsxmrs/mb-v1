@@ -1,10 +1,11 @@
+// src/actions/user.ts
 'use server'
 
-import { PrismaClient } from '@/generated/prisma'
+import { prisma } from '@/utils/prisma'
 import { revalidatePath } from 'next/cache'
 import { createClerkClient } from '@clerk/backend'
+import { auth } from '@clerk/nextjs/server'
 
-const prisma = new PrismaClient()
 const clerkClient = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY
 })
@@ -41,7 +42,6 @@ export async function getUsers() {
             },
             select: {
                 id: true,
-                clerkId: true,
                 email: true,
                 first_name: true,
                 last_name: true,
@@ -69,8 +69,8 @@ export async function getUsers() {
 export async function createUser(data: CreateUserData) {
     try {
         // Check if email already exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email: data.email }
+        const existingUser = await prisma.user.findFirst({
+            where: { email: data.email, deleted_at: null }
         })
 
         if (existingUser) {
@@ -99,9 +99,7 @@ export async function createUser(data: CreateUserData) {
                         role: data.role,
                         first_name: data.first_name,
                         last_name: data.last_name,
-                        userId: user.id
                     },
-                    // redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`
                 })
             } catch (clerkError) {
                 console.error('Error sending Clerk invitation:', clerkError)
@@ -120,8 +118,8 @@ export async function createUser(data: CreateUserData) {
 export async function inviteUser(data: InviteUserData) {
     try {
         // Check if email already exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email: data.email }
+        const existingUser = await prisma.user.findFirst({
+            where: { email: data.email, deleted_at: null }
         })
 
         if (existingUser) {
@@ -150,7 +148,7 @@ export async function inviteUser(data: InviteUserData) {
                 last_name: data.last_name,
                 userId: user.id
             },
-            // redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
+            redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
         })
 
         revalidatePath('/user-management')
@@ -168,6 +166,7 @@ export async function inviteUser(data: InviteUserData) {
     }
 }
 
+// not used
 export async function resendInvitation(userId: number) {
     try {
         const user = await prisma.user.findUnique({
@@ -269,13 +268,65 @@ export async function updateUser(id: number, data: UpdateUserData) {
     }
 }
 
+export async function updateUserStatus(email: string) {
+    console.log('🔥 updateUserStatus called with email:', email)
+    
+    try {
+        if (!email) {
+            console.log('❌ No email provided')
+            return { success: false, error: 'Email is required' }
+        }
+        
+        console.log('✅ Email provided, searching for user...')
+        
+        // Find the user by email to get the id
+        const existingUser = await prisma.user.findFirst({
+            where: { 
+                email: email, 
+                deleted_at: null 
+            },
+        })
+        
+        console.log('🔍 Database query result:', existingUser)
+
+        if (!existingUser) {
+            console.log('❌ User not found for email:', email)
+            return { success: false, error: 'User not found' }
+        }
+
+        console.log('✅ User found with current status:', existingUser.status)
+
+        // Only update if status is 'invited' to prevent unnecessary updates
+        if (existingUser.status !== 'invited') {
+            console.log('ℹ️ User status is already:', existingUser.status, 'for email:', email)
+            return { success: true, message: 'User status is already active or not invited' }
+        }
+
+        console.log('🔄 Updating user status from invited to active for:', email)
+
+        const updatedUser = await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+                status: 'active',
+                modified_at: new Date()
+            }
+        })
+
+        console.log('✅ User status updated successfully:', updatedUser)
+
+        return { success: true, message: 'User status updated to active' }
+    } catch (error) {
+        console.error('💥 Error in updateUserStatus:', error)
+        return { success: false, error: 'Failed to update user status' }
+    }
+}
+
 export async function deleteUser(id: number) {
     try {
         // First, get the user to retrieve their clerkId and status
         const user = await prisma.user.findUnique({
             where: { id },
             select: {
-                clerkId: true,
                 email: true,
                 first_name: true,
                 last_name: true,
@@ -295,26 +346,23 @@ export async function deleteUser(id: number) {
             const revocationResult = await revokeInvitationByEmail(user.email)
             clerkMessage = revocationResult.message
             console.log(`Invitation revocation for ${user.email}: ${revocationResult.success ? 'success' : 'failed'}`)
-        } else {
-            // For active users, delete the Clerk user account
-            if (user.clerkId) {
-                try {
-                    await clerkClient.users.deleteUser(user.clerkId)
-                    clerkMessage = 'Clerk account deleted and '
-                    console.log(`Successfully deleted Clerk user: ${user.clerkId}`)
-                } catch (clerkError: unknown) {
-                    console.error('Error deleting from Clerk:', clerkError)
-                    
-                    // Check if it's a "user not found" error, which is acceptable
-                    const error = clerkError as { status?: number; message?: string }
-                    if (error?.status === 404 || error?.message?.includes('not found')) {
-                        console.log('Clerk user already deleted or not found, proceeding with database deletion')
-                        clerkMessage = 'Clerk account already removed, '
-                    } else {
-                        // For other errors, log but continue with database deletion
-                        console.warn('Clerk deletion failed but continuing with database deletion:', error?.message || 'Unknown error')
-                        clerkMessage = 'Clerk deletion failed but '
-                    }
+        } else if (user.status === 'active' || user.status === 'pending') {
+            try {
+                await clerkClient.users.deleteUser(user.email)
+                clerkMessage = 'Clerk account deleted and '
+                console.log(`Successfully deleted Clerk user: ${user.email}`)
+            } catch (clerkError: unknown) {
+                console.error('Error deleting from Clerk:', clerkError)
+
+                // Check if it's a "user not found" error, which is acceptable
+                const error = clerkError as { status?: number; message?: string }
+                if (error?.status === 404 || error?.message?.includes('not found')) {
+                    console.log('Clerk user already deleted or not found, proceeding with database deletion')
+                    clerkMessage = 'Clerk account already removed, '
+                } else {
+                    // For other errors, log but continue with database deletion
+                    console.warn('Clerk deletion failed but continuing with database deletion:', error?.message || 'Unknown error')
+                    clerkMessage = 'Clerk deletion failed but '
                 }
             }
         }
@@ -329,9 +377,9 @@ export async function deleteUser(id: number) {
         })
 
         revalidatePath('/user-management')
-        return { 
-            success: true, 
-            message: `${clerkMessage}user record has been deleted successfully` 
+        return {
+            success: true,
+            message: `${clerkMessage}user record has been deleted successfully`
         }
     } catch (error) {
         console.error('Error deleting user:', error)
@@ -345,7 +393,6 @@ export async function getUserById(id: number) {
             where: { id },
             select: {
                 id: true,
-                clerkId: true,
                 email: true,
                 first_name: true,
                 last_name: true,
@@ -373,15 +420,15 @@ async function revokeInvitationByEmail(email: string): Promise<{ success: boolea
         const invitationsResponse = await clerkClient.invitations.getInvitationList({
             status: 'pending'
         })
-        
+
         interface ClerkInvitation {
             id: string
             emailAddress: string
             status: string
         }
-        
+
         const userInvitation = invitationsResponse.data.find((inv: ClerkInvitation) => inv.emailAddress === email)
-        
+
         if (userInvitation) {
             await clerkClient.invitations.revokeInvitation(userInvitation.id)
             return { success: true, message: 'Pending invitation revoked and ' }
@@ -392,4 +439,47 @@ async function revokeInvitationByEmail(email: string): Promise<{ success: boolea
         console.error('Error revoking invitation:', error)
         return { success: false, message: 'Invitation revocation failed but ' }
     }
+}
+
+export async function getCurrentUser() {
+    try {
+        const { userId } = await auth()
+        
+        if (!userId) {
+            return { success: false, error: 'Not authenticated' }
+        }
+
+        // For now, we'll use a default user ID since the Clerk integration 
+        // might not be fully connected to the User table
+        // In a real implementation, you'd need to store the Clerk user ID 
+        // in your User table and find by that
+        const user = await prisma.user.findFirst({
+            where: {
+                role: 'admin', // Assuming teachers have admin role
+                deleted_at: null
+            },
+            select: {
+                id: true,
+                email: true,
+                first_name: true,
+                last_name: true,
+                role: true
+            }
+        })
+
+        if (!user) {
+            return { success: false, error: 'User not found' }
+        }
+
+        return { success: true, data: user }
+    } catch (error) {
+        console.error('Error getting current user:', error)
+        return { success: false, error: 'Failed to get current user' }
+    }
+}
+
+// Test server action to verify server actions are working
+export async function testServerAction(email: string) {
+    console.log('🧪 TEST SERVER ACTION called with:', email)
+    return { success: true, message: 'Test server action works!' }
 }

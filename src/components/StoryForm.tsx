@@ -9,6 +9,7 @@ interface StoryFormProps {
     story?: {
         id: number
         title: string
+        author: string
         description: string | null
         fileLink: string
         subtitles: string[]
@@ -20,6 +21,7 @@ interface StoryFormProps {
 export default function StoryForm({ story, onSuccess, onCancel }: StoryFormProps) {
     const [formData, setFormData] = useState({
         title: story?.title || '',
+        author: story?.author || '',
         description: story?.description || '',
         fileLink: story?.fileLink || '',
         subtitles: story?.subtitles?.join('\n') || ''
@@ -63,6 +65,7 @@ export default function StoryForm({ story, onSuccess, onCancel }: StoryFormProps
 
             const data = {
                 title: formData.title.trim(),
+                author: formData.author.trim() || undefined,
                 description: formData.description.trim() || undefined,
                 fileLink: formData.fileLink.trim(),
                 subtitles: subtitlesArray.length > 0 ? subtitlesArray : undefined
@@ -127,6 +130,24 @@ export default function StoryForm({ story, onSuccess, onCancel }: StoryFormProps
                     {errors.title && (
                         <p className="text-red-500 text-sm mt-1">{errors.title}</p>
                     )}
+                </div>
+
+                <div>
+                    <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-2">
+                        Author
+                    </label>
+                    <input
+                        type="text"
+                        id="author"
+                        value={formData.author}
+                        onChange={(e) => handleInputChange('author', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter author name (optional)"
+                        disabled={isSubmitting}
+                    />
+                    <p className="text-gray-500 text-sm mt-1">
+                        If left empty, will default to &ldquo;Anonymous&rdquo;
+                    </p>
                 </div>
 
                 <div>

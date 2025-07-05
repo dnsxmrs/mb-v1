@@ -5,7 +5,7 @@ import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { UserButton } from '@clerk/nextjs'
 import Image from 'next/image'
-import { BookText, BookOpenCheck } from 'lucide-react';
+import { BookText, BookOpenCheck, Settings } from 'lucide-react';
 
 interface TeacherNavProps {
   children: ReactNode
@@ -67,6 +67,11 @@ export default function TeacherNav({ children }: TeacherNavProps) {
         />
       ),
       name: "User Management",
+    },
+    {
+      href: "/settings",
+      icon: <Settings />,
+      name: "Settings",
     },
   ];
 

@@ -19,14 +19,14 @@ export async function handleStudentInfoSubmit(formData: FormData, code: string) 
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
   });
 
   (await cookieStore).set("privacy_consent", "true", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
   });
 
   return { success: true, redirectTo: `/student/story/${code}` };

@@ -11,90 +11,104 @@ datasource db {
 }
 
 model User {
-  id              Int       @id @default(autoincrement())
-  clerkId         String?   @unique @db.VarChar(100) // Optional, unique when present
-  email           String    @unique @db.VarChar(255)
-  first_name      String    @db.VarChar(100)
-  last_name       String    @db.VarChar(100)
-  role            String    @default("student") @db.VarChar(50) // "admin", "clerk", etc.
-  status          String    @default("active") @db.VarChar(50)
-  created_at      DateTime  @default(now())
-  modified_at     DateTime  @default(now())
-  deleted_at      DateTime?
-
-  CreatedCodes Code[] @relation("CodeCreator") // creator of codes
+  id           Int       @id @default(autoincrement())
+  email        String    @db.VarChar(255)
+  first_name   String    @db.VarChar(100)
+  last_name    String    @db.VarChar(100)
+  role         String    @default("student") @db.VarChar(50)
+  status       String    @default("active") @db.VarChar(50)
+  created_at   DateTime  @default(now())
+  modified_at  DateTime  @default(now())
+  deleted_at   DateTime?
+  CreatedCodes Code[]    @relation("CodeCreator")
 }
 
 model Story {
-  id          Int       @id @default(autoincrement())
-  title       String    @db.VarChar(255)
-  description String?   @db.Text
+  id          Int                 @id @default(autoincrement())
+  title       String              @db.VarChar(255)
+  description String?
   fileLink    String
-  subtitles   String[]  @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  subtitles   String[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
   deletedAt   DateTime?
-
-  QuizItems   QuizItem[]
+  author      String              @default("Anonymous") @db.VarChar(100)
   Codes       Code[]
+  QuizItems   QuizItem[]
   Submissions StudentSubmission[]
 }
 
 model QuizItem {
-  id            Int       @id @default(autoincrement())
+  id            Int             @id @default(autoincrement())
   storyId       Int
   quizNumber    Int
-  question      String    @db.Text
-  choices       String[]  @db.Text
+  question      String
   correctAnswer String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime        @default(now())
   deletedAt     DateTime?
-
-  Story   Story           @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  Answers StudentAnswer[]
+  updatedAt     DateTime        @updatedAt
+  choices       Choice[]
+  Story         Story           @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  Answers       StudentAnswer[]
 }
 
 model Code {
-  id          Int       @id @default(autoincrement())
-  code        String    @unique
+  id          Int                 @id @default(autoincrement())
+  code        String              @unique
   storyId     Int
   createdById Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime            @default(now())
   deletedAt   DateTime?
-
-  Story       Story               @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime            @updatedAt
+  status      String              @default("active") @db.VarChar(50)
   Creator     User                @relation("CodeCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  Story       Story               @relation(fields: [storyId], references: [id], onDelete: Cascade)
   Submissions StudentSubmission[]
 }
 
 model StudentSubmission {
-  id          Int       @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   codeId      Int
   storyId     Int
-  fullName    String    @db.VarChar(255)
-  section     String    @db.VarChar(100)
-  submittedAt DateTime  @default(now())
-  score       Float? // Nullable until evaluated
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  fullName    String          @db.VarChar(255)
+  section     String          @db.VarChar(100)
+  submittedAt DateTime        @default(now())
+  score       Int?
   deletedAt   DateTime?
-
-  Code    Code            @relation(fields: [codeId], references: [id], onDelete: Cascade)
-  Story   Story           @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  Answers StudentAnswer[]
+  Answers     StudentAnswer[]
+  Code        Code            @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  Story       Story           @relation(fields: [storyId], references: [id], onDelete: Cascade)
 }
 
 model StudentAnswer {
-  id             Int       @id @default(autoincrement())
+  id             Int               @id @default(autoincrement())
   submissionId   Int
   quizItemId     Int
   selectedAnswer String
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime          @default(now())
   deletedAt      DateTime?
+  updatedAt      DateTime          @updatedAt
+  QuizItem       QuizItem          @relation(fields: [quizItemId], references: [id], onDelete: Cascade)
+  Submission     StudentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
 
-  Submission StudentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  QuizItem   QuizItem          @relation(fields: [quizItemId], references: [id], onDelete: Cascade)
+model Choice {
+  id         Int       @id @default(autoincrement())
+  text       String    @db.VarChar(255)
+  quizItemId Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  QuizItem   QuizItem  @relation(fields: [quizItemId], references: [id], onDelete: Cascade)
+}
+
+model SystemConfig {
+  id                  Int      @id @default(autoincrement())
+  defaultChoicesCount Int      @default(2)
+  maxChoicesCount     Int      @default(10)
+  minChoicesCount     Int      @default(2)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("system_config")
 }
