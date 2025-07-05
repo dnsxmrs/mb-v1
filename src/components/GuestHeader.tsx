@@ -13,9 +13,11 @@ export default function GuestHeader() {
         teachers: false,
         dashboard: false
     });
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleNavigation = (type: 'home' | 'teachers' | 'dashboard') => {
         setLoadingStates(prev => ({ ...prev, [type]: true }));
+        setIsMobileMenuOpen(false); // Close mobile menu on navigation
         // Reset loading state after a short delay (optional, for better UX)
         setTimeout(() => {
             setLoadingStates(prev => ({ ...prev, [type]: false }));
@@ -31,37 +33,47 @@ export default function GuestHeader() {
 
     return (
         <header className="w-full bg-[#DBEAFE] border-b border-[#60A5FA]/20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex justify-between items-center">
+            <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 py-3 xs:py-4 sm:py-6 flex justify-between items-center">
                 <Link href="/" className="flex items-center">
                     <Image
                         src="/images/magandang-buhay-rbg.png"
                         alt="Magandang Buhay Logo"
                         width={40}
                         height={40}
-                        className="w-8 h-8 sm:w-10 sm:h-10 mr-2"
+                        className="w-6 h-6 xs:w-8 xs:h-8 sm:w-10 sm:h-10 mr-1.5 xs:mr-2"
                     />
-                    <h1 className="text-base sm:text-lg md:text-2xl font-bold text-[#1E3A8A]">
+                    <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-[#1E3A8A]">
                         Magandang Buhay!
                     </h1>
                 </Link>
 
-                <div className='sm:flex items-center space-x-6'>
-                    <Link href="/" className="font-medium text-[#1E3A8A] hover:underline">
+                {/* Desktop Navigation */}
+                <div className='hidden md:flex items-center space-x-4 lg:space-x-6'>
+                    <Link href="/" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
                         Home
                     </Link>
-                    <Link href="/#" className="font-medium text-[#1E3A8A] hover:underline">
+                    <Link href="/libraries" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
                         Libraries
                     </Link>
-
-                    <Link href="/#" className="font-medium text-[#1E3A8A] hover:underline">
+                    <Link href="/games" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
                         Games
                     </Link>
-
                 </div>
 
-                <div className="flex items-center space-x-3 sm:space-x-4">
+                {/* Mobile Menu Button */}
+                <button
+                    className="md:hidden flex flex-col justify-center items-center w-6 h-6 space-y-1"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    aria-label="Toggle mobile menu"
+                >
+                    <span className={`block w-5 h-0.5 bg-[#1E3A8A] transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
+                    <span className={`block w-5 h-0.5 bg-[#1E3A8A] transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+                    <span className={`block w-5 h-0.5 bg-[#1E3A8A] transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+                </button>
+
+                <div className="hidden md:flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
                     <SignedOut>
-                        <div className="bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-xs sm:text-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-medium transition duration-200 shadow-sm">
+                        <div className="bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-xs sm:text-sm lg:text-base rounded-full px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 font-medium transition duration-200 shadow-sm">
                             {pathname === '/login' || pathname === '/reset-password' ? (
                                 <Link
                                     href="/"
@@ -74,33 +86,107 @@ export default function GuestHeader() {
                             ) : (
                                 <Link
                                     href="/login"
-                                    className="w-full h-full  flex items-center justify-center"
+                                    className="w-full h-full flex items-center justify-center"
                                     onClick={() => handleNavigation('teachers')}
                                 >
                                     {loadingStates.teachers && <LoadingSpinner />}
-                                    For Teachers
+                                    <span className="hidden xs:inline">For Teachers</span>
+                                    <span className="xs:hidden">Teachers</span>
                                 </Link>
                             )}
                         </div>
                     </SignedOut>
 
                     <SignedIn>
-                        <Link href="/dashboard" className='mr-2 sm:mr-4'>
+                        <Link href="/dashboard" className='mr-1 xs:mr-2 sm:mr-4'>
                             <button
-                                className="bg-[#1E40AF] hover:bg-[#3B82F6] text-white text-xs sm:text-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-medium transition duration-200 shadow-sm flex items-center justify-center"
+                                className="bg-[#1E40AF] hover:bg-[#3B82F6] text-white text-xs sm:text-sm lg:text-base rounded-full px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 font-medium transition duration-200 shadow-sm flex items-center justify-center"
                                 onClick={() => handleNavigation('dashboard')}
                             >
                                 {loadingStates.dashboard && <LoadingSpinner />}
-                                Go to Dashboard
+                                <span className="hidden xs:inline">Go to Dashboard</span>
+                                <span className="xs:hidden">Dashboard</span>
                             </button>
                         </Link>
                         {/* center the user button in the div */}
-                        <div className="scale-90 sm:scale-120 flex items-center justify-center">
+                        <div className="scale-75 xs:scale-90 sm:scale-100 flex items-center justify-center">
                             <UserButton />
                         </div>
                     </SignedIn>
                 </div>
             </div>
+
+            {/* Mobile Navigation Menu */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden bg-[#DBEAFE] border-t border-[#60A5FA]/20">
+                    <div className="px-3 xs:px-4 py-3 space-y-3">
+                        <Link
+                            href="/"
+                            className="block font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            Home
+                        </Link>
+                        <Link
+                            href="/libraries"
+                            className="block font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            Libraries
+                        </Link>
+                        <Link
+                            href="/games"
+                            className="block font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            Games
+                        </Link>
+
+                        <div className="pt-3 border-t border-[#60A5FA]/20">
+                            <SignedOut>
+                                <div className="w-full">
+                                    {pathname === '/login' || pathname === '/reset-password' ? (
+                                        <Link
+                                            href="/"
+                                            className="block w-full bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-center text-sm rounded-lg px-4 py-2.5 font-medium transition duration-200"
+                                            onClick={() => handleNavigation('home')}
+                                        >
+                                            {loadingStates.home && <LoadingSpinner />}
+                                            Home
+                                        </Link>
+                                    ) : (
+                                        <Link
+                                            href="/login"
+                                            className="block w-full bg-[#3B82F6] hover:bg-[#60A5FA] text-white text-center text-sm rounded-lg px-4 py-2.5 font-medium transition duration-200"
+                                            onClick={() => handleNavigation('teachers')}
+                                        >
+                                            {loadingStates.teachers && <LoadingSpinner />}
+                                            For Teachers
+                                        </Link>
+                                    )}
+                                </div>
+                            </SignedOut>
+
+                            <SignedIn>
+                                <div className="space-y-3">
+                                    <Link href="/dashboard" className="block w-full">
+                                        <button
+                                            className="w-full bg-[#1E40AF] hover:bg-[#3B82F6] text-white text-sm rounded-lg px-4 py-2.5 font-medium transition duration-200"
+                                            onClick={() => handleNavigation('dashboard')}
+                                        >
+                                            {loadingStates.dashboard && <LoadingSpinner />}
+                                            Go to Dashboard
+                                        </button>
+                                    </Link>
+                                    <div className="flex justify-center">
+                                        <UserButton />
+                                    </div>
+                                </div>
+                            </SignedIn>
+                        </div>
+                    </div>
+                </div>
+            )}
         </header>
     );
 }

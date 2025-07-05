@@ -51,7 +51,7 @@ export default function StudentInfoForm({ code, initialData }: StudentInfoFormPr
       setClientError('Nagkaroon ng error. Subukan ulit.');
       console.error('Form submission error:', error);
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   }
 

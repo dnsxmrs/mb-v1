@@ -94,7 +94,7 @@ const LoginForm = () => {
                 setError('An unexpected error occurred')
             }
         } finally {
-            setLoading(false)
+            // setLoading(false)
         }
     }
 
@@ -143,7 +143,7 @@ const LoginForm = () => {
                                     placeholder="e.g john@doe.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-3 text-gray-900 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                                    className="w-full px-4 py-3 text-black bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                                     required
                                 />
                             </div>
@@ -157,9 +157,10 @@ const LoginForm = () => {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     id="password"
+                                    placeholder="*********"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-4 py-3 pr-20 text-gray-900 bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                                    className="w-full px-4 py-3 pr-20 text-black bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
                                     required
                                 />
                                 {/* Eye Icon Button */}

@@ -188,7 +188,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
             setErrors({ general: errorMsg })
             toast.error(errorMsg)
         } finally {
-            setIsSubmitting(false)
+            // setIsSubmitting(false)
         }
     }
 

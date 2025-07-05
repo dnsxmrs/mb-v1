@@ -87,7 +87,7 @@ export default function StoryList() {
             setError(errorMsg)
             toast.error(errorMsg)
         } finally {
-            setLoading(false)
+            // setLoading(false)
         }
     }
 

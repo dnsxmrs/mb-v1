@@ -79,7 +79,7 @@ export default function TeacherDashboard() {
       setError('An error occurred while generating the code')
       console.error('Error generating code:', error)
     } finally {
-      setIsLoading(false)
+      // setIsLoading(false)
     }
   }
 

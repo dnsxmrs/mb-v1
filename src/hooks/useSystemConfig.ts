@@ -30,7 +30,7 @@ export function useSystemConfig() {
         } catch {
             setError('An error occurred while fetching system configuration')
         } finally {
-            setLoading(false)
+            // setLoading(false)
         }
     }
 

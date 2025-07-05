@@ -50,7 +50,7 @@ export default function UserManagement() {
             setError(errorMsg)
             toast.error(errorMsg)
         } finally {
-            setLoading(false)
+            // setLoading(false)
         }
     }
 

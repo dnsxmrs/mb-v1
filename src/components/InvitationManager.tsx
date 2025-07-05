@@ -43,7 +43,7 @@ export default function InvitationManager({ isOpen, onClose }: InvitationManager
       setError(errorMsg)
       toast.error(errorMsg)
     } finally {
-      setLoading(false)
+      // setLoading(false)
     }
   }
 

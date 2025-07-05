@@ -59,7 +59,7 @@ export default function QuizManagement() {
         } catch {
             setError('An unexpected error occurred')
         } finally {
-            setLoading(false)
+            // setLoading(false)
         }
     }
 

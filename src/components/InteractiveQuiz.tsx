@@ -82,7 +82,7 @@ export default function InteractiveQuiz({
             console.error('Error submitting quiz:', error)
             toast.error('An unexpected error occurred')
         } finally {
-            setIsSubmitting(false)
+            // setIsSubmitting(false)
         }
     }
 

@@ -86,7 +86,7 @@ export default function StoryForm({ story, onSuccess, onCancel }: StoryFormProps
         } catch {
             setErrors({ general: 'An unexpected error occurred' })
         } finally {
-            setIsSubmitting(false)
+            // setIsSubmitting(false)
         }
     }
 

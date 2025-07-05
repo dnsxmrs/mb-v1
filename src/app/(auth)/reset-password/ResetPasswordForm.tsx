@@ -52,7 +52,7 @@ const ResetPasswordForm = () => {
         setError('An unexpected error occurred')
       }
     } finally {
-      setIsCreating(false)
+      // setIsCreating(false)
     }
   }
 
@@ -101,7 +101,7 @@ const ResetPasswordForm = () => {
         setError('An unexpected error occurred')
       }
     } finally {
-      setIsResetting(false)
+      // setIsResetting(false)
     }
   }
 
