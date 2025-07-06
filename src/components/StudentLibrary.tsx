@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { getStudentViewedStories } from '@/actions/story-view'
+import { hasStudentTakenQuiz } from '@/actions/quiz'
+import { getCurrentStudentInfo } from '@/actions/student'
 import { useStudentSessionRefresh } from '@/hooks/useStudentSession'
-import { updateStudentAuthorizedCode } from '@/actions/student'
+// import { updateStudentAuthorizedCode } from '@/actions/student'
 import { extractYouTubeVideoId } from '@/utils/youtube'
 
 interface ViewedStory {
@@ -20,9 +22,10 @@ interface ViewedStory {
 
 interface StoryThumbnailProps {
     story: ViewedStory
+    quizTaken?: boolean | null
 }
 
-function StoryThumbnail({ story }: StoryThumbnailProps) {
+function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
     const [isLoading, setIsLoading] = useState(true)
     const [hasError, setHasError] = useState(false)
 
@@ -31,8 +34,6 @@ function StoryThumbnail({ story }: StoryThumbnailProps) {
         const videoId = extractYouTubeVideoId(fileLink)
 
         if (videoId) {
-            // Use YouTube's thumbnail service - maxresdefault provides the highest quality
-            // Will fallback to lower quality thumbnails if maxres is not available
             return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
         }
 
@@ -94,13 +95,22 @@ function StoryThumbnail({ story }: StoryThumbnailProps) {
                 </div>
             </div>
 
-            {/* Reading badge */}
-            <div className="absolute top-3 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium z-50 shadow-lg">
-                Read
-            </div>
+            {/* Quiz Status badge */}
+            {quizTaken !== null && (
+                <div className={`absolute top-3 right-3 text-white text-xs px-2 py-1 rounded-full font-medium z-50 shadow-lg ${quizTaken
+                    ? 'bg-blue-500'
+                    : 'bg-orange-500'
+                    }`}>
+                    {quizTaken ? 'Tapos na' : 'May Quiz'}
+                </div>
+            )}
         </div>
     )
 }
+
+type SortOption = 'title-asc' | 'title-desc' | 'latest-first' | 'earliest-first' | 'author-asc' | 'author-desc'
+
+type FilterOption = 'all' | 'with-quiz' | 'without-quiz' | 'quiz-completed' | 'quiz-pending'
 
 export default function StudentLibrary() {
     const [stories, setStories] = useState<ViewedStory[]>([])
@@ -108,7 +118,10 @@ export default function StudentLibrary() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
+    const [sortBy, setSortBy] = useState<SortOption>('latest-first')
+    const [filterBy, setFilterBy] = useState<FilterOption>('all')
     const [navigating, setNavigating] = useState<string | null>(null) // Track which story is being navigated to
+    const [quizStatuses, setQuizStatuses] = useState<Record<string, boolean>>({})
     const { refreshSession } = useStudentSessionRefresh()
     const router = useRouter()
 
@@ -121,16 +134,36 @@ export default function StudentLibrary() {
                 setLoading(true)
                 setError('')
 
+                // Get student info from server action
+                const studentInfoResult = await getCurrentStudentInfo()
                 const result = await getStudentViewedStories()
 
                 if (result.success && result.data) {
                     setStories(result.data)
-                    setFilteredStories(result.data)
+
+                    // Load quiz statuses for all stories
+                    if (studentInfoResult.success && studentInfoResult.data) {
+                        const statuses: Record<string, boolean> = {}
+
+                        for (const story of result.data) {
+                            try {
+                                const quizResult = await hasStudentTakenQuiz(
+                                    story.code,
+                                    studentInfoResult.data.name,
+                                    studentInfoResult.data.section
+                                )
+                                statuses[story.code] = quizResult.success && quizResult.data ? quizResult.data.hasTaken : false
+                            } catch {
+                                statuses[story.code] = false
+                            }
+                        }
+
+                        setQuizStatuses(statuses)
+                    }
                 } else {
                     setError(result.error || 'Failed to load viewed stories')
                 }
-            } catch (err) {
-                console.error('Error loading viewed stories:', err)
+            } catch {
                 setError('An unexpected error occurred')
             } finally {
                 setLoading(false)
@@ -140,25 +173,77 @@ export default function StudentLibrary() {
         loadViewedStories()
     }, [refreshSession])
 
-    // Filter stories based on search term
+    // Apply search, sort, and filter
     useEffect(() => {
-        if (!searchTerm.trim()) {
-            setFilteredStories(stories)
-        } else {
-            const filtered = stories.filter(story =>
+        // Sorting function
+        const sortStories = (stories: ViewedStory[], sortOption: SortOption): ViewedStory[] => {
+            const sorted = [...stories]
+
+            switch (sortOption) {
+                case 'title-asc':
+                    return sorted.sort((a, b) => a.title.localeCompare(b.title))
+                case 'title-desc':
+                    return sorted.sort((a, b) => b.title.localeCompare(a.title))
+                case 'latest-first':
+                    return sorted.sort((a, b) => new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime())
+                case 'earliest-first':
+                    return sorted.sort((a, b) => new Date(a.viewedAt).getTime() - new Date(b.viewedAt).getTime())
+                case 'author-asc':
+                    return sorted.sort((a, b) => a.author.localeCompare(b.author))
+                case 'author-desc':
+                    return sorted.sort((a, b) => b.author.localeCompare(a.author))
+                default:
+                    return sorted
+            }
+        }
+
+        // Filtering function
+        const filterStories = (stories: ViewedStory[], filterOption: FilterOption): ViewedStory[] => {
+            switch (filterOption) {
+                case 'all':
+                    return stories
+                case 'with-quiz':
+                    return stories.filter(story => story.code in quizStatuses)
+                case 'without-quiz':
+                    return stories.filter(story => !(story.code in quizStatuses))
+                case 'quiz-completed':
+                    return stories.filter(story => quizStatuses[story.code] === true)
+                case 'quiz-pending':
+                    return stories.filter(story => quizStatuses[story.code] === false && story.code in quizStatuses)
+                default:
+                    return stories
+            }
+        }
+
+        let filtered = stories
+
+        // Apply search filter
+        if (searchTerm.trim()) {
+            filtered = filtered.filter(story =>
                 story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 story.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (story.description && story.description.toLowerCase().includes(searchTerm.toLowerCase()))
             )
-            setFilteredStories(filtered)
         }
-    }, [searchTerm, stories])
+
+        // Apply category filter
+        filtered = filterStories(filtered, filterBy)
+
+        // Apply sorting
+        filtered = sortStories(filtered, sortBy)
+
+        setFilteredStories(filtered)
+    }, [searchTerm, stories, sortBy, filterBy, quizStatuses])
 
     const formatDate = (date: Date) => {
         return new Intl.DateTimeFormat('en-US', {
             month: 'long',
             day: 'numeric',
-            year: 'numeric'
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: 'Asia/Manila',
         }).format(new Date(date))
     }
 
@@ -166,18 +251,18 @@ export default function StudentLibrary() {
         try {
             // Set loading state for this specific story
             setNavigating(storyCode)
-            
+
             // Update the authorized code in the student session
-            const result = await updateStudentAuthorizedCode(storyCode)
-            
-            if (result.success) {
-                // Navigate to the story page
-                router.push(`/student/story/${storyCode}`)
-            } else {
-                console.error('Failed to update authorized code:', result.error)
-                // Still navigate even if update fails (fallback)
-                router.push(`/student/story/${storyCode}`)
-            }
+            // const result = await updateStudentAuthorizedCode(storyCode)
+
+            // if (result.success) {
+            //     // Navigate to the story page
+            router.push(`/student/story/${storyCode}`)
+            // } else {
+            //     console.error('Failed to update authorized code:', result.error)
+            //     // Still navigate even if update fails (fallback)
+            //     router.push(`/student/story/${storyCode}`)
+            // }
         } catch (error) {
             console.error('Error updating authorized code:', error)
             // Still navigate even if update fails (fallback)
@@ -214,8 +299,8 @@ export default function StudentLibrary() {
         return (
             <div className="space-y-8">
                 <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-[#1E3A8A] mb-2">Your Personal Library</h2>
-                    <p className="text-gray-600">Stories you&apos;ve explored and enjoyed</p>
+                    <h2 className="text-2xl font-bold text-[#1E3A8A] mb-2">Iyong Aklatan</h2>
+                    <p className="text-gray-600">Mga panitikang iyong na-explore at nagustuhan</p>
                 </div>
 
                 {/* Search Bar */}
@@ -228,7 +313,7 @@ export default function StudentLibrary() {
                         </div>
                         <input
                             type="text"
-                            placeholder="Search your library..."
+                            placeholder="Hanapin ang panitikan..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -252,8 +337,8 @@ export default function StudentLibrary() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-600 mb-2">No stories found</h3>
-                    <p className="text-gray-500">Try searching with different keywords or clear the search to see all stories.</p>
+                    <h3 className="text-lg font-medium text-gray-600 mb-2">Walang nahanap na panitikan</h3>
+                    <p className="text-gray-500">Subukan ang paghahanap gamit ang ibang mga keyword o i-clear ang paghahanap upang makita ang lahat ng panitikan.</p>
                 </div>
             </div>
         )
@@ -267,8 +352,8 @@ export default function StudentLibrary() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-600 mb-2">No Stories Yet</h3>
-                <p className="text-gray-500">You haven&apos;t viewed any stories yet. Start exploring to build your library!</p>
+                <h3 className="text-lg font-medium text-gray-600 mb-2">Walang Panitikan na Nahanap</h3>
+                <p className="text-gray-500">Wala ka pang na-view na panitikan. Simulan ang pag-explore upang bumuo ng iyong aklatan!</p>
             </div>
         )
     }
@@ -276,36 +361,78 @@ export default function StudentLibrary() {
     return (
         <div className="space-y-8">
             <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-[#1E3A8A] mb-2">Your Personal Library</h2>
-                <p className="text-gray-600">Stories you&apos;ve explored and enjoyed</p>
+                <h2 className="text-2xl font-bold text-[#1E3A8A] mb-2">Iyong Aklatan</h2>
+                <p className="text-gray-600">Mga panitikang iyong na-explore at nagustuhan</p>
             </div>
 
-            {/* Search Bar */}
+            {/* Search Bar with Inline Filters */}
             {stories.length > 0 && (
-                <div className="max-w-md mx-auto">
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search your library..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className=" text-black block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        {searchTerm && (
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                            >
-                                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <div className="max-w-6xl mx-auto">
+                    <div className="flex flex-col lg:flex-row gap-4 items-center justify-center">
+                        {/* Search Bar */}
+                        <div className="relative flex-grow max-w-md">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                            </button>
-                        )}
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Hanapin ang panitikan..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="text-black block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                >
+                                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Sort Controls */}
+                        <div className="flex items-center gap-2">
+                            <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                                Uriin:
+                            </label>
+                            <select
+                                id="sort-select"
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                                className="text-black px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[140px]"
+                            >
+                                <option value="latest-first">Pinakabago</option>
+                                <option value="earliest-first">Pinakaluma</option>
+                                <option value="title-asc">Pamagat (A-Z)</option>
+                                <option value="title-desc">Pamagat (Z-A)</option>
+                                <option value="author-asc">May-akda (A-Z)</option>
+                                <option value="author-desc">May-akda (Z-A)</option>
+                            </select>
+                        </div>
+
+                        {/* Filter Controls */}
+                        <div className="flex items-center gap-2">
+                            <label htmlFor="filter-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                                Filter:
+                            </label>
+                            <select
+                                id="filter-select"
+                                value={filterBy}
+                                onChange={(e) => setFilterBy(e.target.value as FilterOption)}
+                                className="text-black px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[150px]"
+                            >
+                                <option value="all">Lahat</option>
+                                <option value="with-quiz">May Quiz</option>
+                                <option value="quiz-completed">Tapos na ang Quiz</option>
+                                <option value="quiz-pending">Hindi pa tapos ang Quiz</option>
+                                <option value="without-quiz">Walang Quiz</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             )}
@@ -313,10 +440,9 @@ export default function StudentLibrary() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredStories.map((story) => (
                     <div
-                        key={story.id}
-                        className={`bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1 border border-gray-100 ${
-                            navigating === story.code ? 'opacity-75 pointer-events-none' : ''
-                        }`}
+                        key={`${story.id}-${story.code}`}
+                        className={`bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1 border border-gray-100 ${navigating === story.code ? 'opacity-75 pointer-events-none' : ''
+                            }`}
                         onClick={() => {
                             // Update authorized code and navigate to the story
                             handleStoryClick(story.code)
@@ -327,13 +453,16 @@ export default function StudentLibrary() {
                             <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-50 rounded-lg">
                                 <div className="flex items-center space-x-2">
                                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1E3A8A]"></div>
-                                    <span className="text-[#1E3A8A] font-medium">Opening story...</span>
+                                    <span className="text-[#1E3A8A] font-medium">Binubuksan ang kwento...</span>
                                 </div>
                             </div>
                         )}
-                        
+
                         {/* Book Cover/Thumbnail */}
-                        <StoryThumbnail story={story} />
+                        <StoryThumbnail
+                            story={story}
+                            quizTaken={quizStatuses[story.code] ?? null}
+                        />
 
                         {/* Book Details */}
                         <div className="p-4 bg-white">
@@ -341,7 +470,7 @@ export default function StudentLibrary() {
                                 {story.title}
                             </h3>
                             <p className="text-gray-600 text-sm mb-2 font-medium" title={story.author}>
-                                by {story.author}
+                                ni {story.author}
                             </p>
                             {story.description && (
                                 <p className="text-gray-500 text-xs mb-3 line-clamp-2 leading-relaxed" title={story.description}>
@@ -360,7 +489,7 @@ export default function StudentLibrary() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
-                                    Viewed
+                                    Napanood
                                 </div>
                             </div>
                         </div>
@@ -369,8 +498,13 @@ export default function StudentLibrary() {
             </div>
 
             <div className="text-center mt-8 text-gray-500 text-sm">
-                {filteredStories.length} {filteredStories.length === 1 ? 'story' : 'stories'}
-                {searchTerm ? ` found for "${searchTerm}"` : ' in your library'}
+                {filteredStories.length} sa {stories.length} panitikan
+                {searchTerm && ` na tumugma sa "${searchTerm}"`}
+                {filterBy !== 'all' && ` (${filterBy === 'with-quiz' ? 'may quiz' :
+                    filterBy === 'quiz-completed' ? 'tapos na ang quiz' :
+                        filterBy === 'quiz-pending' ? 'hindi pa tapos ang quiz' :
+                            'walang quiz'
+                    })`}
             </div>
         </div>
     )

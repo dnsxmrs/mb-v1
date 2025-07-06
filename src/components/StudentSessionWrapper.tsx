@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { useStudentSessionRefresh } from '@/hooks/useStudentSession';
 
 interface StudentSessionWrapperProps {
-  children: ReactNode;
+    children: ReactNode;
 }
 
 /**
@@ -12,9 +12,9 @@ interface StudentSessionWrapperProps {
  * This component should wrap all student-facing pages to ensure sessions stay active
  */
 export default function StudentSessionWrapper({ children }: StudentSessionWrapperProps) {
-  // This will automatically refresh the session when the component mounts
-  // and provides refresh functionality for child components
-  useStudentSessionRefresh();
+    // This will automatically refresh the session when the component mounts
+    // and provides refresh functionality for child components
+    useStudentSessionRefresh();
 
-  return <>{children}</>;
+    return <>{children}</>;
 }

@@ -5,6 +5,7 @@ import UnauthorizedRedirect from "@/components/UnauthorizedRedirect";
 import { getStoryByCode } from "@/actions/code";
 import { getSubmissionResultsByCode } from "@/actions/quiz";
 import { Metadata } from "next";
+import { hasStudentViewedStory } from "@/actions/story-view";
 
 export async function generateMetadata({
     params,
@@ -50,10 +51,12 @@ export default async function ResultPage({
         redirect("/student/info?code=" + code);
     }
 
-    const { name, section, authorizedCode } = JSON.parse(studentInfo.value);
+    const { name, section } = JSON.parse(studentInfo.value);
+    // check in studentstoryview if code, fullname, section already exists
+    const authorized = await hasStudentViewedStory(code, name, section)
 
-    if (authorizedCode !== code) {
-        return <UnauthorizedRedirect authorizedCode={authorizedCode} />;
+    if (authorized.data?.hasViewed === false) {
+        return <UnauthorizedRedirect authorizedCode={code} />;
     }
 
     // Get story from database using the code
@@ -158,6 +161,7 @@ export default async function ResultPage({
                                         hour: '2-digit',
                                         minute: '2-digit',
                                         hour12: true,
+                                        timeZone: 'Asia/Manila',
                                     })}
                                 </span>
                             </div>

@@ -95,7 +95,6 @@ const ResetPasswordForm = () => {
       }
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'errors' in err && Array.isArray(err.errors) && err.errors[0]?.longMessage) {
-        console.error('error', err.errors[0].longMessage)
         setError(err.errors[0].longMessage)
       } else {
         setError('An unexpected error occurred')

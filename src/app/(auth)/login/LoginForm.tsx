@@ -57,8 +57,6 @@ const LoginForm = () => {
 
                 // Update user status from invited to active using API
                 try {
-                    console.log('Calling API to update user status for:', email)
-
                     const response = await fetch('/api/user/update-status', {
                         method: 'POST',
                         headers: {
@@ -66,17 +64,8 @@ const LoginForm = () => {
                         },
                         body: JSON.stringify({ email }),
                     })
-
-                    const statusResult = await response.json()
-                    console.log('API response:', statusResult)
-
-                    if (!statusResult.success) {
-                        console.error('Failed to update user status:', statusResult.error)
-                    } else {
-                        console.log('User status updated successfully:', statusResult.message)
-                    }
-                } catch (statusError) {
-                    console.error('Error calling update status API:', statusError)
+                    await response.json()
+                } catch {
                 }
 
                 toast.success('Login successful')
@@ -88,7 +77,6 @@ const LoginForm = () => {
             }
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'errors' in err && Array.isArray(err.errors) && err.errors[0]?.longMessage) {
-                console.error('error', err.errors[0].longMessage)
                 setError(err.errors[0].longMessage)
             } else {
                 setError('An unexpected error occurred')

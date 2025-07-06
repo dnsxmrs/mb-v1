@@ -71,10 +71,8 @@ export default function InvitationManager({ isOpen, onClose }: InvitationManager
     }
   }
 
-  const handleResend = async (invitation: Invitation) => {
+  const handleResend = async () => {
     try {
-      // For now, just show a message since we need to map invitation to user ID
-      console.log('Resending invitation for:', invitation.emailAddress)
       toast.error('Resend functionality requires user ID mapping - feature coming soon')
       setError('Resend functionality requires user ID mapping - feature coming soon')
     } catch {
@@ -184,7 +182,7 @@ export default function InvitationManager({ isOpen, onClose }: InvitationManager
                             {invitation.status === 'pending' && (
                               <>
                                 <button
-                                  onClick={() => handleResend(invitation)}
+                                  onClick={() => handleResend()}
                                   className="text-blue-600 hover:text-blue-900 transition-colors"
                                   title="Resend invitation"
                                 >

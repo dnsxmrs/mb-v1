@@ -550,3 +550,36 @@ export async function getSubmissionResultsByCode(code: string, fullName: string,
         return { success: false, error: 'Failed to get submission results' }
     }
 }
+
+// Check if a student has already taken the quiz for a specific code
+export async function hasStudentTakenQuiz(code: string, fullName: string, section: string) {
+    try {
+        const submission = await prisma.studentSubmission.findFirst({
+            where: {
+                fullName,
+                section,
+                deletedAt: null,
+                Code: {
+                    code,
+                    deletedAt: null
+                }
+            },
+            select: {
+                id: true,
+                submittedAt: true
+            }
+        })
+
+        return {
+            success: true,
+            data: {
+                hasTaken: !!submission,
+                submissionId: submission?.id || null,
+                submittedAt: submission?.submittedAt || null
+            }
+        }
+    } catch (error) {
+        console.error('Error checking if student has taken quiz:', error)
+        return { success: false, error: 'Failed to check quiz status' }
+    }
+}

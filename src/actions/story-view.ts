@@ -20,7 +20,7 @@ export async function trackStoryView(code: string) {
         // Get student info from cookies
         const cookieStore = await cookies()
         const studentInfoCookie = cookieStore.get("student_info")
-        
+
         if (!studentInfoCookie) {
             console.warn('No student session found for story view tracking')
             return { success: false, error: 'No student session found' }
@@ -88,7 +88,7 @@ export async function trackStoryView(code: string) {
 export async function getStoryViewStats(storyId?: number) {
     try {
         const where = storyId ? { storyId } : {}
-        
+
         const viewStats = await prisma.studentStoryView.groupBy({
             by: ['storyId'],
             where,
@@ -171,7 +171,7 @@ export async function getStudentViewedStories() {
         // Get student info from cookies
         const cookieStore = await cookies()
         const studentInfoCookie = cookieStore.get("student_info")
-        
+
         if (!studentInfoCookie) {
             return { success: false, error: 'No student session found' }
         }

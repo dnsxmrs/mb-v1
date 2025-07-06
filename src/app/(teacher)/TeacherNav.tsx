@@ -146,7 +146,8 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                 year: '2-digit',
                 hour: 'numeric',
                 minute: 'numeric',
-                hour12: true
+                hour12: true,
+                timeZone: 'Asia/Manila',
               })}
             </span>
             {/* Desktop date format */}
@@ -157,7 +158,8 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                 year: 'numeric',
                 hour: 'numeric',
                 minute: 'numeric',
-                hour12: true
+                hour12: true,
+                timeZone: 'Asia/Manila',
               })}
             </span>
             <span className="hidden sm:inline-block text-gray-400 text-3xl">|</span>

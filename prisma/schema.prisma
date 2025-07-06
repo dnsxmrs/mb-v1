@@ -25,6 +25,7 @@ model User {
 
 model Story {
   id          Int                 @id @default(autoincrement())
+  category    String              @db.VarChar(100) @default("General")
   title       String              @db.VarChar(255)
   description String?
   fileLink    String

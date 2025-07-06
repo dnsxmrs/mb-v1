@@ -3,11 +3,12 @@ import { cookies } from "next/headers";
 import LoadingLink from "@/components/LoadingLink";
 import UnauthorizedRedirect from "@/components/UnauthorizedRedirect";
 import StudentSessionWrapper from "@/components/StudentSessionWrapper";
-import StoryViewTracker from "@/components/StoryViewTracker";
+// import StoryViewTracker from "@/components/StoryViewTracker";
+import QuizButton from "@/components/QuizButton";
 import { getStoryByCode } from "@/actions/code";
 import { convertToEmbedUrl, isValidYouTubeUrl } from "@/utils/youtube";
-import { ArrowRight } from "lucide-react";
 import { Metadata } from "next";
+import { hasStudentViewedStory } from "@/actions/story-view";
 
 export async function generateMetadata({
   params,
@@ -53,10 +54,12 @@ export default async function StoryPage({
     redirect("/student/info?code=" + code);
   }
 
-  const { authorizedCode } = JSON.parse(studentInfo.value);
+  const { name, section } = JSON.parse(studentInfo.value);
+  // check in studentstoryview if code, fullname, section already exists
+  const authorized = await hasStudentViewedStory(code, name, section)
 
-  if (authorizedCode !== code) {
-    return <UnauthorizedRedirect authorizedCode={authorizedCode} />;
+  if (authorized.data?.hasViewed === false) {
+    return <UnauthorizedRedirect authorizedCode={code} />;
   }
 
   // Get story from database using the code
@@ -84,7 +87,7 @@ export default async function StoryPage({
   return (
     <StudentSessionWrapper>
       {/* Track story view non-blocking */}
-      <StoryViewTracker code={code} />
+      {/* <StoryViewTracker code={code} /> */}
 
       <div className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -144,21 +147,13 @@ export default async function StoryPage({
               )}
             </div>
 
-            {/* Continue to Quiz Button */}
+            {/* Quiz Button - Conditional based on completion status */}
             {story.QuizItems && story.QuizItems.length > 0 && (
-              <div className="flex justify-end">
-                <div className="rounded-xl">
-                  <div className="flex items-center gap-4">
-                    <h3 className="text-lg font-medium text-[#1E3A8A]">Ready for the quiz?</h3>
-                    <LoadingLink
-                      href={`/student/quiz/${code}`}
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
-                    >
-                      Take the Quiz <ArrowRight className="" />
-                    </LoadingLink>
-                  </div>
-                </div>
-              </div>
+              <QuizButton
+                code={code}
+                studentName={name}
+                studentSection={section}
+              />
             )}
           </div>
         </div>

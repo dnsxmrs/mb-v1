@@ -2,6 +2,7 @@
 'use server';
 
 import { cookies } from "next/headers";
+import { trackStoryView } from "./story-view";
 
 export async function handleStudentInfoSubmit(formData: FormData, code: string) {
   const name = formData.get("name") as string;
@@ -15,7 +16,7 @@ export async function handleStudentInfoSubmit(formData: FormData, code: string) 
 
   const cookieStore = cookies();
 
-  (await cookieStore).set("student_info", JSON.stringify({ name, section, authorizedCode: code }), {
+  (await cookieStore).set("student_info", JSON.stringify({ name, section }), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -28,6 +29,9 @@ export async function handleStudentInfoSubmit(formData: FormData, code: string) 
     sameSite: "strict",
     maxAge: 60 * 60 * 24 * 30, // 30 days
   });
+
+  // instead of setting authorized code, let's just add a view story entry using the code
+  await trackStoryView(code.toUpperCase());
 
   return { success: true, redirectTo: `/student/story/${code}` };
 }
@@ -102,5 +106,33 @@ export async function updateStudentAuthorizedCode(newCode: string) {
   } catch (error) {
     console.error('Error updating authorized code:', error);
     return { success: false, error: "Failed to update authorized code" };
+  }
+}
+
+// Function to get current student info from session
+export async function getCurrentStudentInfo() {
+  try {
+    const cookieStore = await cookies();
+    const studentInfoCookie = cookieStore.get("student_info");
+    const privacyConsentCookie = cookieStore.get("privacy_consent");
+
+    if (!studentInfoCookie || !privacyConsentCookie) {
+      return { success: false, error: "No active student session found" };
+    }
+
+    // Parse student info
+    const studentInfo = JSON.parse(studentInfoCookie.value);
+
+    return { 
+      success: true, 
+      data: {
+        name: studentInfo.name || '',
+        section: studentInfo.section || '',
+        authorizedCode: studentInfo.authorizedCode || ''
+      }
+    };
+  } catch (error) {
+    console.error('Error getting current student info:', error);
+    return { success: false, error: "Failed to get student info" };
   }
 }
