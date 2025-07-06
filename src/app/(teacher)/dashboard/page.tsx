@@ -69,7 +69,7 @@ export default function TeacherDashboard() {
 
     try {
       const result = await generateAccessCode(selectedStoryId, currentUser.id)
-      
+
       if (result.success && result.data) {
         setGeneratedCode(result.data.code)
       } else {
@@ -79,7 +79,7 @@ export default function TeacherDashboard() {
       setError('An error occurred while generating the code')
       console.error('Error generating code:', error)
     } finally {
-      // setIsLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -87,131 +87,439 @@ export default function TeacherDashboard() {
     navigator.clipboard.writeText(generatedCode)
   }
 
+  // Calculate KPI values from stories data
+  const totalStories = stories.length
+  const totalCodes = stories.reduce((sum, story) => sum + story._count.Codes, 0)
+  const totalSubmissions = stories.reduce((sum, story) => sum + story._count.Submissions, 0)
+
+  // Mock average score (since we don't have backend for it yet)
+  const averageScore = totalSubmissions > 0 ? 85.5 : 0
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Main dashboard content */}
-      <section className="flex-1">
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 max-w-lg mx-auto">
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Generate Access Code for Your Students
-            </h2>
-          </div>
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+        <h1 className="text-2xl font-bold mb-2">
+          Welcome back, {currentUser?.first_name || 'Teacher'}! 👋
+        </h1>
+        <p className="text-blue-100">
+          Here&apos;s what&apos;s happening with your stories and students today.
+        </p>
+      </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6 text-black">
-            {/* Step 1: Choose a story */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                1. Choose a story - Select a story from the dropdown below.
-              </label>
-              <select
-                value={selectedStoryId || ''}
-                onChange={(e) => setSelectedStoryId(Number(e.target.value) || null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select the story...</option>
-                {stories.map((story) => (
-                  <option key={story.id} value={story.id}>
-                    {story.title}
-                  </option>
-                ))}
-              </select>
+      {/* Main Content Grid */}
+      <div className="space-y-6">
+        {/* Mobile-first: Code Generator at top */}
+        <div className="lg:hidden">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                <span className="mr-2">🔑</span>
+                Generate Access Code
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Create codes for student access
+              </p>
             </div>
 
-            {/* Step 2: Generate code */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                2. Generate code - Click the button to create a unique access code.
-              </label>
-              <button
-                onClick={handleGenerateCode}
-                disabled={isLoading || !selectedStoryId}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    Generate a code
-                    <svg className="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Step 3: Share the code */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                3. Share the code - Copy the code and send it to your students so they can access the story.
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={generatedCode}
-                  readOnly
-                  placeholder="Generated code will appear here"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none"
-                />
-                {generatedCode && (
-                  <button
-                    onClick={copyToClipboard}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    title="Copy to clipboard"
-                  >
-                    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-                )}
+            {/* Content */}
+            <div className="p-6 space-y-6 text-black">
+              {/* Step 1: Choose a story */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  1. Select Story
+                </label>
+                <select
+                  value={selectedStoryId || ''}
+                  onChange={(e) => setSelectedStoryId(Number(e.target.value) || null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Choose a story...</option>
+                  {stories.map((story) => (
+                    <option key={story.id} value={story.id}>
+                      {story.title}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </div>
 
-            {/* Error display */}
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-red-800">{error}</p>
-                  </div>
+              {/* Step 2: Generate code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  2. Generate Code
+                </label>
+                <button
+                  onClick={handleGenerateCode}
+                  disabled={isLoading || !selectedStoryId}
+                  className="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">⚡</span>
+                      Generate Code
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Step 3: Share the code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  3. Share Code
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={generatedCode}
+                    readOnly
+                    placeholder="Generated code will appear here"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none text-center font-mono font-bold"
+                  />
+                  {generatedCode && (
+                    <button
+                      onClick={copyToClipboard}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      title="Copy to clipboard"
+                    >
+                      📋
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Success message */}
-            {generatedCode && (
-              <div className="rounded-md bg-green-50 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-green-800">
-                      Access code generated successfully! Share this code with your students.
-                    </p>
+              {/* Error display */}
+              {error && (
+                <div className="rounded-md bg-red-50 p-4 border border-red-200">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <span className="text-red-500">⚠️</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-red-800">{error}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* Success message */}
+              {generatedCode && (
+                <div className="rounded-md bg-green-50 p-4 border border-green-200">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <span className="text-green-500">✅</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-green-800">
+                        Code generated! Share with your students.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </section>
+
+        {/* Desktop layout: Grid with sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - KPIs and Charts */}
+          <div className="lg:col-span-2 space-y-6">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {/* Total Stories KPI */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Stories</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalStories}</p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <div className="w-6 h-6 text-blue-600">📚</div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <span className="text-xs text-green-600 font-medium">
+                  ↗ Active content
+                </span>
+              </div>
+            </div>
+
+            {/* Total Codes KPI */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Access Codes</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalCodes}</p>
+                </div>
+                <div className="p-3 bg-green-100 rounded-full">
+                  <div className="w-6 h-6 text-green-600">🔐</div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <span className="text-xs text-blue-600 font-medium">
+                  ↗ Generated codes
+                </span>
+              </div>
+            </div>
+
+            {/* Total Submissions KPI */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Submissions</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalSubmissions}</p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <div className="w-6 h-6 text-purple-600">📝</div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <span className="text-xs text-green-600 font-medium">
+                  ↗ Student engagement
+                </span>
+              </div>
+            </div>
+
+            {/* Average Score KPI */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Avg. Score</p>
+                  <p className="text-2xl font-bold text-gray-900">{averageScore.toFixed(1)}%</p>
+                </div>
+                <div className="p-3 bg-yellow-100 rounded-full">
+                  <div className="w-6 h-6 text-yellow-600">⭐</div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <span className="text-xs text-green-600 font-medium">
+                  ↗ Performance
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Story Performance Chart */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Story Performance</h3>
+              <div className="space-y-4">
+                {stories.slice(0, 5).map((story, index) => (
+                  <div key={story.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium text-sm">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                          {story.title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {story._count.Submissions} submissions
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${Math.min(100, (story._count.Submissions / Math.max(totalSubmissions, 1)) * 100)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-gray-600">
+                        {story._count.QuizItems} quizzes
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm text-gray-900">New story submission received</p>
+                    <p className="text-xs text-gray-500">2 minutes ago</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm text-gray-900">Access code generated</p>
+                    <p className="text-xs text-gray-500">1 hour ago</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm text-gray-900">Quiz completed by student</p>
+                    <p className="text-xs text-gray-500">3 hours ago</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+                  <div>
+                    <p className="text-sm text-gray-900">New story added to library</p>
+                    <p className="text-xs text-gray-500">1 day ago</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="w-8 h-8 text-2xl mb-2">📖</div>
+                <span className="text-sm font-medium text-gray-700">Add Story</span>
+              </button>
+              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="w-8 h-8 text-2xl mb-2">❓</div>
+                <span className="text-sm font-medium text-gray-700">Create Quiz</span>
+              </button>
+              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="w-8 h-8 text-2xl mb-2">👥</div>
+                <span className="text-sm font-medium text-gray-700">Manage Users</span>
+              </button>
+              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="w-8 h-8 text-2xl mb-2">📊</div>
+                <span className="text-sm font-medium text-gray-700">View Reports</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Code Generator (Desktop only) */}
+        <div className="hidden lg:block lg:col-span-1">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                <span className="mr-2">🔑</span>
+                Generate Access Code
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Create codes for student access
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6 text-black">
+              {/* Step 1: Choose a story */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  1. Select Story
+                </label>
+                <select
+                  value={selectedStoryId || ''}
+                  onChange={(e) => setSelectedStoryId(Number(e.target.value) || null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Choose a story...</option>
+                  {stories.map((story) => (
+                    <option key={story.id} value={story.id}>
+                      {story.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Step 2: Generate code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  2. Generate Code
+                </label>
+                <button
+                  onClick={handleGenerateCode}
+                  disabled={isLoading || !selectedStoryId}
+                  className="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2">⚡</span>
+                      Generate Code
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Step 3: Share the code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  3. Share Code
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={generatedCode}
+                    readOnly
+                    placeholder="Generated code will appear here"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:outline-none text-center font-mono font-bold"
+                  />
+                  {generatedCode && (
+                    <button
+                      onClick={copyToClipboard}
+                      className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      title="Copy to clipboard"
+                    >
+                      📋
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Error display */}
+              {error && (
+                <div className="rounded-md bg-red-50 p-4 border border-red-200">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <span className="text-red-500">⚠️</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-red-800">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Success message */}
+              {generatedCode && (
+                <div className="rounded-md bg-green-50 p-4 border border-green-200">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <span className="text-green-500">✅</span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-green-800">
+                        Code generated! Share with your students.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   );
 }

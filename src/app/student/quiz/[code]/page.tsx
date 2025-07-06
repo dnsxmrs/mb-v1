@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import LoadingLink from "@/components/LoadingLink";
 import UnauthorizedRedirect from "@/components/UnauthorizedRedirect";
 import InteractiveQuiz from "@/components/InteractiveQuiz";
+import StudentSessionWrapper from "@/components/StudentSessionWrapper";
 import { getStoryByCode } from "@/actions/code";
 import { Metadata } from "next";
 
@@ -79,9 +80,10 @@ export default async function QuizPage({
   const { story, codeId } = storyResult.data;
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full overflow-hidden">
+    <StudentSessionWrapper>
+      <div className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full overflow-hidden">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-[#1E3A8A] mb-2 break-words">{story.title}</h1>
             <p className="text-gray-500 text-sm mb-2 italic">ni {story.author}</p>
@@ -114,5 +116,6 @@ export default async function QuizPage({
         </div>
       </div>
     </div>
+    </StudentSessionWrapper>
   );
 }

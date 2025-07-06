@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import StudentInfoForm from "./StudentInfoForm";
+import StudentSessionWrapper from "@/components/StudentSessionWrapper";
 import { env } from "process";
 import { handleCodeSubmit } from "@/actions/code";
 import { Metadata } from "next";
@@ -72,12 +73,14 @@ export default async function StudentInfoPage({
   // }
 
   return (
-    <div className="h-[85vh] flex items-center justify-center p-4">
-      <StudentInfoForm
-        code={code.toString()}
-        initialData={existingStudentData}
-      />
-    </div>
+    <StudentSessionWrapper>
+      <div className="h-[85vh] flex items-center justify-center p-4">
+        <StudentInfoForm
+          code={code.toString()}
+          initialData={existingStudentData}
+        />
+      </div>
+    </StudentSessionWrapper>
   );
 }
 

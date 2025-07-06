@@ -1,5 +1,6 @@
 import GuestHeader from "@/components/GuestHeader";
 import GuestFooter from "@/components/GuestFooter";
+import StudentLibrary from "@/components/StudentLibrary";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -26,8 +27,9 @@ export default function Libraries() {
 
                 {/* Main Content */}
                 <main className="flex-grow relative z-10 py-12 px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-3xl font-bold text-[#1E3A8A]">Libraries are coming soon!</h1>
-                    <p className="text-gray-600 mt-2">Stay tuned for updates.</p>
+                    <div className="max-w-7xl mx-auto">
+                        <StudentLibrary />
+                    </div>
                 </main>
             </div>
             <GuestFooter />

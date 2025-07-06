@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { handleStudentInfoSubmit } from "../../../actions/student";
+import { useStudentSessionRefresh } from "@/hooks/useStudentSession";
 
 interface StudentInfoFormProps {
   code: string;
@@ -21,10 +22,16 @@ export default function StudentInfoForm({ code, initialData }: StudentInfoFormPr
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
+  // Add session refresh functionality
+  const { refreshSession } = useStudentSessionRefresh();
+
   // No need for useEffect to read cookies since we get the data from props
   // The server-side page component handles cookie reading and passes the data
 
   async function handleFormAction() {
+    // Refresh session before form submission
+    await refreshSession();
+
     setClientError('')
     setIsLoading(true)
 

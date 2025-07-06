@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { submitQuizAnswers, type QuizSubmissionData } from '@/actions/quiz'
+import { useStudentSessionRefresh } from '@/hooks/useStudentSession'
 import toast from 'react-hot-toast'
 
 interface Choice {
@@ -38,8 +39,14 @@ export default function InteractiveQuiz({
     const [answers, setAnswers] = useState<Record<number, string>>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const router = useRouter()
+    
+    // Add session refresh functionality
+    const { refreshSession } = useStudentSessionRefresh();
 
-    const handleAnswerChange = (quizItemId: number, selectedChoiceText: string) => {
+    const handleAnswerChange = async (quizItemId: number, selectedChoiceText: string) => {
+        // Refresh session on each answer change
+        await refreshSession();
+        
         setAnswers(prev => ({
             ...prev,
             [quizItemId]: selectedChoiceText
@@ -55,6 +62,9 @@ export default function InteractiveQuiz({
             return
         }
 
+        // Refresh session before final submission
+        await refreshSession();
+        
         setIsSubmitting(true)
 
         try {
@@ -114,7 +124,7 @@ export default function InteractiveQuiz({
             {quizItems.map((quiz) => (
                 <div key={quiz.id} className="bg-gray-50 p-6 rounded-lg">
                     <h3 className="text-lg font-semibold text-[#1E3A8A] mb-4">
-                        Question {quiz.quizNumber}: {quiz.question}
+                        {quiz.quizNumber}. {quiz.question}
                     </h3>
 
                     <div className="space-y-3">
@@ -143,14 +153,14 @@ export default function InteractiveQuiz({
                     </div>
 
                     {/* Question status indicator */}
-                    {answers[quiz.id] && (
+                    {/* {answers[quiz.id] && (
                         <div className="mt-3 flex items-center text-sm text-green-600">
                             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
                             Answered
                         </div>
-                    )}
+                    )} */}
                 </div>
             ))}
 

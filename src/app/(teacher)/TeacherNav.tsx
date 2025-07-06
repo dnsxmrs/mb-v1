@@ -86,7 +86,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
 
     {/* Sidebar */}
     <aside
-      className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-64 md:w-25 bg-[#BEDBFF] transform transition-transform duration-300 ease-in-out md:transform-none flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`fixed md:static inset-y-0 left-0 z-50 md:z-auto w-25 md:w-25 bg-[#BEDBFF] transform transition-transform duration-300 ease-in-out md:transform-none flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
       style={{ boxShadow: '2px 0 4px rgba(0, 0, 0, 0.1)' }}
     >        {/* Logo */}

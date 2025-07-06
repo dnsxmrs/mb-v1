@@ -11,6 +11,8 @@ const isPublicRoute = createRouteMatcher([
   '/libraries(.*)',
 ])
 
+const isStudentRoute = createRouteMatcher(['/student(.*)'])
+
 export default clerkMiddleware(async (auth, req) => {
   // check if a user is logged in
   const { userId } = await auth();
@@ -27,6 +29,36 @@ export default clerkMiddleware(async (auth, req) => {
     if (url.pathname === '/privacy-statement') {
       return NextResponse.next();
     }
+  }
+
+  // Auto-refresh student sessions on student routes
+  if (isStudentRoute(req)) {
+    const response = NextResponse.next();
+    
+    // Check if student session cookies exist
+    const studentInfo = req.cookies.get('student_info');
+    const privacyConsent = req.cookies.get('privacy_consent');
+    
+    if (studentInfo && privacyConsent) {
+      try {
+        // Parse and re-set cookies with extended expiration (30 days)
+        const cookieOptions = {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict' as const,
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          path: '/'
+        };
+
+        // Refresh the cookies with new expiration
+        response.cookies.set('student_info', studentInfo.value, cookieOptions);
+        response.cookies.set('privacy_consent', privacyConsent.value, cookieOptions);
+      } catch (error) {
+        console.error('Error refreshing student session in middleware:', error);
+      }
+    }
+    
+    return response;
   }
 });
 
