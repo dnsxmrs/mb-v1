@@ -5,7 +5,11 @@ import { ReactNode, useState, useEffect } from "react";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
-import { BookText, BookOpenCheck, Settings } from "lucide-react";
+import {
+  BookText,
+  // BookOpenCheck,
+  Settings
+} from "lucide-react";
 
 interface TeacherNavProps {
   children: ReactNode;
@@ -13,7 +17,6 @@ interface TeacherNavProps {
 
 export default function TeacherNav({ children }: TeacherNavProps) {
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch by only rendering after mount
@@ -46,11 +49,11 @@ export default function TeacherNav({ children }: TeacherNavProps) {
       ),
       name: "Stories",
     },
-    {
-      href: "/quiz-management",
-      icon: <BookOpenCheck />,
-      name: "Quiz Viewing",
-    },
+    // {
+    //   href: "/quiz-management",
+    //   icon: <BookOpenCheck />,
+    //   name: "Quiz Viewing",
+    // },
     {
       href: "/student-log",
       icon: <BookText />,
@@ -77,27 +80,16 @@ export default function TeacherNav({ children }: TeacherNavProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex relative">
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 md:hidden transition-opacity duration-300"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 md:z-auto w-25 md:w-25 bg-[#BEDBFF] transform transition-transform duration-300 ease-in-out md:transform-none flex flex-col ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0`}
+        className="hidden md:flex fixed inset-y-0 left-0 z-50 w-25 bg-[#BEDBFF] flex-col"
         style={{ boxShadow: "2px 0 4px rgba(0, 0, 0, 0.1)" }}
       >
-        {" "}
         {/* Logo */}
         <div className="flex flex-col items-center justify-center h-16 mt-3">
           <Link
             href="/dashboard"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="text-[10px] font-medium text-gray-700 px-2 mt-1 text-center items-center flex-col align-center flex gap-2 hover:text-blue-800 transition-colors"
+            className="text-[10px] font-medium text-blue-800 px-2 mt-1 text-center items-center flex-col align-center flex gap-2 hover:text-blue-800 transition-colors"
           >
             <Image
               src="/images/magandang-buhay-rbg.png"
@@ -114,11 +106,10 @@ export default function TeacherNav({ children }: TeacherNavProps) {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setIsMobileMenuOpen(false)}
               className={`flex flex-col items-center py-3 rounded-lg hover:text-blue-800 transition-colors
                           ${pathname === item.href
                   ? "text-blue-800"
-                  : "text-gray-700"
+                  : "text-black"
                 }`}
             >
               <svg
@@ -136,53 +127,78 @@ export default function TeacherNav({ children }: TeacherNavProps) {
           ))}
         </nav>
       </aside>
+
+      {/* Mobile Navigation */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white">
+        {/* Mobile Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <Image
+              src="/images/magandang-buhay-rbg.png"
+              alt="logo"
+              width={24}
+              height={24}
+            />
+            <span className="text-sm font-semibold text-blue-800">
+              Magandang Buhay!
+            </span>
+          </Link>
+          <div className="scale-75">
+            {mounted && (
+              <UserButton
+                showName={false}
+                appearance={{
+                  elements: {
+                    userButtonBox: "text-blue-800 font-semibold",
+                  },
+                }}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Navigation Icons */}
+        <nav className="flex justify-around items-center py-2 bg-white border-b border-gray-200">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center py-2 px-1 relative transition-colors
+                          ${pathname === item.href
+                  ? "text-blue-800"
+                  : "text-gray-600"
+                }`}
+            >
+              <svg
+                className="w-6 h-6 mb-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {item.icon}
+              </svg>
+              <span className="text-xs font-medium text-center leading-tight">
+                {item.name === "Quiz Viewing" ? "Quiz" :
+                  item.name === "Student Submissions" ? "Logs" :
+                    item.name}
+              </span>
+              {/* Active indicator underline */}
+              {pathname === item.href && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-800 rounded-full" />
+              )}
+            </Link>
+          ))}
+        </nav>
+      </div>
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-h-screen md:ml-25">
+        {/* Desktop Header */}
         <header
-          className="sticky top-0 bg-white min-h-16 sm:h-21 flex items-center px-2 sm:px-4 lg:px-8 justify-between z-10"
+          className="hidden md:flex sticky top-0 bg-white min-h-16 sm:h-21 items-center px-2 sm:px-4 lg:px-8 justify-between z-10"
           style={{ boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)" }}
         >
           <div className="flex items-center gap-1 sm:gap-3 flex-1 min-w-0">
-            {/* Hamburger Button */}
-            <button
-              onClick={() =>
-                setIsMobileMenuOpen(!isMobileMenuOpen)
-              }
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors mr-2"
-              aria-label="Toggle menu"
-            >
-              <div className="w-6 h-6 flex flex-col justify-center space-y-1">
-                <span
-                  className={`block h-0.5 w-6 bg-blue-800 transition-all duration-300 ${isMobileMenuOpen
-                    ? "rotate-45 translate-y-1.5"
-                    : ""
-                    }`}
-                />
-                <span
-                  className={`block h-0.5 w-6 bg-blue-800 transition-all duration-300 ${isMobileMenuOpen ? "opacity-0" : ""
-                    }`}
-                />
-                <span
-                  className={`block h-0.5 w-6 bg-blue-800 transition-all duration-300 ${isMobileMenuOpen
-                    ? "-rotate-45 -translate-y-1.5"
-                    : ""
-                    }`}
-                />
-              </div>
-            </button>
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0 flex-1">
-              {/* Mobile date format */}
-              <span className="text-sm font-medium text-blue-800 truncate sm:hidden">
-                {new Date().toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "2-digit",
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                  timeZone: "Asia/Manila",
-                })}
-              </span>
               {/* Desktop date format */}
               <span className="hidden sm:block text-xl font-medium text-blue-800 truncate">
                 {new Date().toLocaleDateString("en-US", {
@@ -195,10 +211,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                   timeZone: "Asia/Manila",
                 })}
               </span>
-              <span className="hidden sm:inline-block text-gray-400 text-3xl">
-                |
-              </span>
-              <span className="text-sm sm:text-xl font-medium text-blue-800 truncate">
+                {/* <span className="text-xl font-medium text-blue-800 truncate">
                 {
                   pathname === "/dashboard"
                     ? "Dashboard"
@@ -212,20 +225,18 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                             ? "Users"
                             : "Settings"
                 }
-              </span>
+              </span> */}
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-            <div className="scale-75 sm:scale-90 lg:scale-100">
+            <div className="scale-90 lg:scale-100">
               {mounted && (
                 <UserButton
                   showName={true}
                   appearance={{
                     elements: {
-                      userButtonBox:
-                        "text-blue-800 font-semibold text-lg sm:text-2xl", // container
-                      userButtonName:
-                        "text-blue-800 font-semibold text-lg sm:text-2xl hidden sm:block", // name text - hide on mobile
+                      userButtonBox: "text-blue-800 font-semibold text-2xl",
+                      userButtonName: "text-blue-800 font-semibold text-2xl",
                     },
                   }}
                 />
@@ -233,8 +244,14 @@ export default function TeacherNav({ children }: TeacherNavProps) {
             </div>
           </div>
         </header>
+
+        {/* Mobile Content Header */}
+        <div className="md:hidden pt-[104px] px-4 py-3 bg-gray-50">
+          .
+        </div>
+
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-8">{children}</main>
+        <main className="flex-1 p-4 sm:p-8 md:pt-8 pt-0">{children}</main>
       </div>
     </div>
   );

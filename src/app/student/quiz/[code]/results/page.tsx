@@ -125,7 +125,7 @@ export default async function ResultPage({
                     </div>
 
                     {/* Score Card */}
-                    <div className={`text-black rounded-xl p-6 mb-8 text-center`}>
+                    <div className={`text-black rounded-xl p-6 mb-5 text-center`}>
                         <div className={`text-6xl font-bold mb-2 ${isPassingGrade
                             ? 'text-green-400'
                             : 'text-red-400'
@@ -154,7 +154,7 @@ export default async function ResultPage({
                             <div>
                                 <span className="font-medium text-gray-700">Isinumite:</span>
                                 <span className="ml-2 text-gray-900">
-                                    {new Date(results.submittedAt).toLocaleString('en-US', {
+                                    {new Date(results.submittedAt).toLocaleString('tl-PH', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric',
@@ -183,7 +183,7 @@ export default async function ResultPage({
                                     <h4 className="font-medium text-gray-900">
                                         {answer.quizNumber}. {answer.question}
                                     </h4>
-                                    <span className={`px-2 py-1 rounded text-sm font-medium ${answer.isCorrect
+                                    <span className={`px-2 py-1 rounded text-sm font-medium whitespace-nowrap flex-shrink-0 ${answer.isCorrect
                                         ? 'bg-green-100 text-green-800'
                                         : 'bg-red-100 text-red-800'
                                         }`}>
@@ -214,7 +214,13 @@ export default async function ResultPage({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-center">
+                    <div className="flex justify-center space-x-10">
+                        <LoadingLink
+                            href={`/student/story/${code}`}
+                            className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+                        >
+                            Go to Story
+                        </LoadingLink>
                         <LoadingLink
                             href="/libraries"
                             className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"

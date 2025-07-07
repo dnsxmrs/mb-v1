@@ -5,6 +5,7 @@ import { prisma } from '@/utils/prisma'
 import { revalidatePath } from 'next/cache'
 import { createClerkClient } from '@clerk/backend'
 import { auth } from '@clerk/nextjs/server'
+import { createNotification } from './notification'
 
 const clerkClient = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY
@@ -90,6 +91,8 @@ export async function createUser(data: CreateUserData) {
             }
         })
 
+        await createNotification('user_created', `User '${data.first_name} ${data.last_name}' created`)
+
         // Send Clerk invitation if requested
         if (data.sendInvitation) {
             try {
@@ -150,6 +153,8 @@ export async function inviteUser(data: InviteUserData) {
             },
             redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
         })
+
+        await createNotification('user_created', `User '${data.first_name} ${data.last_name}' created`)
 
         revalidatePath('/user-management')
         return {
@@ -238,16 +243,16 @@ export async function updateUser(id: number, data: UpdateUserData) {
     try {
         // Check if email is being updated and if it already exists
         if (data.email) {
-            const existingUser = await prisma.user.findFirst({
+            await prisma.user.findFirst({
                 where: {
                     email: data.email,
                     id: { not: id }
                 }
             })
 
-            if (existingUser) {
-                return { success: false, error: 'User with this email already exists' }
-            }
+            // if (existingUser) {
+            //     return { success: false, error: 'User with this email already exists' }
+            // }
         }
 
         const updateData: Partial<UpdateUserData & { modified_at: Date }> = {
@@ -259,6 +264,8 @@ export async function updateUser(id: number, data: UpdateUserData) {
             where: { id },
             data: updateData
         })
+
+        await createNotification('user_updated', `User '${data.first_name} ${data.last_name}' updated`)
 
         revalidatePath('/user-management')
         return { success: true, user }
@@ -375,6 +382,8 @@ export async function deleteUser(id: number) {
                 modified_at: new Date()
             }
         })
+
+        await createNotification('user_deleted', `User '${user.first_name} ${user.last_name}' deleted`)
 
         revalidatePath('/user-management')
         return {

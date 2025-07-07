@@ -2,6 +2,7 @@
 'use server'
 
 import { prisma } from '@/utils/prisma'
+import { createNotification } from './notification';
 
 export async function handleCodeSubmit(formData: FormData) {
     const code = formData.get('code') as string;
@@ -61,6 +62,8 @@ export async function generateAccessCode(storyId: number, createdById: number) {
                 }
             }
         });
+
+        await createNotification('code_generated', `Code '${newCode.code}' generated for story '${newCode.Story.title}'`);
 
         return {
             success: true,

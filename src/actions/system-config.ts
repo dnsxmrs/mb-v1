@@ -2,6 +2,7 @@
 'use server'
 
 import { prisma } from '@/utils/prisma'
+import { createNotification } from './notification'
 
 export interface SystemConfigData {
     defaultChoicesCount: number
@@ -87,6 +88,8 @@ export async function updateSystemConfig(data: UpdateSystemConfigData) {
             })
         }
 
+        await createNotification('system_config_updated', `System configuration updated`)
+
         return { success: true, data: config }
     } catch (error) {
         console.error('Error updating system config:', error)
@@ -118,6 +121,8 @@ export async function resetSystemConfig() {
                 }
             })
         }
+
+        await createNotification('system_config_reset', `System configuration reset to defaults`)
 
         return { success: true, data: config }
     } catch (error) {

@@ -2,6 +2,7 @@
 'use server'
 
 import { prisma } from '@/utils/prisma'
+import { createNotification } from './notification'
 
 export interface ChoiceData {
     id: number
@@ -138,6 +139,30 @@ export async function createQuizItem(data: CreateQuizItemData) {
 export async function createStoryWithQuiz(data: CreateStoryWithQuizData) {
     try {
         const result = await prisma.$transaction(async (tx) => {
+            // Validate categoryId exists if provided
+            let validCategoryId = data.categoryId
+            if (validCategoryId) {
+                const categoryExists = await tx.category.findFirst({
+                    where: {
+                        id: validCategoryId,
+                        deletedAt: null
+                    }
+                })
+                if (!categoryExists) {
+                    throw new Error(`Category with ID ${validCategoryId} does not exist`)
+                }
+            } else {
+                // If no categoryId provided, use the first available category
+                const firstCategory = await tx.category.findFirst({
+                    where: { deletedAt: null },
+                    orderBy: { id: 'asc' }
+                })
+                if (!firstCategory) {
+                    throw new Error('No categories available. Please create a category first.')
+                }
+                validCategoryId = firstCategory.id
+            }
+
             // Create the story first
             const story = await tx.story.create({
                 data: {
@@ -146,7 +171,7 @@ export async function createStoryWithQuiz(data: CreateStoryWithQuizData) {
                     description: data.description || null,
                     fileLink: data.fileLink,
                     subtitles: data.subtitles || [],
-                    categoryId: data.categoryId || 0
+                    categoryId: validCategoryId
                 }
             })
 
@@ -174,6 +199,8 @@ export async function createStoryWithQuiz(data: CreateStoryWithQuizData) {
                     })
                 })
             )
+
+            await createNotification('story_created', `Story '${data.title}' created with quiz items`)
 
             return { story, quizItems }
         })

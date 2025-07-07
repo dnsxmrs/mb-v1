@@ -20,7 +20,7 @@ export default function QuizButton({ code, studentName, studentSection }: QuizBu
             try {
                 setLoading(true)
                 const result = await hasStudentTakenQuiz(code, studentName, studentSection)
-                
+
                 if (result.success && result.data) {
                     setHasCompleted(result.data.hasTaken)
                 } else {

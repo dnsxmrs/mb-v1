@@ -11,16 +11,17 @@ datasource db {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @db.VarChar(255)
-  first_name   String    @db.VarChar(100)
-  last_name    String    @db.VarChar(100)
-  role         String    @default("student") @db.VarChar(50)
-  status       String    @default("active") @db.VarChar(50)
-  created_at   DateTime  @default(now())
-  modified_at  DateTime  @default(now())
-  deleted_at   DateTime?
-  CreatedCodes Code[]    @relation("CodeCreator")
+  id            Int            @id @default(autoincrement())
+  email         String         @db.VarChar(255)
+  first_name    String         @db.VarChar(100)
+  last_name     String         @db.VarChar(100)
+  role          String         @default("student") @db.VarChar(50)
+  status        String         @default("active") @db.VarChar(50)
+  created_at    DateTime       @default(now())
+  modified_at   DateTime       @default(now())
+  deleted_at    DateTime?
+  CreatedCodes  Code[]         @relation("CodeCreator")
+  Notifications Notification[]
 }
 
 model Category {
@@ -81,15 +82,15 @@ model Code {
 }
 
 model StudentStoryView {
-  id          Int      @id @default(autoincrement())
-  codeId      Int
-  storyId     Int
-  fullName    String   @db.VarChar(255)
-  section     String   @db.VarChar(100)
-  viewedAt    DateTime @default(now())
-  createdAt   DateTime @default(now())
-  Code        Code     @relation(fields: [codeId], references: [id], onDelete: Cascade)
-  Story       Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  codeId    Int
+  storyId   Int
+  fullName  String   @db.VarChar(255)
+  section   String   @db.VarChar(100)
+  viewedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  Code      Code     @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  Story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
 
   @@unique([codeId, storyId, fullName, section])
 }
@@ -141,3 +142,13 @@ model SystemConfig {
   @@map("system_config")
 }
 
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  type      String   @db.VarChar(50)
+  message   String   @db.VarChar(255)
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

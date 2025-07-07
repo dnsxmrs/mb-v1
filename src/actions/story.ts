@@ -2,6 +2,7 @@
 'use server'
 
 import { prisma } from '@/utils/prisma'
+import { createNotification } from './notification'
 
 export interface CreateStoryData {
     title: string
@@ -126,6 +127,8 @@ export async function createStory(data: CreateStoryData) {
             }
         })
 
+        await createNotification('story_created', `Story '${story.title}' created`)
+
         return { success: true, data: story }
     } catch (error) {
         console.error('Error creating story:', error)
@@ -151,6 +154,8 @@ export async function updateStory(id: number, data: UpdateStoryData) {
             }
         })
 
+        await createNotification('story_updated', `Story '${story.title}' updated`)
+
         return { success: true, data: story }
     } catch (error) {
         console.error('Error updating story:', error)
@@ -171,6 +176,8 @@ export async function deleteStory(id: number) {
                 updatedAt: new Date()
             }
         })
+
+        await createNotification('story_deleted', `Story '${story.title}' deleted`)
 
         return { success: true, data: story }
     } catch (error) {

@@ -10,7 +10,7 @@ export default function GuestFooter() {
 
                     <div className="flex items-center justify-center order-1 sm:order-2">
                         <div className="text-center sm:text-right">
-                            <span className="text-xs xs:text-sm block xs:inline">Contact us at: </span>
+                            <span className="text-xs xs:text-sm">Contact us at: </span>
                             <a
                                 href="mailto:valerieannesangalang14@gmail.com"
                                 className="text-xs xs:text-sm hover:text-[#60A5FA] transition-colors duration-200 break-all xs:break-normal"

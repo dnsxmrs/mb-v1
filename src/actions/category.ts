@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/utils/prisma'
+import { createNotification } from './notification'
 
 export interface CreateCategoryData {
     name: string
@@ -26,7 +27,11 @@ export async function getCategories() {
                 updatedAt: true,
                 _count: {
                     select: {
-                        Stories: true
+                        Stories: {
+                            where: {
+                                deletedAt: null
+                            }
+                        }
                     }
                 }
             },
@@ -86,6 +91,8 @@ export async function createCategory(data: CreateCategoryData) {
             }
         })
 
+        await createNotification('category_created', `Category '${category.name}' created`)
+
         return { success: true, data: category }
     } catch (error) {
         console.error('Error creating category:', error)
@@ -106,6 +113,8 @@ export async function updateCategory(id: number, data: UpdateCategoryData) {
                 updatedAt: new Date()
             }
         })
+
+        await createNotification('category_updated', `Category '${category.name}' updated`)
 
         return { success: true, data: category }
     } catch (error) {
@@ -153,28 +162,11 @@ export async function deleteCategory(id: number) {
             }
         })
 
+        await createNotification('category_deleted', `Category '${category.name}' deleted`)
+
         return { success: true, data: category }
     } catch (error) {
         console.error('Error deleting category:', error)
         return { success: false, error: 'Failed to delete category' }
-    }
-}
-
-export async function restoreCategory(id: number) {
-    try {
-        const category = await prisma.category.update({
-            where: {
-                id
-            },
-            data: {
-                deletedAt: null,
-                updatedAt: new Date()
-            }
-        })
-
-        return { success: true, data: category }
-    } catch (error) {
-        console.error('Error restoring category:', error)
-        return { success: false, error: 'Failed to restore category' }
     }
 }

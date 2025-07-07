@@ -123,8 +123,8 @@ export async function getCurrentStudentInfo() {
     // Parse student info
     const studentInfo = JSON.parse(studentInfoCookie.value);
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       data: {
         name: studentInfo.name || '',
         section: studentInfo.section || '',

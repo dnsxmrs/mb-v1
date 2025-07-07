@@ -8,6 +8,7 @@ import { getCategories } from '@/actions/category'
 import { extractYouTubeVideoId } from '@/utils/youtube'
 import StoryWithQuizForm from '@/components/StoryWithQuizForm'
 import Modal from '@/components/Modal'
+import { Plus, Pen, Trash } from 'lucide-react'
 
 interface Category {
     id: number
@@ -67,6 +68,11 @@ export default function StoryList() {
         setMounted(true)
     }, [])
 
+    useEffect(() => {
+        fetchCategories()
+        fetchStories()
+    }, [])
+
     const fetchCategories = async () => {
         try {
             const result = await getCategories()
@@ -122,11 +128,6 @@ export default function StoryList() {
         }
     }
 
-    useEffect(() => {
-        fetchCategories()
-        fetchStories()
-    }, [])
-
     const handleAddSuccess = () => {
         toast.success('Story and quiz have been created successfully!')
         setShowAddForm(false)
@@ -174,36 +175,42 @@ export default function StoryList() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         )
-    }        return (
-            <div className="space-y-6 text-black">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    }
+
+    return (
+        <div className="space-y-4 sm:space-y-6 text-black px-2 sm:px-0">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-3">
                     <div>
-                        {/* <h1 className="text-3xl font-bold text-gray-900">Story Management</h1> */}
-                        <p className="text-gray-600 mt-1">Manage your educational stories and content</p>
-                    </div>
-                    <div className="flex gap-3">
-                        {/* Category Filter */}
-                        <select
-                            value={selectedCategory || ''}
-                            onChange={(e) => setSelectedCategory(e.target.value ? parseInt(e.target.value) : null)}
-                            className="bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="">All Categories</option>
-                            {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name} ({category._count.Stories})
-                                </option>
-                            ))}
-                        </select>
-                        <button
-                            onClick={() => setShowAddForm(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        >
-                            Add New Story
-                        </button>
+                        <h1 className="text-2xl font-bold text-gray-900">Story Management</h1>
+                        <p className="text-gray-600">Manage your educational stories and content</p>
                     </div>
                 </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 px-2 sm:px-0">
+                    {/* Category Filter */}
+                    <select
+                        value={selectedCategory || ''}
+                        onChange={(e) => setSelectedCategory(e.target.value ? parseInt(e.target.value) : null)}
+                        className="bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base w-full sm:w-auto"
+                    >
+                        <option value="">All Categories</option>
+                        {categories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name} ({category._count.Stories})
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={() => setShowAddForm(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm sm:text-base whitespace-nowrap"
+                    >
+                        <Plus className="inline-block mr-1" size={16} />
+                        Add New Story
+                    </button>
+                </div>
+            </div>
 
             {/* Error Message */}
             {error && (
@@ -213,116 +220,141 @@ export default function StoryList() {
             )}
 
             {/* Stories Grid */}
-            {stories.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <div className="text-gray-400 text-6xl mb-4">📚</div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No stories yet</h3>
-                    <p className="text-gray-600 mb-4">Create your first story to get started</p>
-                    <button
-                        onClick={() => setShowAddForm(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
-                    >
-                        Add Your First Story
-                    </button>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {stories
-                        .filter(story => selectedCategory === null || story.categoryId === selectedCategory)
-                        .map((story) => {
+            {(() => {
+                const filteredStories = stories.filter(story => selectedCategory === null || story.categoryId === selectedCategory);
+
+                if (stories.length === 0) {
+                    return (
+                        <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg px-4">
+                            <div className="text-gray-400 text-4xl sm:text-6xl mb-3 sm:mb-4">📚</div>
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No stories yet</h3>
+                            <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">Create your first story to get started</p>
+                            <button
+                                onClick={() => setShowAddForm(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md text-sm sm:text-base"
+                            >
+                                Add Your First Story
+                            </button>
+                        </div>
+                    );
+                }
+
+                if (filteredStories.length === 0 && selectedCategory !== null) {
+                    const categoryName = categories.find(cat => cat.id === selectedCategory)?.name || 'this category';
+                    return (
+                        <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg px-4">
+                            <div className="text-gray-400 text-4xl sm:text-6xl mb-3 sm:mb-4">📖</div>
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No stories in {categoryName}</h3>
+                            <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">There are no stories available in this category yet</p>
+                            {/* <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
+                                <button
+                                    onClick={() => setSelectedCategory(null)}
+                                    className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md text-sm sm:text-base"
+                                >
+                                    View All Stories
+                                </button>
+                                <button
+                                    onClick={() => setShowAddForm(true)}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md text-sm sm:text-base"
+                                >
+                                    Add New Story
+                                </button>
+                            </div> */}
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-start">
+                        {filteredStories.map((story) => {
                             const thumbnail = thumbnails[story.id]
 
                             return (
-                            <div key={story.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                                {/* Thumbnail */}
-                                <div className="relative h-48 bg-gray-200">
-                                    {thumbnail ? (
-                                        <Image
-                                            src={thumbnail}
-                                            alt={story.title}
-                                            width={400}
-                                            height={192}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                            <div className="text-center">
-                                                <div className="text-4xl mb-2">🎬</div>
-                                                <p className="text-sm">Video Preview</p>
+                                <div key={story.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-fit">
+                                    {/* Thumbnail */}
+                                    <div className="relative h-40 sm:h-48 bg-gray-200">
+                                        {thumbnail ? (
+                                            <Image
+                                                src={thumbnail}
+                                                alt={story.title}
+                                                width={400}
+                                                height={192}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                <div className="text-center">
+                                                    <div className="text-3xl sm:text-4xl mb-2">🎬</div>
+                                                    <p className="text-xs sm:text-sm">Video Preview</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="absolute top-2 right-2 px-2 py-1 rounded">
+                                            {/* Category Badge */}
+                                            {story.category && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {story.category.name}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="p-3 sm:p-4 flex flex-col">
+                                        <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1 line-clamp-2">
+                                            {story.title}
+                                        </h3>
+
+                                        <p className="text-gray-500 text-xs sm:text-sm mb-2 italic">
+                                            by {story.author}
+                                        </p>
+
+                                        {story.description && (
+                                            <p className="text-gray-600 text-xs sm:text-sm mb-2 line-clamp-3 flex-grow">
+                                                {story.description}
+                                            </p>
+                                        )}
+
+                                        <div className="text-xs text-gray-500 mb-3 sm:mb-4">
+                                            Created: {formatDate(story.createdAt)}
+                                        </div>
+
+                                        {/* Stats */}
+                                        <div className="flex flex-row justify-center gap-4 sm:gap-8 mb-3 sm:mb-4 text-center text-xs text-gray-500">
+                                            <div>
+                                                <div className="font-medium text-gray-700">{story._count.QuizItems}</div>
+                                                <div className="text-xs">Quiz Items</div>
+                                            </div>
+                                            <div>
+                                                <div className="font-medium text-gray-700">{story._count.Codes}</div>
+                                                <div className="text-xs">Access Codes</div>
                                             </div>
                                         </div>
-                                    )}
-                                    <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                                        Video
+
+                                        {/* Actions */}
+                                        <div className="flex gap-2 mt-auto">
+                                            <button
+                                                onClick={() => setEditingStory(story)}
+                                                className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md border border-blue-200"
+                                            >
+                                                <Pen className="inline-block mr-2" size={16} />
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => setDeletingStory(story)}
+                                                className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md border border-red-200"
+                                            >
+                                                <Trash className="inline-block mr-2" size={16} />
+                                                Delete
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Content */}
-                                <div className="p-4">
-                                    <h3 className="font-semibold text-lg text-gray-900 mb-1 line-clamp-2">
-                                        {story.title}
-                                    </h3>
-
-                                    <p className="text-gray-500 text-sm mb-2 italic">
-                                        by {story.author}
-                                    </p>
-
-                                    {/* Category Badge */}
-                                    {story.category && (
-                                        <div className="mb-2">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {story.category.name}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {story.description && (
-                                        <p className="text-gray-600 text-sm mb-3 line-clamp-3">
-                                            {story.description}
-                                        </p>
-                                    )}
-
-                                    {/* Stats */}
-                                    <div className="grid grid-cols-3 gap-2 mb-4 text-center text-xs text-gray-500">
-                                        <div>
-                                            <div className="font-medium text-gray-700">{story._count.QuizItems}</div>
-                                            <div>Quiz Items</div>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium text-gray-700">{story._count.Codes}</div>
-                                            <div>Access Codes</div>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium text-gray-700">{story._count.Submissions}</div>
-                                            <div>Submissions</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="text-xs text-gray-500 mb-4">
-                                        Created: {formatDate(story.createdAt)}
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setEditingStory(story)}
-                                            className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium py-2 px-3 rounded-md border border-blue-200"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => setDeletingStory(story)}
-                                            className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-medium py-2 px-3 rounded-md border border-red-200"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            )}
+                            )
+                        })}
+                    </div>
+                );
+            })()}
 
             {/* Add Story Modal */}
             <Modal

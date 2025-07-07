@@ -56,7 +56,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
         description: story?.description || '',
         fileLink: story?.fileLink || '',
         subtitles: story?.subtitles?.join('\n') || '',
-        categoryId: story?.categoryId || story?.category?.id || 0
+        categoryId: story?.categoryId || story?.category?.id || 1
     })
 
     const [quizItems, setQuizItems] = useState<QuizItem[]>(
@@ -314,7 +314,6 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     disabled={isSubmitting}
                                 >
-                                    <option value={0}>No Category</option>
                                     {categories.map((category) => (
                                         <option key={category.id} value={category.id}>
                                             {category.name}
