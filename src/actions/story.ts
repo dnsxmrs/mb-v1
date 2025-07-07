@@ -9,6 +9,7 @@ export interface CreateStoryData {
     description?: string
     fileLink: string
     subtitles?: string[]
+    categoryId?: number
 }
 
 export interface UpdateStoryData {
@@ -17,6 +18,7 @@ export interface UpdateStoryData {
     description?: string
     fileLink?: string
     subtitles?: string[]
+    categoryId?: number
 }
 
 export async function getStories() {
@@ -27,6 +29,7 @@ export async function getStories() {
             },
             select: {
                 id: true,
+                categoryId: true,
                 title: true,
                 author: true,
                 description: true,
@@ -34,6 +37,13 @@ export async function getStories() {
                 subtitles: true,
                 createdAt: true,
                 updatedAt: true,
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true
+                    }
+                },
                 _count: {
                     select: {
                         QuizItems: true,
@@ -62,6 +72,13 @@ export async function getStoryById(id: number) {
                 deletedAt: null
             },
             include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true
+                    }
+                },
                 QuizItems: {
                     where: { deletedAt: null },
                     orderBy: { quizNumber: 'asc' }
@@ -104,7 +121,8 @@ export async function createStory(data: CreateStoryData) {
                 author: data.author || 'Anonymous',
                 description: data.description || null,
                 fileLink: data.fileLink,
-                subtitles: data.subtitles || []
+                subtitles: data.subtitles || [],
+                categoryId: data.categoryId || 0
             }
         })
 
@@ -128,6 +146,7 @@ export async function updateStory(id: number, data: UpdateStoryData) {
                 ...(data.description !== undefined && { description: data.description || null }),
                 ...(data.fileLink && { fileLink: data.fileLink }),
                 ...(data.subtitles !== undefined && { subtitles: data.subtitles }),
+                ...(data.categoryId !== undefined && { categoryId: data.categoryId || 0 }),
                 updatedAt: new Date()
             }
         })
@@ -188,6 +207,7 @@ export async function getStoriesWithQuiz() {
             },
             select: {
                 id: true,
+                categoryId: true,
                 title: true,
                 author: true,
                 description: true,
@@ -195,6 +215,13 @@ export async function getStoriesWithQuiz() {
                 subtitles: true,
                 createdAt: true,
                 updatedAt: true,
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true
+                    }
+                },
                 QuizItems: {
                     where: { deletedAt: null },
                     orderBy: { quizNumber: 'asc' },

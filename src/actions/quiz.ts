@@ -29,6 +29,7 @@ export interface CreateStoryWithQuizData {
     description?: string
     fileLink: string
     subtitles?: string[]
+    categoryId?: number
     quizItems: Omit<CreateQuizItemData, 'storyId'>[]
 }
 
@@ -144,7 +145,8 @@ export async function createStoryWithQuiz(data: CreateStoryWithQuizData) {
                     author: data.author || 'Anonymous',
                     description: data.description || null,
                     fileLink: data.fileLink,
-                    subtitles: data.subtitles || []
+                    subtitles: data.subtitles || [],
+                    categoryId: data.categoryId || 0
                 }
             })
 

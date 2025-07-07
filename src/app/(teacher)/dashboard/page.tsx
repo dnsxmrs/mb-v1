@@ -133,7 +133,7 @@ export default function TeacherDashboard() {
                 <select
                   value={selectedStoryId || ''}
                   onChange={(e) => setSelectedStoryId(Number(e.target.value) || null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Choose a story...</option>
                   {stories.map((story) => (
@@ -312,13 +312,13 @@ export default function TeacherDashboard() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Story Performance</h3>
               <div className="space-y-4">
                 {stories.slice(0, 5).map((story, index) => (
-                  <div key={story.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium text-sm">
+                  <div key={story.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium text-sm flex-shrink-0">
                         {index + 1}
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
                           {story.title}
                         </p>
                         <p className="text-xs text-gray-500">
@@ -326,16 +326,18 @@ export default function TeacherDashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${Math.min(100, (story._count.Submissions / Math.max(totalSubmissions, 1)) * 100)}%` }}
-                        ></div>
+                    <div className="flex items-center space-x-3 flex-shrink-0">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min(100, (story._count.Submissions / Math.max(totalSubmissions, 1)) * 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-600 font-medium min-w-0">
+                          {story._count.QuizItems} items
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-600">
-                        {story._count.QuizItems} quizzes
-                      </span>
                     </div>
                   </div>
                 ))}
@@ -379,7 +381,7 @@ export default function TeacherDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
@@ -399,7 +401,7 @@ export default function TeacherDashboard() {
                 <span className="text-sm font-medium text-gray-700">View Reports</span>
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Right Column - Code Generator (Desktop only) */}
@@ -426,7 +428,7 @@ export default function TeacherDashboard() {
                 <select
                   value={selectedStoryId || ''}
                   onChange={(e) => setSelectedStoryId(Number(e.target.value) || null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Choose a story...</option>
                   {stories.map((story) => (

@@ -34,11 +34,11 @@ export default clerkMiddleware(async (auth, req) => {
   // Auto-refresh student sessions on student routes
   if (isStudentRoute(req)) {
     const response = NextResponse.next();
-    
+
     // Check if student session cookies exist
     const studentInfo = req.cookies.get('student_info');
     const privacyConsent = req.cookies.get('privacy_consent');
-    
+
     if (studentInfo && privacyConsent) {
       try {
         // Parse and re-set cookies with extended expiration (30 days)
@@ -57,7 +57,7 @@ export default clerkMiddleware(async (auth, req) => {
         console.error('Error refreshing student session in middleware:', error);
       }
     }
-    
+
     return response;
   }
 });

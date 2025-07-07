@@ -270,23 +270,23 @@ export async function updateUser(id: number, data: UpdateUserData) {
 
 export async function updateUserStatus(email: string) {
     console.log('🔥 updateUserStatus called with email:', email)
-    
+
     try {
         if (!email) {
             console.log('❌ No email provided')
             return { success: false, error: 'Email is required' }
         }
-        
+
         console.log('✅ Email provided, searching for user...')
-        
+
         // Find the user by email to get the id
         const existingUser = await prisma.user.findFirst({
-            where: { 
-                email: email, 
-                deleted_at: null 
+            where: {
+                email: email,
+                deleted_at: null
             },
         })
-        
+
         console.log('🔍 Database query result:', existingUser)
 
         if (!existingUser) {
@@ -443,19 +443,32 @@ async function revokeInvitationByEmail(email: string): Promise<{ success: boolea
 
 export async function getCurrentUser() {
     try {
+        // Get the current user's ID from Clerk auth
         const { userId } = await auth()
-        
+
         if (!userId) {
             return { success: false, error: 'Not authenticated' }
         }
 
-        // For now, we'll use a default user ID since the Clerk integration 
-        // might not be fully connected to the User table
-        // In a real implementation, you'd need to store the Clerk user ID 
-        // in your User table and find by that
+        // Fetch the user's email from Clerk backend
+        const clerkUser = await clerkClient.users.getUser(userId)
+
+        if (!clerkUser || !clerkUser.emailAddresses || clerkUser.emailAddresses.length === 0) {
+            return { success: false, error: 'User email not found in Clerk' }
+        }
+
+        // Get the primary email address
+        const userEmail = clerkUser.emailAddresses.find(email => email.id === clerkUser.primaryEmailAddressId)?.emailAddress ||
+            clerkUser.emailAddresses[0]?.emailAddress
+
+        if (!userEmail) {
+            return { success: false, error: 'No valid email address found' }
+        }
+
+        // Find the user in the database using the email from Clerk
         const user = await prisma.user.findFirst({
             where: {
-                role: 'admin', // Assuming teachers have admin role
+                email: userEmail,
                 deleted_at: null
             },
             select: {
@@ -468,7 +481,7 @@ export async function getCurrentUser() {
         })
 
         if (!user) {
-            return { success: false, error: 'User not found' }
+            return { success: false, error: 'User not found in database' }
         }
 
         return { success: true, data: user }

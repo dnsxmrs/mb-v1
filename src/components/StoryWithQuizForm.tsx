@@ -1,13 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { createStoryWithQuiz, updateStoryQuizItems, type CreateStoryWithQuizData } from '@/actions/quiz'
 import { updateStory, type UpdateStoryData } from '@/actions/story'
+import { getCategories } from '@/actions/category'
 import { isValidYouTubeUrl } from '@/utils/youtube'
 import QuizForm from '@/components/QuizForm'
 import SubmitButton from '@/components/SubmitButton'
 
+interface Category {
+    id: number
+    name: string
+    description: string | null
+}
 
 interface Choice {
     id: number
@@ -25,11 +31,17 @@ interface QuizItem {
 interface StoryWithQuizFormProps {
     story?: {
         id: number
+        categoryId?: number
         title: string
         author: string
         description: string | null
         fileLink: string
         subtitles: string[]
+        category?: {
+            id: number
+            name: string
+            description: string | null
+        }
         QuizItems?: QuizItem[]
     }
     onSuccess?: () => void
@@ -37,12 +49,14 @@ interface StoryWithQuizFormProps {
 }
 
 export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryWithQuizFormProps) {
+    const [categories, setCategories] = useState<Category[]>([])
     const [formData, setFormData] = useState({
         title: story?.title || '',
         author: story?.author || '',
         description: story?.description || '',
         fileLink: story?.fileLink || '',
-        subtitles: story?.subtitles?.join('\n') || ''
+        subtitles: story?.subtitles?.join('\n') || '',
+        categoryId: story?.categoryId || story?.category?.id || 0
     })
 
     const [quizItems, setQuizItems] = useState<QuizItem[]>(
@@ -53,6 +67,21 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const isEditing = !!story
+
+    // Fetch categories on component mount
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const result = await getCategories()
+                if (result.success && result.data) {
+                    setCategories(result.data)
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error)
+            }
+        }
+        fetchCategories()
+    }, [])
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {}
@@ -136,7 +165,8 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                     author: formData.author.trim() || undefined,
                     description: formData.description.trim() || undefined,
                     fileLink: formData.fileLink.trim(),
-                    subtitles: subtitlesArray.length > 0 ? subtitlesArray : undefined
+                    subtitles: subtitlesArray.length > 0 ? subtitlesArray : undefined,
+                    categoryId: formData.categoryId
                 }
 
                 const storyResult = await updateStory(story.id, storyData)
@@ -165,6 +195,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                     description: formData.description.trim() || undefined,
                     fileLink: formData.fileLink.trim(),
                     subtitles: subtitlesArray.length > 0 ? subtitlesArray : undefined,
+                    categoryId: formData.categoryId,
                     quizItems: cleanedQuizItems.map(item => ({
                         quizNumber: item.quizNumber,
                         question: item.question,
@@ -195,7 +226,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
             ...prev,
-            [field]: value
+            [field]: field === 'categoryId' ? parseInt(value) || 0 : value
         }))
 
         // Clear field error when user starts typing
@@ -273,6 +304,29 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                             </div>
 
                             <div>
+                                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Category
+                                </label>
+                                <select
+                                    id="category"
+                                    value={formData.categoryId}
+                                    onChange={(e) => handleInputChange('categoryId', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    disabled={isSubmitting}
+                                >
+                                    <option value={0}>No Category</option>
+                                    {categories.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-gray-500 text-sm mt-1">
+                                    Select a category to help organize your stories
+                                </p>
+                            </div>
+
+                            <div>
                                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
                                     Description
                                 </label>
@@ -310,21 +364,21 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                             </div>
 
                             <div>
-                                <label htmlFor="subtitles" className="block text-sm font-medium text-gray-700 mb-2">
+                                {/* <label htmlFor="subtitles" className="block text-sm font-medium text-gray-700 mb-2">
                                     Subtitles
-                                </label>
+                                </label> */}
                                 <textarea
                                     id="subtitles"
                                     value={formData.subtitles}
                                     onChange={(e) => handleInputChange('subtitles', e.target.value)}
                                     rows={2}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="hidden w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Enter subtitles (one line per subtitle, optional)"
                                     disabled={isSubmitting}
                                 />
-                                <p className="text-gray-500 text-sm mt-1">
+                                {/* <p className="text-gray-500 text-sm mt-1">
                                     Enter each subtitle on a new line. These will be used for text-to-speech on future updates.
-                                </p>
+                                </p> */}
                             </div>
                         </div>
                     </div>

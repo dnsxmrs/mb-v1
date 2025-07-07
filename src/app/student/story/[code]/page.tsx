@@ -107,13 +107,20 @@ export default async function StoryPage({
                   <h2 className="text-lg font-semibold text-[#1E3A8A] mb-3">Story Content:</h2>
                   {/* Check if it's a video/YouTube link */}
                   {isValidYouTubeUrl(story.fileLink) ? (
-                    <div className="aspect-video w-full max-w-full">
+                    <div className="aspect-video w-full max-w-full relative">
                       <iframe
                         src={convertToEmbedUrl(story.fileLink)}
                         title={story.title}
-                        className="w-full h-full rounded-lg"
+                        className="w-full h-full rounded-lg absolute inset-0"
                         allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%'
+                        }}
                       />
                     </div>
                   ) : (

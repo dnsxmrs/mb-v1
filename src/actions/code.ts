@@ -13,7 +13,9 @@ export async function handleCodeSubmit(formData: FormData) {
         };
     }
 
-    const storyResult = await getStoryByCode(code);
+    const codeTrimmed = code.trim().toUpperCase();
+
+    const storyResult = await getStoryByCode(codeTrimmed);
 
     if (!storyResult.success) {
         return {
@@ -25,7 +27,7 @@ export async function handleCodeSubmit(formData: FormData) {
     // Don't redirect here — return success and redirect on the client side
     return {
         success: true,
-        redirectTo: `/student/info?code=${code}`
+        redirectTo: `/student/info?code=${codeTrimmed}`
     };
 }
 

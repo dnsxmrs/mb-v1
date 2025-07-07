@@ -23,9 +23,19 @@ model User {
   CreatedCodes Code[]    @relation("CodeCreator")
 }
 
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  description String?   @db.VarChar(255)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  Stories     Story[]
+}
+
 model Story {
   id          Int                 @id @default(autoincrement())
-  category    String              @db.VarChar(100) @default("General")
+  categoryId  Int                 @default(0)
   title       String              @db.VarChar(255)
   description String?
   fileLink    String
@@ -38,6 +48,7 @@ model Story {
   QuizItems   QuizItem[]
   Submissions StudentSubmission[]
   StoryViews  StudentStoryView[]
+  category    Category            @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 }
 
 model QuizItem {

@@ -44,7 +44,7 @@ export default function Home() {
               </p>
 
               {/* Code Input Section */}
-              <div className="bg-white/80 backdrop-blur-sm p-4 xs:p-6 sm:p-8 rounded-2xl shadow-sm border border-[#DBEAFE] w-full max-w-sm xs:max-w-md">
+              <div className="text-center bg-white/80 backdrop-blur-sm p-4 xs:p-6 sm:p-8 rounded-2xl shadow-sm border border-[#DBEAFE] w-full max-w-sm xs:max-w-md">
                 <h3 className="text-base xs:text-lg sm:text-xl font-semibold text-[#1E3A8A] mb-3 xs:mb-4">Magsimula na ng Pag-aaral</h3>
                 <ClientForm/>
               </div>

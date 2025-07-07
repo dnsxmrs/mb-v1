@@ -4,12 +4,23 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import { getStoriesWithQuiz, deleteStory } from '@/actions/story'
+import { getCategories } from '@/actions/category'
 import { extractYouTubeVideoId } from '@/utils/youtube'
 import StoryWithQuizForm from '@/components/StoryWithQuizForm'
 import Modal from '@/components/Modal'
 
+interface Category {
+    id: number
+    name: string
+    description: string | null
+    _count: {
+        Stories: number
+    }
+}
+
 interface Story {
     id: number
+    categoryId: number
     title: string
     author: string
     description: string | null
@@ -17,6 +28,11 @@ interface Story {
     subtitles: string[]
     createdAt: Date
     updatedAt: Date
+    category?: {
+        id: number
+        name: string
+        description: string | null
+    }
     QuizItems?: {
         id: number
         quizNumber: number
@@ -36,6 +52,8 @@ interface Story {
 
 export default function StoryList() {
     const [stories, setStories] = useState<Story[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string>('')
     const [showAddForm, setShowAddForm] = useState(false)
@@ -48,6 +66,19 @@ export default function StoryList() {
     useEffect(() => {
         setMounted(true)
     }, [])
+
+    const fetchCategories = async () => {
+        try {
+            const result = await getCategories()
+            if (result.success && result.data) {
+                setCategories(result.data)
+            } else {
+                console.error('Failed to fetch categories:', result.error)
+            }
+        } catch {
+            console.error('An unexpected error occurred while loading categories')
+        }
+    }
 
     const fetchStories = async () => {
         setLoading(true)
@@ -92,6 +123,7 @@ export default function StoryList() {
     }
 
     useEffect(() => {
+        fetchCategories()
         fetchStories()
     }, [])
 
@@ -142,23 +174,36 @@ export default function StoryList() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         )
-    }
-
-    return (
-        <div className="space-y-6 text-black">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Story Management</h1>
-                    <p className="text-gray-600 mt-1">Manage your educational stories and content</p>
+    }        return (
+            <div className="space-y-6 text-black">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        {/* <h1 className="text-3xl font-bold text-gray-900">Story Management</h1> */}
+                        <p className="text-gray-600 mt-1">Manage your educational stories and content</p>
+                    </div>
+                    <div className="flex gap-3">
+                        {/* Category Filter */}
+                        <select
+                            value={selectedCategory || ''}
+                            onChange={(e) => setSelectedCategory(e.target.value ? parseInt(e.target.value) : null)}
+                            className="bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="">All Categories</option>
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.name} ({category._count.Stories})
+                                </option>
+                            ))}
+                        </select>
+                        <button
+                            onClick={() => setShowAddForm(true)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                            Add New Story
+                        </button>
+                    </div>
                 </div>
-                <button
-                    onClick={() => setShowAddForm(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                    Add New Story
-                </button>
-            </div>
 
             {/* Error Message */}
             {error && (
@@ -182,10 +227,12 @@ export default function StoryList() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {stories.map((story) => {
-                        const thumbnail = thumbnails[story.id]
+                    {stories
+                        .filter(story => selectedCategory === null || story.categoryId === selectedCategory)
+                        .map((story) => {
+                            const thumbnail = thumbnails[story.id]
 
-                        return (
+                            return (
                             <div key={story.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                                 {/* Thumbnail */}
                                 <div className="relative h-48 bg-gray-200">
@@ -219,6 +266,15 @@ export default function StoryList() {
                                     <p className="text-gray-500 text-sm mb-2 italic">
                                         by {story.author}
                                     </p>
+
+                                    {/* Category Badge */}
+                                    {story.category && (
+                                        <div className="mb-2">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {story.category.name}
+                                            </span>
+                                        </div>
+                                    )}
 
                                     {story.description && (
                                         <p className="text-gray-600 text-sm mb-3 line-clamp-3">

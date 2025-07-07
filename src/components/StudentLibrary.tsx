@@ -9,6 +9,7 @@ import { getCurrentStudentInfo } from '@/actions/student'
 import { useStudentSessionRefresh } from '@/hooks/useStudentSession'
 // import { updateStudentAuthorizedCode } from '@/actions/student'
 import { extractYouTubeVideoId } from '@/utils/youtube'
+import { Search } from 'lucide-react'
 
 interface ViewedStory {
     id: number
@@ -26,7 +27,6 @@ interface StoryThumbnailProps {
 }
 
 function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
-    const [isLoading, setIsLoading] = useState(true)
     const [hasError, setHasError] = useState(false)
 
     const getBookThumbnail = (fileLink: string) => {
@@ -42,7 +42,6 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
     }
 
     const handleImageLoad = () => {
-        setIsLoading(false)
         setHasError(false)
     }
 
@@ -63,24 +62,18 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
 
         // Final fallback to placeholder
         setHasError(true)
-        setIsLoading(false)
         target.src = '/images/books.svg'
     }
 
     return (
         <div className="aspect-[3/4] bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-100 flex items-center justify-center relative overflow-hidden">
-            {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="animate-spin rounded-full h-8 w-8"></div>
-                </div>
-            )}
 
             <Image
                 src={getBookThumbnail(story.fileLink)}
                 alt={`${story.title} thumbnail`}
                 fill
                 className={`relative z-10 transition-opacity duration-300 ${hasError ? 'w-16 h-16 object-contain opacity-50' : 'object-cover'
-                    } ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                    } 'opacity-100'`}
                 onLoad={handleImageLoad}
                 onError={handleImageError}
             />
@@ -95,11 +88,13 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
                 </div>
             </div>
 
+        {/* className="text-white px-3 py-2 border border-[#60A5FA] rounded-lg bg-[#3B82F6] text-sm focus:outline-none focus:ring-1 focus:ring-[#60A5FA] focus:border-[#60A5FA] min-w-[140px]" */}
+
             {/* Quiz Status badge */}
             {quizTaken !== null && (
                 <div className={`absolute top-3 right-3 text-white text-xs px-2 py-1 rounded-full font-medium z-50 shadow-lg ${quizTaken
-                    ? 'bg-blue-500'
-                    : 'bg-orange-500'
+                    ? 'bg-[#3B82F6]'
+                    : 'bg-orange-700'
                     }`}>
                     {quizTaken ? 'Tapos na' : 'May Quiz'}
                 </div>
@@ -295,116 +290,65 @@ export default function StudentLibrary() {
         )
     }
 
-    if (filteredStories.length === 0 && searchTerm) {
+    if (stories.length === 0) {
         return (
-            <div className="space-y-8">
-                <div className="text-center mb-8">
-                    <h2 className="text-2xl font-bold text-[#1E3A8A] mb-2">Iyong Aklatan</h2>
-                    <p className="text-gray-600">Mga panitikang iyong na-explore at nagustuhan</p>
+            <div className="text-[#1E3A8A] text-center py-12">
+                <div className="mb-4">
+                    <svg className="mx-auto h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
                 </div>
+                <h3 className="text-lg font-medium mb-2">Walang Panitikan na Nahanap</h3>
+                <p>Wala ka pang na-view na panitikan. Simulan ang pag-explore upang bumuo ng iyong aklatan!</p>
+            </div>
+        )
+    }
 
-                {/* Search Bar */}
-                <div className="max-w-md mx-auto">
-                    <div className="relative">
+    return (
+        <div className="text-[#1E3A8A] space-y-8">
+            <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-[#1E3A8A] mb-2">Iyong Aklatan</h2>
+                <p className="text-xl">Mga panitikang iyong na-explore at nagustuhan</p>
+            </div>
+
+            {/* Smart Search Bar with Inline Filters - Only show when there are stories */}
+            <div className="max-w-6xl mx-auto">
+                <div className="flex flex-col lg:flex-row gap-4 items-center justify-center">
+                    {/* Search Bar */}
+                    <div className="relative w-full lg:flex-grow max-w-md">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                            <Search className="h-5 w-5 text-[#60A5FA] z-10" />
                         </div>
                         <input
                             type="text"
                             placeholder="Hanapin ang panitikan..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            className="text-[#1E3A8A] block w-full pl-10 pr-10 py-2 bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#3B82F6] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm text-sm"
                         />
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm('')}
                                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                             >
-                                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="h-5 w-5 text-[#60A5FA] hover:text-[#1E3A8A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         )}
                     </div>
-                </div>
 
-                <div className="text-center py-12">
-                    <div className="text-gray-400 mb-4">
-                        <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-600 mb-2">Walang nahanap na panitikan</h3>
-                    <p className="text-gray-500">Subukan ang paghahanap gamit ang ibang mga keyword o i-clear ang paghahanap upang makita ang lahat ng panitikan.</p>
-                </div>
-            </div>
-        )
-    }
-
-    if (stories.length === 0) {
-        return (
-            <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-600 mb-2">Walang Panitikan na Nahanap</h3>
-                <p className="text-gray-500">Wala ka pang na-view na panitikan. Simulan ang pag-explore upang bumuo ng iyong aklatan!</p>
-            </div>
-        )
-    }
-
-    return (
-        <div className="space-y-8">
-            <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-[#1E3A8A] mb-2">Iyong Aklatan</h2>
-                <p className="text-gray-600">Mga panitikang iyong na-explore at nagustuhan</p>
-            </div>
-
-            {/* Search Bar with Inline Filters */}
-            {stories.length > 0 && (
-                <div className="max-w-6xl mx-auto">
-                    <div className="flex flex-col lg:flex-row gap-4 items-center justify-center">
-                        {/* Search Bar */}
-                        <div className="relative flex-grow max-w-md">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Hanapin ang panitikan..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="text-black block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                            {searchTerm && (
-                                <button
-                                    onClick={() => setSearchTerm('')}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                >
-                                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            )}
-                        </div>
-
+                    {/* Sort and Filter Container - adjusts layout based on screen size */}
+                    <div className="flex flex-col sm:flex-row lg:flex-row gap-4 items-center justify-center w-full lg:w-auto">
                         {/* Sort Controls */}
                         <div className="flex items-center gap-2">
-                            <label htmlFor="sort-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                                Uriin:
+                            <label className="text-sm font-semibold text-[#1E3A8A] whitespace-nowrap">
+                                Sort:
                             </label>
                             <select
-                                id="sort-select"
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                                className="text-black px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[140px]"
+                                className="text-white px-3 py-2 border border-[#60A5FA] rounded-lg bg-[#3B82F6] text-sm focus:outline-none focus:ring-1 focus:ring-[#60A5FA] focus:border-[#60A5FA] min-w-[140px]"
                             >
                                 <option value="latest-first">Pinakabago</option>
                                 <option value="earliest-first">Pinakaluma</option>
@@ -417,14 +361,13 @@ export default function StudentLibrary() {
 
                         {/* Filter Controls */}
                         <div className="flex items-center gap-2">
-                            <label htmlFor="filter-select" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                            <label className="text-sm font-semibold text-[#1E3A8A] whitespace-nowrap">
                                 Filter:
                             </label>
                             <select
-                                id="filter-select"
                                 value={filterBy}
                                 onChange={(e) => setFilterBy(e.target.value as FilterOption)}
-                                className="text-black px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-w-[150px]"
+                                className="text-white px-3 py-2 border border-[#60A5FA] rounded-lg bg-[#3B82F6] text-sm focus:outline-none focus:ring-1 focus:ring-[#60A5FA] focus:border-[#60A5FA] min-w-[140px]"
                             >
                                 <option value="all">Lahat</option>
                                 <option value="with-quiz">May Quiz</option>
@@ -435,77 +378,92 @@ export default function StudentLibrary() {
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredStories.map((story) => (
-                    <div
-                        key={`${story.id}-${story.code}`}
-                        className={`bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1 border border-gray-100 ${navigating === story.code ? 'opacity-75 pointer-events-none' : ''
-                            }`}
-                        onClick={() => {
-                            // Update authorized code and navigate to the story
-                            handleStoryClick(story.code)
-                        }}
-                    >
-                        {/* Loading overlay when navigating */}
-                        {navigating === story.code && (
-                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-50 rounded-lg">
-                                <div className="flex items-center space-x-2">
-                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1E3A8A]"></div>
-                                    <span className="text-[#1E3A8A] font-medium">Binubuksan ang kwento...</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Book Cover/Thumbnail */}
-                        <StoryThumbnail
-                            story={story}
-                            quizTaken={quizStatuses[story.code] ?? null}
-                        />
-
-                        {/* Book Details */}
-                        <div className="p-4 bg-white">
-                            <h3 className="font-bold text-[#1E3A8A] text-base mb-1 line-clamp-2" title={story.title}>
-                                {story.title}
-                            </h3>
-                            <p className="text-gray-600 text-sm mb-2 font-medium" title={story.author}>
-                                ni {story.author}
-                            </p>
-                            {story.description && (
-                                <p className="text-gray-500 text-xs mb-3 line-clamp-2 leading-relaxed" title={story.description}>
-                                    {story.description}
-                                </p>
-                            )}
-                            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                                <div className="flex items-center text-xs text-gray-400">
-                                    <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    {formatDate(story.viewedAt)}
-                                </div>
-                                <div className="flex items-center text-xs text-blue-600">
-                                    <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    Napanood
-                                </div>
-                            </div>
-                        </div>
+            {/* Conditional Results Display */}
+            {filteredStories.length === 0 && searchTerm ? (
+                /* No Search Results */
+                <div className="text-center py-12">
+                    <div className="text-gray-400 mb-4">
+                        <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
-                ))}
-            </div>
+                    <h3 className="text-lg font-medium text-gray-600 mb-2">Walang nahanap na panitikan</h3>
+                    <p className="text-gray-500">Subukan ang paghahanap gamit ang ibang mga keyword o i-clear ang paghahanap upang makita ang lahat ng panitikan.</p>
+                </div>
+            ) : (
+                /* Stories Grid */
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {filteredStories.map((story) => (
+                            <div
+                                key={`${story.id}-${story.code}`}
+                                className={`bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1 border border-gray-100 ${navigating === story.code ? 'opacity-75 pointer-events-none' : ''
+                                    }`}
+                                onClick={() => handleStoryClick(story.code)}
+                            >
+                                {/* Loading overlay when navigating */}
+                                {navigating === story.code && (
+                                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-50 rounded-lg">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#1E3A8A]"></div>
+                                            <span className="text-[#1E3A8A] font-medium">Binubuksan ang kwento...</span>
+                                        </div>
+                                    </div>
+                                )}
 
-            <div className="text-center mt-8 text-gray-500 text-sm">
-                {filteredStories.length} sa {stories.length} panitikan
-                {searchTerm && ` na tumugma sa "${searchTerm}"`}
-                {filterBy !== 'all' && ` (${filterBy === 'with-quiz' ? 'may quiz' :
-                    filterBy === 'quiz-completed' ? 'tapos na ang quiz' :
-                        filterBy === 'quiz-pending' ? 'hindi pa tapos ang quiz' :
-                            'walang quiz'
-                    })`}
-            </div>
+                                {/* Book Cover/Thumbnail */}
+                                <StoryThumbnail
+                                    story={story}
+                                    quizTaken={quizStatuses[story.code] ?? null}
+                                />
+
+                                {/* Book Details */}
+                                <div className="p-4 bg-white">
+                                    <h3 className="font-bold text-[#1E3A8A] text-base mb-1 line-clamp-2" title={story.title}>
+                                        {story.title}
+                                    </h3>
+                                    <p className="text-gray-600 text-sm mb-2 font-medium" title={story.author}>
+                                        ni {story.author}
+                                    </p>
+                                    {story.description && (
+                                        <p className="text-gray-500 text-xs mb-3 line-clamp-2 leading-relaxed" title={story.description}>
+                                            {story.description}
+                                        </p>
+                                    )}
+                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                        <div className="flex items-center text-xs text-gray-400">
+                                            <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {formatDate(story.viewedAt)}
+                                        </div>
+                                        <div className="flex items-center text-xs text-blue-600">
+                                            <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            Napanood
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Results Summary */}
+                    <div className="text-center mt-8 text-gray-500 text-sm">
+                        {filteredStories.length} sa {stories.length} na panitikan
+                        {searchTerm && ` na tumugma sa "${searchTerm}"`}
+                        {filterBy !== 'all' && ` (${filterBy === 'with-quiz' ? 'may quiz' :
+                            filterBy === 'quiz-completed' ? 'tapos na ang quiz' :
+                                filterBy === 'quiz-pending' ? 'hindi pa tapos ang quiz' :
+                                    'walang quiz'
+                            })`}
+                    </div>
+                </>
+            )}
         </div>
     )
 }
