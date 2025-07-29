@@ -15,21 +15,10 @@ export interface StudentStoryViewData {
  * Track a student's story view. This function is non-blocking and will not throw errors
  * to avoid interrupting the user experience.
  */
-export async function trackStoryView(code: string) {
+export async function trackStoryView(code: string, fullName: string, section: string, deviceId: string) {
     try {
-        // Get student info from cookies
-        const cookieStore = await cookies()
-        const studentInfoCookie = cookieStore.get("student_info")
 
-        if (!studentInfoCookie) {
-            console.warn('No student session found for story view tracking')
-            return { success: false, error: 'No student session found' }
-        }
-
-        const studentInfo = JSON.parse(studentInfoCookie.value)
-        const { name: fullName, section } = studentInfo
-
-        if (!fullName || !section) {
+        if (!fullName || !section || !deviceId) {
             console.warn('Incomplete student info for story view tracking')
             return { success: false, error: 'Incomplete student information' }
         }
@@ -54,11 +43,12 @@ export async function trackStoryView(code: string) {
         // Use upsert to handle the unique constraint gracefully
         await prisma.studentStoryView.upsert({
             where: {
-                codeId_storyId_fullName_section: {
+                codeId_storyId_fullName_section_deviceId: {
                     codeId: codeRecord.id,
                     storyId: codeRecord.storyId,
                     fullName: fullName,
-                    section: section
+                    section: section,
+                    deviceId: deviceId
                 }
             },
             update: {
@@ -69,7 +59,8 @@ export async function trackStoryView(code: string) {
                 codeId: codeRecord.id,
                 storyId: codeRecord.storyId,
                 fullName: fullName,
-                section: section
+                section: section,
+                deviceId: deviceId
             }
         })
 
@@ -119,9 +110,9 @@ export async function getStoryViewStats(storyId?: number) {
 }
 
 /**
- * Check if a student has viewed a specific story
+ * Check if a student has viewed a specific story on the current device
  */
-export async function hasStudentViewedStory(code: string, fullName: string, section: string) {
+export async function hasStudentViewedStory(code: string, fullName: string, section: string, deviceId?: string) {
     try {
         const codeRecord = await prisma.code.findUnique({
             where: {
@@ -138,13 +129,34 @@ export async function hasStudentViewedStory(code: string, fullName: string, sect
             return { success: false, error: 'Invalid code' }
         }
 
-        const view = await prisma.studentStoryView.findUnique({
-            where: {
-                codeId_storyId_fullName_section: {
+        // If no deviceId provided, search without deviceId constraint (backward compatibility)
+        if (!deviceId) {
+            const view = await prisma.studentStoryView.findFirst({
+                where: {
                     codeId: codeRecord.id,
                     storyId: codeRecord.storyId,
                     fullName,
                     section
+                }
+            })
+
+            return {
+                success: true,
+                data: {
+                    hasViewed: !!view,
+                    viewedAt: view?.viewedAt
+                }
+            }
+        }
+
+        const view = await prisma.studentStoryView.findUnique({
+            where: {
+                codeId_storyId_fullName_section_deviceId: {
+                    codeId: codeRecord.id,
+                    storyId: codeRecord.storyId,
+                    fullName,
+                    section,
+                    deviceId
                 }
             }
         })
@@ -164,7 +176,7 @@ export async function hasStudentViewedStory(code: string, fullName: string, sect
 }
 
 /**
- * Get stories viewed by the current student (from session)
+ * Get stories viewed by the current student on the current device (from session)
  */
 export async function getStudentViewedStories() {
     try {
@@ -177,17 +189,18 @@ export async function getStudentViewedStories() {
         }
 
         const studentInfo = JSON.parse(studentInfoCookie.value)
-        const { name: fullName, section } = studentInfo
+        const { name: fullName, section, deviceId } = studentInfo
 
-        if (!fullName || !section) {
+        if (!fullName || !section || !deviceId) {
             return { success: false, error: 'Incomplete student information' }
         }
 
-        // Get all stories viewed by this student
+        // Get all stories viewed by this student on this specific device
         const viewedStories = await prisma.studentStoryView.findMany({
             where: {
                 fullName,
-                section
+                section,
+                deviceId
             },
             include: {
                 Story: {

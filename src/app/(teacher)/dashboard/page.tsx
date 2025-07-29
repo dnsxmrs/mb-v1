@@ -423,7 +423,6 @@ export default function TeacherDashboard() {
               {/* Header */}
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-                  <span className="mr-2">🔑</span>
                   Generate Access Code
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">

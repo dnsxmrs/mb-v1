@@ -22,7 +22,7 @@ export async function generateMetadata({
     if (storyResult.success && storyResult.data) {
       const { story } = storyResult.data;
       return {
-        title: `${story.title} | Magandang Buhay!`,
+        title: `${story.title} | E-KWENTO`,
         description: story.description || `Read the story "${story.title}" by ${story.author}`,
       };
     }
@@ -32,7 +32,7 @@ export async function generateMetadata({
 
   // Fallback metadata if story is not found
   return {
-    title: "Quiz | Magandang Buhay!",
+    title: "Quiz | E-KWENTO",
     description: "Take the quiz",
   };
 }
@@ -53,17 +53,17 @@ export default async function QuizPage({
     redirect("/student/info?code=" + code);
   }
 
-  const { name, section } = JSON.parse(studentInfo.value);
+  const { name, section, deviceId } = JSON.parse(studentInfo.value);
 
-  // check in studentstoryview if code, fullname, section already exists
-  const authorized = await hasStudentViewedStory(code, name, section)
+  // check in studentstoryview if code, fullname, section, deviceId already exists
+  const authorized = await hasStudentViewedStory(code, name, section, deviceId || '')
 
   if (authorized.data?.hasViewed === false) {
     return <UnauthorizedRedirect authorizedCode={code} />;
   }
 
-  // Check if student has already taken the quiz
-  const quizStatusResult = await hasStudentTakenQuiz(code, name, section);
+  // Check if student has already taken the quiz on this device
+  const quizStatusResult = await hasStudentTakenQuiz(code, name, section, deviceId || '');
 
   if (quizStatusResult.success && quizStatusResult.data?.hasTaken) {
     // Student has already taken the quiz, redirect to results page
@@ -97,12 +97,9 @@ export default async function QuizPage({
       <div className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full overflow-hidden">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-[#1E3A8A] mb-2 break-words">{story.title}</h1>
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-[#1E3A8A] break-words">{story.title}</h1>
               <p className="text-gray-500 text-sm mb-2 italic">ni {story.author}</p>
-              {/* {story.description && (
-              <p className="text-gray-600 mt-2 break-words text-justify whitespace-pre-line">{story.description}</p>
-            )} */}
             </div>
 
             {/* Quiz Questions */}
@@ -114,6 +111,7 @@ export default async function QuizPage({
                 storyId={story.id}
                 studentName={name}
                 studentSection={section}
+                studentDeviceId={deviceId || ''}
               />
             ) : (
               <div className="text-center py-12">

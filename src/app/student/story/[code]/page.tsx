@@ -23,7 +23,7 @@ export async function generateMetadata({
     if (storyResult.success && storyResult.data) {
       const { story } = storyResult.data;
       return {
-        title: `${story.title} | Magandang Buhay!`,
+        title: `${story.title} | E-KWENTO`,
         description: story.description || `Read the story "${story.title}" by ${story.author}`,
       };
     }
@@ -33,7 +33,7 @@ export async function generateMetadata({
 
   // Fallback metadata if story is not found
   return {
-    title: "Story | Magandang Buhay!",
+    title: "Story | E-KWENTO",
     description: "View the story",
   };
 }
@@ -54,7 +54,7 @@ export default async function StoryPage({
     redirect("/student/info?code=" + code);
   }
 
-  const { name, section } = JSON.parse(studentInfo.value);
+  const { name, section, deviceId } = JSON.parse(studentInfo.value);
   // check in studentstoryview if code, fullname, section already exists
   const authorized = await hasStudentViewedStory(code, name, section)
 
@@ -93,7 +93,7 @@ export default async function StoryPage({
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full overflow-hidden">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-[#1E3A8A] mb-2 break-words">{story.title}</h1>
+              <h1 className="text-3xl font-bold text-[#1E3A8A] break-words">{story.title}</h1>
               <p className="text-gray-500 text-sm mb-2 italic">ni {story.author}</p>
               {story.description && (
                 <p className="text-gray-600 mt-2 break-words text-justify whitespace-pre-line">{story.description}</p>
@@ -104,7 +104,7 @@ export default async function StoryPage({
             <div className="prose prose-lg max-w-none">
               {story.fileLink && (
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-[#1E3A8A] mb-3">Story Content:</h2>
+                  <h2 className="text-lg font-semibold text-[#1E3A8A] mb-3">Panoorin ang kwento:</h2>
                   {/* Check if it's a video/YouTube link */}
                   {isValidYouTubeUrl(story.fileLink) ? (
                     <div className="aspect-video w-full max-w-full relative">
@@ -160,6 +160,7 @@ export default async function StoryPage({
                 code={code}
                 studentName={name}
                 studentSection={section}
+                deviceId={deviceId}
               />
             )}
           </div>

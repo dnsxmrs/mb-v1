@@ -3,7 +3,7 @@ import GuestFooter from "@/components/GuestFooter";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: 'Games | Magandang Buhay!',
+    title: 'Games | E-KWENTO',
     description: 'Explore our collection of educational games',
 }
 

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import LoginForm from './LoginForm'
 
 export const metadata: Metadata = {
-    title: 'Login | Magandang Buhay!',
+    title: 'Login | E-KWENTO',
     description: 'Login to your account',
 }
 

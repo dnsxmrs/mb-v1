@@ -12,7 +12,7 @@ interface Invitation {
   updatedAt: string
   url?: string
   revoked?: boolean
-  publicMetadata?: Record<string, unknown> | null
+  // publicMetadata?: Record<string, unknown> | null
 }
 
 interface InvitationManagerProps {

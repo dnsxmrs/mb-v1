@@ -120,43 +120,46 @@ export default function StudentLibrary() {
     const { refreshSession } = useStudentSessionRefresh()
     const router = useRouter()
 
+    // Combine data loading into a single effect
     useEffect(() => {
-        const loadViewedStories = async () => {
+        const loadData = async () => {
             try {
-                // Refresh session before loading stories
                 await refreshSession()
-
                 setLoading(true)
                 setError('')
 
-                // Get student info from server action
-                const studentInfoResult = await getCurrentStudentInfo()
-                const result = await getStudentViewedStories()
+                // Load stories and student info in parallel
+                const [studentInfoResult, storiesResult] = await Promise.all([
+                    getCurrentStudentInfo(),
+                    getStudentViewedStories()
+                ])
 
-                if (result.success && result.data) {
-                    setStories(result.data)
+                if (!storiesResult.success || !storiesResult.data) {
+                    setError(storiesResult.error || 'Failed to load viewed stories')
+                    return
+                }
 
-                    // Load quiz statuses for all stories
-                    if (studentInfoResult.success && studentInfoResult.data) {
-                        const statuses: Record<string, boolean> = {}
+                setStories(storiesResult.data)
 
-                        for (const story of result.data) {
-                            try {
-                                const quizResult = await hasStudentTakenQuiz(
-                                    story.code,
-                                    studentInfoResult.data.name,
-                                    studentInfoResult.data.section
-                                )
-                                statuses[story.code] = quizResult.success && quizResult.data ? quizResult.data.hasTaken : false
-                            } catch {
-                                statuses[story.code] = false
-                            }
+                // Load quiz statuses in parallel if student info is available
+                if (studentInfoResult.success && studentInfoResult.data) {
+                    const quizPromises = storiesResult.data.map(async (story) => {
+                        try {
+                            const quizResult = await hasStudentTakenQuiz(
+                                story.code,
+                                studentInfoResult.data.name,
+                                studentInfoResult.data.section,
+                                studentInfoResult.data.deviceId || ''
+                            )
+                            return [story.code, quizResult.success && quizResult.data?.hasTaken || false] as const
+                        } catch {
+                            return [story.code, false] as const
                         }
+                    })
 
-                        setQuizStatuses(statuses)
-                    }
-                } else {
-                    setError(result.error || 'Failed to load viewed stories')
+                    const quizResults = await Promise.all(quizPromises)
+                    const statuses = Object.fromEntries(quizResults)
+                    setQuizStatuses(statuses)
                 }
             } catch {
                 setError('An unexpected error occurred')
@@ -165,73 +168,65 @@ export default function StudentLibrary() {
             }
         }
 
-        loadViewedStories()
+        loadData()
     }, [refreshSession])
 
-    // Apply search, sort, and filter
+    // Simplified filtering and sorting logic
     useEffect(() => {
-        // Sorting function
-        const sortStories = (stories: ViewedStory[], sortOption: SortOption): ViewedStory[] => {
-            const sorted = [...stories]
+        const processStories = () => {
+            let processed = [...stories]
 
-            switch (sortOption) {
-                case 'title-asc':
-                    return sorted.sort((a, b) => a.title.localeCompare(b.title))
-                case 'title-desc':
-                    return sorted.sort((a, b) => b.title.localeCompare(a.title))
-                case 'latest-first':
-                    return sorted.sort((a, b) => new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime())
-                case 'earliest-first':
-                    return sorted.sort((a, b) => new Date(a.viewedAt).getTime() - new Date(b.viewedAt).getTime())
-                case 'author-asc':
-                    return sorted.sort((a, b) => a.author.localeCompare(b.author))
-                case 'author-desc':
-                    return sorted.sort((a, b) => b.author.localeCompare(a.author))
-                default:
-                    return sorted
+            // Apply search filter first (most selective)
+            if (searchTerm.trim()) {
+                const searchLower = searchTerm.toLowerCase()
+                processed = processed.filter(story =>
+                    story.title.toLowerCase().includes(searchLower) ||
+                    story.author.toLowerCase().includes(searchLower) ||
+                    story.description?.toLowerCase().includes(searchLower)
+                )
             }
-        }
 
-        // Filtering function
-        const filterStories = (stories: ViewedStory[], filterOption: FilterOption): ViewedStory[] => {
-            switch (filterOption) {
-                case 'all':
-                    return stories
-                case 'with-quiz':
-                    return stories.filter(story => story.code in quizStatuses)
-                case 'without-quiz':
-                    return stories.filter(story => !(story.code in quizStatuses))
-                case 'quiz-completed':
-                    return stories.filter(story => quizStatuses[story.code] === true)
-                case 'quiz-pending':
-                    return stories.filter(story => quizStatuses[story.code] === false && story.code in quizStatuses)
-                default:
-                    return stories
+            // Apply category filter
+            if (filterBy !== 'all') {
+                processed = processed.filter(story => {
+                    const hasQuiz = story.code in quizStatuses
+                    const quizTaken = quizStatuses[story.code]
+
+                    switch (filterBy) {
+                        case 'with-quiz': return hasQuiz
+                        case 'without-quiz': return !hasQuiz
+                        case 'quiz-completed': return quizTaken === true
+                        case 'quiz-pending': return hasQuiz && quizTaken === false
+                        default: return true
+                    }
+                })
             }
+
+            // Apply sorting
+            if (sortBy !== 'latest-first') { // Skip sorting if default
+                processed.sort((a, b) => {
+                    switch (sortBy) {
+                        case 'title-asc': return a.title.localeCompare(b.title)
+                        case 'title-desc': return b.title.localeCompare(a.title)
+                        case 'earliest-first': return new Date(a.viewedAt).getTime() - new Date(b.viewedAt).getTime()
+                        case 'author-asc': return a.author.localeCompare(b.author)
+                        case 'author-desc': return b.author.localeCompare(a.author)
+                        default: return new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime()
+                    }
+                })
+            } else {
+                // Default sort by latest first
+                processed.sort((a, b) => new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime())
+            }
+
+            setFilteredStories(processed)
         }
 
-        let filtered = stories
-
-        // Apply search filter
-        if (searchTerm.trim()) {
-            filtered = filtered.filter(story =>
-                story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                story.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (story.description && story.description.toLowerCase().includes(searchTerm.toLowerCase()))
-            )
-        }
-
-        // Apply category filter
-        filtered = filterStories(filtered, filterBy)
-
-        // Apply sorting
-        filtered = sortStories(filtered, sortBy)
-
-        setFilteredStories(filtered)
-    }, [searchTerm, stories, sortBy, filterBy, quizStatuses])
+        processStories()
+    }, [stories, searchTerm, sortBy, filterBy, quizStatuses])
 
     const formatDate = (date: Date) => {
-        return new Intl.DateTimeFormat('en-US', {
+        return new Intl.DateTimeFormat('tl-PH', {
             month: 'long',
             day: 'numeric',
             year: 'numeric',
@@ -439,13 +434,6 @@ export default function StudentLibrary() {
                                             </svg>
                                             {formatDate(story.viewedAt)}
                                         </div>
-                                        <div className="flex items-center text-xs text-blue-600">
-                                            <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                            Napanood
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -454,7 +442,6 @@ export default function StudentLibrary() {
 
                     {/* Results Summary */}
                     <div className="text-center mt-8 text-gray-500 text-sm">
-                        {filteredStories.length} sa {stories.length} na panitikan
                         {searchTerm && ` na tumugma sa "${searchTerm}"`}
                         {filterBy !== 'all' && ` (${filterBy === 'with-quiz' ? 'may quiz' :
                             filterBy === 'quiz-completed' ? 'tapos na ang quiz' :

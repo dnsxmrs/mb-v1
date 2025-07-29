@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import ResetPasswordForm from './ResetPasswordForm'
 
 export const metadata: Metadata = {
-  title: 'Reset Password | Magandang Buhay!',
+  title: 'Reset Password | E-KWENTO',
   description: 'Reset your password',
 }
 

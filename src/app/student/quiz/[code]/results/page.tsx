@@ -20,7 +20,7 @@ export async function generateMetadata({
         if (storyResult.success && storyResult.data) {
             const { story } = storyResult.data;
             return {
-                title: `${story.title} | Magandang Buhay!`,
+                title: `${story.title} | E-KWENTO`,
                 description: story.description || `Read the story "${story.title}" by ${story.author}`,
             };
         }
@@ -30,7 +30,7 @@ export async function generateMetadata({
 
     // Fallback metadata if story is not found
     return {
-        title: "Results | Magandang Buhay!",
+        title: "Results | E-KWENTO",
         description: "View your quiz results",
     };
 }
@@ -51,9 +51,9 @@ export default async function ResultPage({
         redirect("/student/info?code=" + code);
     }
 
-    const { name, section } = JSON.parse(studentInfo.value);
-    // check in studentstoryview if code, fullname, section already exists
-    const authorized = await hasStudentViewedStory(code, name, section)
+    const { name, section, deviceId } = JSON.parse(studentInfo.value);
+    // check in studentstoryview if code, fullname, section, deviceId already exists
+    const authorized = await hasStudentViewedStory(code, name, section, deviceId || '')
 
     if (authorized.data?.hasViewed === false) {
         return <UnauthorizedRedirect authorizedCode={code} />;
@@ -82,7 +82,7 @@ export default async function ResultPage({
     const { story } = storyResult.data;
 
     // Get submission results
-    const submissionResult = await getSubmissionResultsByCode(code, name, section);
+    const submissionResult = await getSubmissionResultsByCode(code, name, section, deviceId || '');
 
     if (!submissionResult.success || !submissionResult.data) {
         return (
@@ -118,14 +118,14 @@ export default async function ResultPage({
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full overflow-hidden">
                     {/* Header */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-6">
                         <h1 className="text-3xl font-bold text-[#1E3A8A] mb-2">Resulta ng Pagsusulit</h1>
                         <h2 className="text-xl text-gray-600 mb-1">{story.title}</h2>
                         <p className="text-gray-500 text-sm italic">ni {story.author}</p>
                     </div>
 
                     {/* Score Card */}
-                    <div className={`text-black rounded-xl p-6 mb-5 text-center`}>
+                    {/* <div className={`text-black rounded-xl p-6 mb-5 text-center`}>
                         <div className={`text-6xl font-bold mb-2 ${isPassingGrade
                             ? 'text-green-400'
                             : 'text-red-400'
@@ -138,7 +138,7 @@ export default async function ResultPage({
                                 : "Huwag mag-alala, palaging may pagkakataon upang matuto mula sa karanasang ito!"
                             }
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Student Info */}
                     <div className="bg-gray-50 rounded-lg p-4 mb-6">
@@ -167,7 +167,12 @@ export default async function ResultPage({
                             </div>
                             <div>
                                 <span className="font-medium text-gray-700">Iskor:</span>
-                                <span className="ml-2 text-gray-900">{results.correctAnswers}/{results.totalQuestions}</span>
+                                <span className={`font-semibold ml-2 text-gray-900 ${isPassingGrade
+                                    ? 'text-green-400'
+                                    : 'text-red-400'
+                                    }`}>
+                                    {results.correctAnswers}/{results.totalQuestions}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -219,13 +224,13 @@ export default async function ResultPage({
                             href={`/student/story/${code}`}
                             className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
                         >
-                            Go to Story
+                            Bumalik sa Kwento
                         </LoadingLink>
                         <LoadingLink
                             href="/libraries"
                             className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
                         >
-                            Go to Libraries
+                            E-Aklatan
                         </LoadingLink>
                     </div>
                 </div>

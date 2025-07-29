@@ -97,7 +97,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
               width={30}
               height={30}
             />
-            Magandang Buhay!
+            E-KWENTO
           </Link>
         </div>
         {/* Navigation */}
@@ -140,19 +140,50 @@ export default function TeacherNav({ children }: TeacherNavProps) {
               height={24}
             />
             <span className="text-sm font-semibold text-blue-800">
-              Magandang Buhay!
+              E-KWENTO
             </span>
           </Link>
           <div className="scale-75">
             {mounted && (
               <UserButton
-                showName={false}
+                // showName={false}
                 appearance={{
                   elements: {
-                    userButtonBox: "text-blue-800 font-semibold",
+                    userPreview: {
+                      display: "none",
+                    },
+                  },
+                }}
+                userProfileProps={{
+                  appearance: {
+                    elements: {
+                      profileSectionPrimaryButton__profile: {
+                        display: "none",
+                      },
+                      profileSection__connectedAccounts: {
+                        display: "none",
+                      },
+                      profileSectionPrimaryButton__emailAddresses: {
+                        display: "none",
+                      },
+                      profileSection__danger: {
+                        display: "none",
+                      },
+                      menuButtonEllipsis: {
+                        display: "none",
+                      }
+                    },
                   },
                 }}
               />
+              // <UserButton
+              //   showName={false}
+              //   appearance={{
+              //     elements: {
+              //       userButtonBox: "text-blue-800 font-semibold",
+              //     },
+              //   }}
+              // />
             )}
           </div>
         </div>
@@ -211,7 +242,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                   timeZone: "Asia/Manila",
                 })}
               </span>
-                {/* <span className="text-xl font-medium text-blue-800 truncate">
+              {/* <span className="text-xl font-medium text-blue-800 truncate">
                 {
                   pathname === "/dashboard"
                     ? "Dashboard"

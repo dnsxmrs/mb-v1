@@ -9,9 +9,10 @@ interface QuizButtonProps {
     code: string
     studentName: string
     studentSection: string
+    deviceId?: string // Optional, can be undefined if not provided
 }
 
-export default function QuizButton({ code, studentName, studentSection }: QuizButtonProps) {
+export default function QuizButton({ code, studentName, studentSection, deviceId }: QuizButtonProps) {
     const [hasCompleted, setHasCompleted] = useState<boolean | null>(null)
     const [loading, setLoading] = useState(true)
 
@@ -19,7 +20,7 @@ export default function QuizButton({ code, studentName, studentSection }: QuizBu
         const checkQuizStatus = async () => {
             try {
                 setLoading(true)
-                const result = await hasStudentTakenQuiz(code, studentName, studentSection)
+                const result = await hasStudentTakenQuiz(code, studentName, studentSection, deviceId)
 
                 if (result.success && result.data) {
                     setHasCompleted(result.data.hasTaken)
@@ -38,7 +39,7 @@ export default function QuizButton({ code, studentName, studentSection }: QuizBu
         }
 
         checkQuizStatus()
-    }, [code, studentName, studentSection])
+    }, [code, studentName, studentSection, deviceId])
 
     if (loading) {
         return (
@@ -79,12 +80,13 @@ export default function QuizButton({ code, studentName, studentSection }: QuizBu
         <div className="flex justify-end">
             <div className="rounded-xl">
                 <div className="flex items-center gap-4">
-                    <h3 className="text-lg font-medium text-[#1E3A8A]">Ready for the quiz?</h3>
+                    <h3 className="text-lg font-medium text-[#1E3A8A]">Handa na sa pagsusulit?</h3>
                     <LoadingLink
                         href={`/student/quiz/${code}`}
                         className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
                     >
-                        Take the Quiz <ArrowRight className="w-5 h-5 ml-2" />
+                        Pagsusulit
+                        <ArrowRight className="w-5 h-5" />
                     </LoadingLink>
                 </div>
             </div>

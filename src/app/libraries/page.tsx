@@ -4,7 +4,7 @@ import StudentLibrary from "@/components/StudentLibrary";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: 'Libraries | Magandang Buhay!',
+    title: 'Libraries | E-KWENTO',
     description: 'Explore our collection of educational libraries',
 }
 

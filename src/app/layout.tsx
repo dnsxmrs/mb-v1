@@ -12,7 +12,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: "Magandang Buhay!",
+  title: "E-KWENTO",
   description:
     "A fun and enriching reading and quiz app crafted by educators to empower students with knowledge, critical thinking, and a love for learning.",
 };

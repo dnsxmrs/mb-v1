@@ -26,6 +26,7 @@ interface InteractiveQuizProps {
     storyId: number
     studentName: string
     studentSection: string
+    studentDeviceId: string
 }
 
 export default function InteractiveQuiz({
@@ -34,19 +35,20 @@ export default function InteractiveQuiz({
     codeId,
     storyId,
     studentName,
-    studentSection
+    studentSection,
+    studentDeviceId
 }: InteractiveQuizProps) {
     const [answers, setAnswers] = useState<Record<number, string>>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
     const router = useRouter()
-    
+
     // Add session refresh functionality
     const { refreshSession } = useStudentSessionRefresh();
 
     const handleAnswerChange = async (quizItemId: number, selectedChoiceText: string) => {
         // Refresh session on each answer change
         await refreshSession();
-        
+
         setAnswers(prev => ({
             ...prev,
             [quizItemId]: selectedChoiceText
@@ -64,7 +66,7 @@ export default function InteractiveQuiz({
 
         // Refresh session before final submission
         await refreshSession();
-        
+
         setIsSubmitting(true)
 
         try {
@@ -73,6 +75,7 @@ export default function InteractiveQuiz({
                 storyId,
                 fullName: studentName,
                 section: studentSection,
+                deviceId: studentDeviceId,
                 answers: quizItems.map(quiz => ({
                     quizItemId: quiz.id,
                     selectedAnswer: answers[quiz.id]
@@ -103,10 +106,10 @@ export default function InteractiveQuiz({
     return (
         <div className="space-y-8">
             {/* Progress indicator */}
-            <div className="bg-blue-50 p-4 rounded-lg">
+            {/* <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-blue-800">
-                        Progress: {answeredCount} of {totalQuestions} questions answered
+                        Nasagutan na ang {answeredCount} sa {totalQuestions} tanong
                     </span>
                     <span className="text-sm text-blue-600">
                         {Math.round((answeredCount / totalQuestions) * 100)}%
@@ -118,7 +121,7 @@ export default function InteractiveQuiz({
                         style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
                     ></div>
                 </div>
-            </div>
+            </div> */}
 
             {/* Quiz Questions */}
             {quizItems.map((quiz) => (
@@ -132,8 +135,8 @@ export default function InteractiveQuiz({
                             <label
                                 key={choice.id}
                                 className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${answers[quiz.id] === choice.text
-                                        ? 'bg-blue-100 border-blue-300 text-blue-800'
-                                        : 'bg-white border-gray-200 hover:bg-blue-50'
+                                    ? 'bg-blue-100 border-blue-300 text-blue-800'
+                                    : 'bg-white border-gray-200 hover:bg-blue-50'
                                     }`}
                             >
                                 <input
@@ -166,18 +169,18 @@ export default function InteractiveQuiz({
 
             {/* Submit Quiz Button */}
             <div className="flex flex-col items-center pt-6 space-y-4">
-                {!allAnswered && (
+                {/* {!allAnswered && (
                     <p className="text-orange-600 text-sm font-medium">
                         Please answer all questions before submitting
                     </p>
-                )}
+                )} */}
 
                 <button
                     onClick={handleSubmit}
                     disabled={!allAnswered || isSubmitting}
                     className={`px-8 py-3 rounded-xl font-medium text-lg shadow-lg transition-all duration-200 transform ${allAnswered && !isSubmitting
-                            ? 'bg-green-600 text-white hover:bg-green-700 hover:scale-105'
-                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        ? 'bg-green-600 text-white hover:bg-green-700 hover:scale-105'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                 >
                     {isSubmitting ? (

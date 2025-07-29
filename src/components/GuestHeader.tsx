@@ -37,13 +37,13 @@ export default function GuestHeader() {
                 <Link href="/" className="flex items-center">
                     <Image
                         src="/images/magandang-buhay-rbg.png"
-                        alt="Magandang Buhay Logo"
+                        alt="E-KWENTO Logo"
                         width={40}
                         height={40}
                         className="w-6 h-6 xs:w-8 xs:h-8 sm:w-10 sm:h-10 mr-1.5 xs:mr-2"
                     />
                     <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-[#1E3A8A]">
-                        Magandang Buhay!
+                        E-KWENTO
                     </h1>
                 </Link>
 
@@ -60,7 +60,7 @@ export default function GuestHeader() {
                     </Link>
                 </div>
 
-                {/* Mobile Menu Button */}
+                {/* Desktop Menu Button */}
                 <button
                     className="md:hidden flex flex-col justify-center items-center w-6 h-6 space-y-1"
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -110,7 +110,36 @@ export default function GuestHeader() {
                         </Link>
                         {/* center the user button in the div */}
                         <div className="scale-75 xs:scale-90 sm:scale-100 flex items-center justify-center">
-                            <UserButton />
+                            <UserButton
+                                appearance={{
+                                    elements: {
+                                        userPreview: {
+                                            display: "none",
+                                        },
+                                    },
+                                }}
+                                userProfileProps={{
+                                    appearance: {
+                                        elements: {
+                                            profileSectionPrimaryButton__profile: {
+                                                display: "none",
+                                            },
+                                            profileSection__connectedAccounts: {
+                                                display: "none",
+                                            },
+                                            profileSectionPrimaryButton__emailAddresses: {
+                                                display: "none",
+                                            },
+                                            profileSection__danger: {
+                                                display: "none",
+                                            },
+                                            menuButtonEllipsis: {
+                                                display: "none",
+                                            }
+                                        },
+                                    },
+                                }}
+                            />
                         </div>
                     </SignedIn>
                 </div>
@@ -120,28 +149,29 @@ export default function GuestHeader() {
             {isMobileMenuOpen && (
                 <div className="md:hidden bg-[#DBEAFE] border-t border-[#60A5FA]/20">
                     <div className="px-3 xs:px-4 py-3 space-y-3">
-                        <Link
-                            href="/"
-                            className="block font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            Home
-                        </Link>
-                        <Link
-                            href="/libraries"
-                            className="block font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            Libraries
-                        </Link>
-                        <Link
-                            href="/games"
-                            className="block font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            Games
-                        </Link>
-
+                        <div className="flex items-center justify-center">
+                            <Link
+                                href="/"
+                                className="font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2 px-10 text-sm"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                href="/libraries"
+                                className="font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2 px-10 text-sm"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                Libraries
+                            </Link>
+                            <Link
+                                href="/games"
+                                className="font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2 px-10 text-sm"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                Games
+                            </Link>
+                        </div>
                         <div className="pt-3 border-t border-[#60A5FA]/20">
                             <SignedOut>
                                 <div className="w-full">
@@ -168,8 +198,8 @@ export default function GuestHeader() {
                             </SignedOut>
 
                             <SignedIn>
-                                <div className="space-y-3">
-                                    <Link href="/dashboard" className="block w-full">
+                                <div className="flex items-center space-x-3">
+                                    <Link href="/dashboard" className="flex-1">
                                         <button
                                             className="w-full bg-[#1E40AF] hover:bg-[#3B82F6] text-white text-sm rounded-lg px-4 py-2.5 font-medium transition duration-200"
                                             onClick={() => handleNavigation('dashboard')}
@@ -178,7 +208,7 @@ export default function GuestHeader() {
                                             Go to Dashboard
                                         </button>
                                     </Link>
-                                    <div className="flex justify-center">
+                                    <div className="flex items-center justify-center">
                                         <UserButton />
                                     </div>
                                 </div>

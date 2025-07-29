@@ -5,6 +5,7 @@ import { refreshStudentSession } from '@/actions/student';
 
 /**
  * Custom hook to automatically refresh student session on interactions
+ *  
  * This should be used in student-facing components to extend session expiration
  */
 export function useStudentSessionRefresh() {
@@ -29,6 +30,7 @@ export function useStudentSessionRefresh() {
 
 /**
  * Higher-order function to wrap event handlers with session refresh
+ *  
  * Usage: onClick={withSessionRefresh(() => handleSomeAction())}
  */
 export function withSessionRefresh<T extends (...args: unknown[]) => unknown>(handler: T): T {

@@ -2,22 +2,22 @@
 'use client'
 
 import { useState } from 'react'
-import { useFormStatus } from 'react-dom'
 import { handleCodeSubmit } from '@/actions/code'
 import { useRouter } from 'next/navigation'
 
 export default function ClientForm() {
     const [clientError, setClientError] = useState('')
-    const { pending } = useFormStatus()
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const router = useRouter()
 
     // Handle client-side validation
     async function handleFormAction(formData: FormData) {
         setClientError('')
+        setIsSubmitting(true)
 
         const code = formData.get('code')?.toString().toUpperCase() as string
-        if (!code || code.length < 4) {
-            setClientError('Code must be at least 4 characters long')
+        if (!code || code.length < 6) {
+            setClientError('Code must be at least 6 characters long')
             return
         }
 
@@ -48,10 +48,10 @@ export default function ClientForm() {
             </div>
             <button
                 type="submit"
-                disabled={pending}
+                disabled={isSubmitting}
                 className="w-full bg-[#3B82F6] hover:bg-[#60A5FA] disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-xs xs:text-sm sm:text-base font-medium rounded-lg px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 transition duration-200 shadow-sm flex items-center justify-center"
             >
-                {pending ? (
+                {isSubmitting ? (
                     <>
                         <div className="animate-spin rounded-full h-3 w-3 xs:h-4 xs:w-4 border-b-2 border-white mr-1.5 xs:mr-2"></div>
                         <span className="text-xs xs:text-sm sm:text-base">Submitting...</span>

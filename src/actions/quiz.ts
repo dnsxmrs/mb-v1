@@ -39,6 +39,7 @@ export interface QuizSubmissionData {
     storyId: number
     fullName: string
     section: string
+    deviceId: string
     answers: {
         quizItemId: number
         selectedAnswer: string // choice text that was selected
@@ -377,6 +378,7 @@ export async function submitQuizAnswers(data: QuizSubmissionData) {
                     storyId: data.storyId,
                     fullName: data.fullName,
                     section: data.section,
+                    deviceId: data.deviceId,
                     score: null // Will be calculated after answers are saved
                 }
             })
@@ -504,18 +506,21 @@ export async function getSubmissionResults(submissionId: number) {
 }
 
 // Get submission results by code and student info (for accessing results without submission ID)
-export async function getSubmissionResultsByCode(code: string, fullName: string, section: string) {
+export async function getSubmissionResultsByCode(code: string, fullName: string, section: string, deviceId?: string) {
     try {
-        const submission = await prisma.studentSubmission.findFirst({
-            where: {
-                fullName,
-                section,
-                deletedAt: null,
-                Code: {
-                    code,
-                    deletedAt: null
-                }
+        const whereClause = {
+            fullName,
+            section,
+            deletedAt: null,
+            Code: {
+                code,
+                deletedAt: null
             },
+            ...(deviceId && deviceId.trim() !== '' && { deviceId })
+        }
+
+        const submission = await prisma.studentSubmission.findFirst({
+            where: whereClause,
             include: {
                 Story: {
                     select: {
@@ -580,19 +585,22 @@ export async function getSubmissionResultsByCode(code: string, fullName: string,
     }
 }
 
-// Check if a student has already taken the quiz for a specific code
-export async function hasStudentTakenQuiz(code: string, fullName: string, section: string) {
+// Check if a student has already taken the quiz for a specific code on the current device
+export async function hasStudentTakenQuiz(code: string, fullName: string, section: string, deviceId?: string) {
     try {
-        const submission = await prisma.studentSubmission.findFirst({
-            where: {
-                fullName,
-                section,
-                deletedAt: null,
-                Code: {
-                    code,
-                    deletedAt: null
-                }
+        const whereClause = {
+            fullName,
+            section,
+            deletedAt: null,
+            Code: {
+                code,
+                deletedAt: null
             },
+            ...(deviceId && deviceId.trim() !== '' && { deviceId })
+        }
+
+        const submission = await prisma.studentSubmission.findFirst({
+            where: whereClause,
             select: {
                 id: true,
                 submittedAt: true

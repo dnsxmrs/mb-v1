@@ -3,7 +3,7 @@ import GuestFooter from "@/components/GuestFooter";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Magandang Buhay!',
+  title: 'Privacy Policy | E-KWENTO',
   description: 'Learn about our privacy practices',
 }
 
@@ -125,4 +125,4 @@ export default function PrivacyNotice() {
       <GuestFooter />
     </div>
   );
-} 
+}

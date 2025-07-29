@@ -7,10 +7,10 @@ import { createNotification } from './notification';
 export async function handleCodeSubmit(formData: FormData) {
     const code = formData.get('code') as string;
 
-    if (!code || code.length < 4) {
+    if (!code || code.length < 6) {
         return {
             success: false,
-            error: 'Code must be at least 4 characters long'
+            error: 'Code must be at least 6 characters long'
         };
     }
 

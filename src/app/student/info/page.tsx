@@ -7,7 +7,7 @@ import { handleCodeSubmit } from "@/actions/code";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Student Information | Magandang Buhay!',
+  title: 'Student Information | E-KWENTO',
   description: 'Provide your information',
 }
 
@@ -15,6 +15,7 @@ interface StudentData {
   name?: string;
   section?: string;
   hasConsent?: boolean;
+  deviceId?: string;
 }
 
 export default async function StudentInfoPage({
@@ -49,6 +50,7 @@ export default async function StudentInfoPage({
       existingStudentData = {
         name: parsedData.name || '',
         section: parsedData.section || '',
+        deviceId: parsedData.deviceId || '',
       };
     } catch (error) {
       console.error('Error parsing student info cookie:', error);

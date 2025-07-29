@@ -87,12 +87,13 @@ model StudentStoryView {
   storyId   Int
   fullName  String   @db.VarChar(255)
   section   String   @db.VarChar(100)
+  deviceId  String   @default("") @db.VarChar(255)
   viewedAt  DateTime @default(now())
   createdAt DateTime @default(now())
   Code      Code     @relation(fields: [codeId], references: [id], onDelete: Cascade)
   Story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
 
-  @@unique([codeId, storyId, fullName, section])
+  @@unique([codeId, storyId, fullName, section, deviceId])
 }
 
 model StudentSubmission {
@@ -101,6 +102,7 @@ model StudentSubmission {
   storyId     Int
   fullName    String          @db.VarChar(255)
   section     String          @db.VarChar(100)
+  deviceId    String          @default("") @db.VarChar(255)
   submittedAt DateTime        @default(now())
   score       Int?
   deletedAt   DateTime?
@@ -150,5 +152,5 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

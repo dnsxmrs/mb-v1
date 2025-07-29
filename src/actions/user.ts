@@ -98,11 +98,11 @@ export async function createUser(data: CreateUserData) {
             try {
                 await clerkClient.invitations.createInvitation({
                     emailAddress: data.email,
-                    publicMetadata: {
-                        role: data.role,
-                        first_name: data.first_name,
-                        last_name: data.last_name,
-                    },
+                    // publicMetadata: {
+                    //     role: data.role,
+                    //     first_name: data.first_name,
+                    //     last_name: data.last_name,
+                    // },
                 })
             } catch (clerkError) {
                 console.error('Error sending Clerk invitation:', clerkError)
@@ -145,12 +145,12 @@ export async function inviteUser(data: InviteUserData) {
         // Send Clerk invitation
         const invitation = await clerkClient.invitations.createInvitation({
             emailAddress: data.email,
-            publicMetadata: {
-                role: data.role,
-                first_name: data.first_name,
-                last_name: data.last_name,
-                userId: user.id
-            },
+            // publicMetadata: {
+            //     role: data.role,
+            //     first_name: data.first_name,
+            //     last_name: data.last_name,
+            //     userId: user.id
+            // },
             redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
         })
 
@@ -184,12 +184,12 @@ export async function resendInvitation(userId: number) {
 
         const invitation = await clerkClient.invitations.createInvitation({
             emailAddress: user.email,
-            publicMetadata: {
-                role: user.role,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                userId: user.id
-            },
+            // publicMetadata: {
+            //     role: user.role,
+            //     first_name: user.first_name,
+            //     last_name: user.last_name,
+            //     userId: user.id
+            // },
             // redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`
         })
 
@@ -219,7 +219,7 @@ export async function getInvitations() {
             updatedAt: new Date(invitation.updatedAt).toISOString(),
             url: invitation.url,
             revoked: invitation.revoked,
-            publicMetadata: invitation.publicMetadata
+            // publicMetadata: invitation.publicMetadata
         }))
 
         return { success: true, invitations: plainInvitations }

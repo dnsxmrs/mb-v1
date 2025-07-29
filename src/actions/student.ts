@@ -16,7 +16,24 @@ export async function handleStudentInfoSubmit(formData: FormData, code: string) 
 
   const cookieStore = cookies();
 
-  (await cookieStore).set("student_info", JSON.stringify({ name, section }), {
+  // Check if deviceId already exists in cookies, if not generate a new one
+  let deviceId: string;
+  const existingStudentInfo = (await cookieStore).get("student_info");
+
+  if (existingStudentInfo) {
+    try {
+      const parsedInfo = JSON.parse(existingStudentInfo.value);
+      deviceId = parsedInfo.deviceId || crypto.randomUUID();
+    } catch {
+      // If parsing fails, generate new deviceId
+      deviceId = crypto.randomUUID();
+    }
+  } else {
+    // No existing cookie, generate new deviceId
+    deviceId = crypto.randomUUID();
+  }
+
+  (await cookieStore).set("student_info", JSON.stringify({ name, section, deviceId }), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -31,7 +48,7 @@ export async function handleStudentInfoSubmit(formData: FormData, code: string) 
   });
 
   // instead of setting authorized code, let's just add a view story entry using the code
-  await trackStoryView(code.toUpperCase());
+  await trackStoryView(code.toUpperCase(), name, section, deviceId);
 
   return { success: true, redirectTo: `/student/story/${code}` };
 }
@@ -128,7 +145,9 @@ export async function getCurrentStudentInfo() {
       data: {
         name: studentInfo.name || '',
         section: studentInfo.section || '',
-        authorizedCode: studentInfo.authorizedCode || ''
+        deviceId: studentInfo.deviceId || crypto.randomUUID(),
+        authorizedCode: studentInfo.authorizedCode || '',
+        time: studentInfo.time || new Date().toISOString(),
       }
     };
   } catch (error) {
