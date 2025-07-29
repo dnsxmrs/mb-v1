@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { trackStoryView } from '@/actions/story-view'
+// import { trackStoryView } from '@/actions/story-view'
 
 interface StoryViewTrackerProps {
     code: string
@@ -16,7 +16,7 @@ export default function StoryViewTracker({ code }: StoryViewTrackerProps) {
         // Track the story view asynchronously without blocking the UI
         const track = async () => {
             try {
-                await trackStoryView(code)
+                // await trackStoryView(code)
                 // Silent success - no need to show anything to user
             } catch (error) {
                 // Silent failure - we don't want to interrupt user experience
