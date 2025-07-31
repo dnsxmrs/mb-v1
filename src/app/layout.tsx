@@ -14,7 +14,7 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "E-KWENTO",
   description:
-    "A fun and enriching reading and quiz app crafted by educators to empower students with knowledge, critical thinking, and a love for learning.",
+    "Isang masaya at makabuluhang app sa pagbasa at pagsusulit na nilikha ng mga guro upang bigyang kapangyarihan ang mga estudyante sa pamamagitan ng kaalaman, mapanuring pag-iisip, at pagmamahal sa pagkatuto.",
 };
 
 export default function RootLayout({

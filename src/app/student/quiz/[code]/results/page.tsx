@@ -56,7 +56,7 @@ export default async function ResultPage({
     const authorized = await hasStudentViewedStory(code, name, section, deviceId || '')
 
     if (authorized.data?.hasViewed === false) {
-        return <UnauthorizedRedirect authorizedCode={code} />;
+        return <UnauthorizedRedirect />;
     }
 
     // Get story from database using the code
@@ -87,23 +87,25 @@ export default async function ResultPage({
     if (!submissionResult.success || !submissionResult.data) {
         return (
             <div className="h-[85vh] flex flex-col items-center justify-center mx-4">
-                <h1 className="text-3xl font-extrabold text-orange-600 mb-2">No Results Found</h1>
-                <p className="text-gray-500 mb-6 text-center">
-                    You haven&apos;t submitted the quiz yet or there was an error retrieving your results.
-                </p>
-                <div className="space-y-4">
-                    <LoadingLink
-                        href={`/student/quiz/${code}`}
-                        className="block px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition text-center"
-                    >
-                        Take the Quiz
-                    </LoadingLink>
-                    <LoadingLink
-                        href="/"
-                        className="block px-6 py-2 bg-gray-600 text-white rounded-lg font-semibold shadow hover:bg-gray-700 transition text-center"
-                    >
-                        Go Home
-                    </LoadingLink>
+                <div className="text-center">
+                    <h1 className="text-3xl font-extrabold text-blue-800 mb-2">No Results Found</h1>
+                    <p className="text-gray-500 mb-6">
+                        You haven&apos;t submitted the quiz yet or there was an error retrieving your results.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                        <LoadingLink
+                            href={`/student/quiz/${code}`}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition text-center"
+                        >
+                            Take the Quiz
+                        </LoadingLink>
+                        <LoadingLink
+                            href="/"
+                            className="px-6 py-2 bg-gray-600 text-white rounded-lg font-semibold shadow hover:bg-gray-700 transition text-center"
+                        >
+                            Go to Homepage
+                        </LoadingLink>
+                    </div>
                 </div>
             </div>
         );

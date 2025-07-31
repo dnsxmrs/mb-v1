@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import LoadingLink from "@/components/LoadingLink";
-import UnauthorizedRedirect from "@/components/UnauthorizedRedirect";
 import StudentSessionWrapper from "@/components/StudentSessionWrapper";
 // import StoryViewTracker from "@/components/StoryViewTracker";
 import QuizButton from "@/components/QuizButton";
@@ -55,34 +54,47 @@ export default async function StoryPage({
   }
 
   const { name, section, deviceId } = JSON.parse(studentInfo.value);
-  // check in studentstoryview if code, fullname, section already exists
-  const authorized = await hasStudentViewedStory(code, name, section)
 
-  if (authorized.data?.hasViewed === false) {
-    return <UnauthorizedRedirect authorizedCode={code} />;
-  }
+  // Helper function to render error state
+  const renderError = (title: string, message: string) => (
+    <div className="h-[85vh] flex flex-col items-center justify-center mx-4">
+      <h1 className="text-3xl font-extrabold text-blue-700 mb-2">{title}</h1>
+      <p className="text-gray-500 mb-6 text-center">{message}</p>
+      <LoadingLink
+        href="/"
+        className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+      >
+        Go to Homepage
+      </LoadingLink>
+    </div>
+  );
 
-  // Get story from database using the code
+  // STEP 1: Get story data and check if it exists
   const storyResult = await getStoryByCode(code);
-
   if (!storyResult.success || !storyResult.data) {
-    return (
-      <div className="h-[85vh] flex flex-col items-center justify-center mx-4">
-        <h1 className="text-3xl font-extrabold text-blue-700 mb-2">Story not found</h1>
-        <p className="text-gray-500 mb-6 text-center">
-          {storyResult.error || "Sorry, the story you are looking for does not exist or the code is invalid."}
-        </p>
-        <LoadingLink
-          href="/"
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-        >
-          Go back home
-        </LoadingLink>
-      </div>
+    return renderError(
+      "Story not found",
+      storyResult.error || "Sorry, the story you are looking for does not exist or the code is invalid."
     );
   }
 
-  const { story } = storyResult.data;
+  const { story, isActive } = storyResult.data;
+
+  // STEP 2: Check if student has viewed this story before
+  const viewedResult = await hasStudentViewedStory(code, name, section, deviceId);
+  const hasViewed = viewedResult.success && viewedResult.data?.hasViewed;
+
+  // STEP 3: Apply access control logic
+  // If student hasn't viewed the story, they can only access if code is active
+  // If student has viewed the story, they can access regardless of code status (library access)
+  if (!hasViewed) {
+    return renderError(
+      "Story not available",
+      "This story is currently not available. Please check with your teacher."
+    );
+  }
+
+  // STEP 4: If we reach here, access is granted - display the story
 
   return (
     <StudentSessionWrapper>
@@ -140,7 +152,7 @@ export default async function StoryPage({
               )}
 
               {/* Subtitles if available */}
-              {story.subtitles && story.subtitles.length > 0 && (
+              {/* {story.subtitles && story.subtitles.length > 0 && (
                 <div className="mb-6">
                   <h2 className="text-lg font-semibold text-[#1E3A8A] mb-3">Story Subtitles:</h2>
                   <div className="bg-gray-50 p-4 rounded-lg overflow-hidden">
@@ -151,7 +163,7 @@ export default async function StoryPage({
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
 
             {/* Quiz Button - Conditional based on completion status */}
@@ -161,6 +173,7 @@ export default async function StoryPage({
                 studentName={name}
                 studentSection={section}
                 deviceId={deviceId}
+                isActive={isActive}
               />
             )}
           </div>

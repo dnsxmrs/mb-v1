@@ -42,9 +42,10 @@ export default function SubmissionDetail({ submission, onBack }: SubmissionDetai
             <div className="flex items-center gap-3">
                 <button
                     onClick={onBack}
-                    className="text-black p-2 hover:bg-gray-100 rounded-lg"
+                    className="flex items-center gap-2 text-black p-2 hover:bg-gray-100 rounded-lg"
                 >
                     <ArrowLeft className="h-5 w-5" />
+                    <span>Back</span>
                 </button>
                 <div>
                     <h1 className="text-xl font-bold text-gray-900">Submission Details</h1>
@@ -128,7 +129,7 @@ export default function SubmissionDetail({ submission, onBack }: SubmissionDetai
                         <div key={answer.quizItemId} className="border rounded-lg p-3">
                             <div className="flex items-start justify-between mb-2">
                                 <h3 className="text-sm font-medium text-gray-900">
-                                    Q{index + 1}
+                                    {index + 1}
                                 </h3>
                                 {answer.isCorrect ? (
                                     <CheckCircle className="h-4 w-4 text-green-600" />

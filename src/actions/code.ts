@@ -4,9 +4,8 @@
 import { prisma } from '@/utils/prisma'
 import { createNotification } from './notification';
 
-export async function handleCodeSubmit(formData: FormData) {
-    const code = formData.get('code') as string;
-
+// main page code validation
+export async function handleCodeSubmit(code: string) {
     if (!code || code.length < 6) {
         return {
             success: false,
@@ -16,9 +15,15 @@ export async function handleCodeSubmit(formData: FormData) {
 
     const codeTrimmed = code.trim().toUpperCase();
 
-    const storyResult = await getStoryByCode(codeTrimmed);
+    const codeRecord = await prisma.code.findUnique({
+        where: {
+            code: codeTrimmed,
+            status: 'active',
+            deletedAt: null
+        },
+    });
 
-    if (!storyResult.success) {
+    if (!codeRecord) {
         return {
             success: false,
             error: 'Invalid code. Please check and try again.'
@@ -125,10 +130,10 @@ export async function getStoryByCode(code: string) {
             }
         });
 
-        if (!codeRecord) {
+        if (!codeRecord || codeRecord.deletedAt) {
             return {
                 success: false,
-                error: 'Invalid code or code has expired'
+                error: 'Invalid code or code not found'
             };
         }
 
@@ -137,6 +142,7 @@ export async function getStoryByCode(code: string) {
             data: {
                 code: codeRecord.code,
                 codeId: codeRecord.id,
+                isActive: codeRecord.status === 'active',
                 story: codeRecord.Story
             }
         };
@@ -145,6 +151,26 @@ export async function getStoryByCode(code: string) {
         return {
             success: false,
             error: 'Failed to retrieve story'
+        };
+    }
+}
+
+export async function updateCodeStatus(codeId: number, status: string) {
+    try {
+        const updatedCode = await prisma.code.update({
+            where: { id: codeId },
+            data: { status }
+        });
+
+        return {
+            success: true,
+            data: updatedCode
+        };
+    } catch (error) {
+        console.error('Error updating code status:', error);
+        return {
+            success: false,
+            error: 'Failed to update code status'
         };
     }
 }

@@ -154,3 +154,27 @@ model Notification {
   updatedAt DateTime @updatedAt
   User      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model WordSearch {
+  id          Int              @id @default(autoincrement())
+  title       String           @db.VarChar(255) // e.g., "Animals", "Fruits"
+  description String?          @db.VarChar(255)
+  status      String           @default("active") @db.VarChar(50)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+  items       WordSearchItem[]
+}
+
+model WordSearchItem {
+  id           Int        @id @default(autoincrement())
+  wordSearchId Int
+  word         String     @db.VarChar(255)
+  description  String?    @db.VarChar(255) // e.g., for text-to-speech
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+  WordSearch   WordSearch @relation(fields: [wordSearchId], references: [id], onDelete: Cascade)
+
+  @@unique([wordSearchId, word]) // prevent duplicate words in same puzzle
+}

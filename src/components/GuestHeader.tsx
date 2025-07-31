@@ -113,17 +113,23 @@ export default function GuestHeader() {
                             <UserButton
                                 appearance={{
                                     elements: {
-                                        userPreview: {
+                                        // userPreview: {
+                                        //     display: "none",
+                                        // },
+                                        userPreviewAvatarBox: {
                                             display: "none",
                                         },
+                                        userButtonPopoverFooter: {  // Hide footer
+                                            display: "none",
+                                        }
                                     },
                                 }}
                                 userProfileProps={{
                                     appearance: {
                                         elements: {
-                                            profileSectionPrimaryButton__profile: {
-                                                display: "none",
-                                            },
+                                            // profileSectionPrimaryButton__profile: {
+                                            //     display: "none",
+                                            // },
                                             profileSection__connectedAccounts: {
                                                 display: "none",
                                             },
@@ -209,7 +215,42 @@ export default function GuestHeader() {
                                         </button>
                                     </Link>
                                     <div className="flex items-center justify-center">
-                                        <UserButton />
+                                        <UserButton
+                                            appearance={{
+                                                elements: {
+                                                    // userPreview: {
+                                                    //     display: "none",
+                                                    // },
+                                                    userPreviewAvatarBox: {
+                                                        display: "none",
+                                                    },
+                                                    userButtonPopoverFooter: {  // Hide footer
+                                                        display: "none",
+                                                    }
+                                                },
+                                            }}
+                                            userProfileProps={{
+                                                appearance: {
+                                                    elements: {
+                                                        // profileSectionPrimaryButton__profile: {
+                                                        //     display: "none",
+                                                        // },
+                                                        profileSection__connectedAccounts: {
+                                                            display: "none",
+                                                        },
+                                                        profileSectionPrimaryButton__emailAddresses: {
+                                                            display: "none",
+                                                        },
+                                                        profileSection__danger: {
+                                                            display: "none",
+                                                        },
+                                                        menuButtonEllipsis: {
+                                                            display: "none",
+                                                        }
+                                                    },
+                                                },
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             </SignedIn>

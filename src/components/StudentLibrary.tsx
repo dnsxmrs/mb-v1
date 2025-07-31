@@ -88,7 +88,7 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
                 </div>
             </div>
 
-        {/* className="text-white px-3 py-2 border border-[#60A5FA] rounded-lg bg-[#3B82F6] text-sm focus:outline-none focus:ring-1 focus:ring-[#60A5FA] focus:border-[#60A5FA] min-w-[140px]" */}
+            {/* className="text-white px-3 py-2 border border-[#60A5FA] rounded-lg bg-[#3B82F6] text-sm focus:outline-none focus:ring-1 focus:ring-[#60A5FA] focus:border-[#60A5FA] min-w-[140px]" */}
 
             {/* Quiz Status badge */}
             {quizTaken !== null && (
@@ -301,9 +301,13 @@ export default function StudentLibrary() {
 
     return (
         <div className="text-[#1E3A8A] space-y-8">
-            <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-[#1E3A8A] mb-2">Iyong Aklatan</h2>
-                <p className="text-xl">Mga panitikang iyong na-explore at nagustuhan</p>
+            <div className="text-center space-y-4">
+                <h1 className="text-4xl md:text-5xl font-bold text-[#1E3A8A] mb-4">
+                    Iyong E-Aklatan
+                </h1>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                    Mga panitikang iyong na-explore at nagustuhan
+                </p>
             </div>
 
             {/* Smart Search Bar with Inline Filters - Only show when there are stories */}

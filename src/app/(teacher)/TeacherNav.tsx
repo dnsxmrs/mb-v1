@@ -7,7 +7,7 @@ import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import {
   BookText,
-  // BookOpenCheck,
+  Gamepad2,
   Settings
 } from "lucide-react";
 
@@ -49,15 +49,15 @@ export default function TeacherNav({ children }: TeacherNavProps) {
       ),
       name: "Stories",
     },
-    // {
-    //   href: "/quiz-management",
-    //   icon: <BookOpenCheck />,
-    //   name: "Quiz Viewing",
-    // },
     {
       href: "/student-log",
       icon: <BookText />,
       name: "Student Submissions",
+    },
+    {
+      href: "/games-management",
+      icon: <Gamepad2 />,
+      name: "Games Management",
     },
     {
       href: "/user-management",
@@ -149,7 +149,13 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                 // showName={false}
                 appearance={{
                   elements: {
-                    userPreview: {
+                    // userPreview: {  // Hide user preview
+                    //   display: "none",
+                    // },
+                    userButtonPopoverFooter: {  // Hide footer
+                      display: "none",
+                    },
+                    userPreviewAvatarBox: {
                       display: "none",
                     },
                   },
@@ -157,9 +163,9 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                 userProfileProps={{
                   appearance: {
                     elements: {
-                      profileSectionPrimaryButton__profile: {
-                        display: "none",
-                      },
+                      // profileSectionPrimaryButton__profile: {  // Hide profile picture update
+                      //   display: "none",
+                      // },
                       profileSection__connectedAccounts: {
                         display: "none",
                       },
@@ -176,14 +182,6 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                   },
                 }}
               />
-              // <UserButton
-              //   showName={false}
-              //   appearance={{
-              //     elements: {
-              //       userButtonBox: "text-blue-800 font-semibold",
-              //     },
-              //   }}
-              // />
             )}
           </div>
         </div>
@@ -232,7 +230,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0 flex-1">
               {/* Desktop date format */}
               <span className="hidden sm:block text-xl font-medium text-blue-800 truncate">
-                {new Date().toLocaleDateString("en-US", {
+                {mounted && new Date().toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
                   year: "numeric",
@@ -263,11 +261,50 @@ export default function TeacherNav({ children }: TeacherNavProps) {
             <div className="scale-90 lg:scale-100">
               {mounted && (
                 <UserButton
+                  // <UserButton
+                  //   showName={true}
+                  //   appearance={{
+                  //     elements: {
+                  //       userButtonBox: "text-blue-800 font-semibold text-2xl",
+                  //       userButtonName: "text-blue-800 font-semibold text-2xl",
+                  //       userButtonPopoverFooter: {
+                  //         display: "none",
+                  //       }
+                  //     },
+                  //   }}
+                  // />
                   showName={true}
                   appearance={{
                     elements: {
                       userButtonBox: "text-blue-800 font-semibold text-2xl",
                       userButtonName: "text-blue-800 font-semibold text-2xl",
+                      userPreview: {  // Hide user preview
+                        display: "none",
+                      },
+                      userButtonPopoverFooter: {  // Hide footer
+                        display: "none",
+                      }
+                    },
+                  }}
+                  userProfileProps={{
+                    appearance: {
+                      elements: {
+                        // profileSectionPrimaryButton__profile: {  // Hide profile picture update
+                        //   display: "none",
+                        // },
+                        profileSection__connectedAccounts: {
+                          display: "none",
+                        },
+                        profileSectionPrimaryButton__emailAddresses: {
+                          display: "none",
+                        },
+                        profileSection__danger: {
+                          display: "none",
+                        },
+                        menuButtonEllipsis: {
+                          display: "none",
+                        }
+                      },
                     },
                   }}
                 />

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import LoadingLink from "@/components/LoadingLink";
-import UnauthorizedRedirect from "@/components/UnauthorizedRedirect";
+// import UnauthorizedRedirect from "@/components/UnauthorizedRedirect";
 import InteractiveQuiz from "@/components/InteractiveQuiz";
 import StudentSessionWrapper from "@/components/StudentSessionWrapper";
 import { getStoryByCode } from "@/actions/code";
@@ -17,10 +17,10 @@ export async function generateMetadata({
   const { code } = await params;
 
   try {
-    const storyResult = await getStoryByCode(code);
+    const storyMetadata = await getStoryByCode(code);
 
-    if (storyResult.success && storyResult.data) {
-      const { story } = storyResult.data;
+    if (storyMetadata.success && storyMetadata.data) {
+      const { story } = storyMetadata.data;
       return {
         title: `${story.title} | E-KWENTO`,
         description: story.description || `Read the story "${story.title}" by ${story.author}`,
@@ -55,11 +55,43 @@ export default async function QuizPage({
 
   const { name, section, deviceId } = JSON.parse(studentInfo.value);
 
-  // check in studentstoryview if code, fullname, section, deviceId already exists
-  const authorized = await hasStudentViewedStory(code, name, section, deviceId || '')
+  // Helper function to render error state
+  const renderError = (title: string, message: string) => (
+    <div className="h-[85vh] flex flex-col items-center justify-center mx-4">
+      <h1 className="text-3xl font-extrabold text-blue-700 mb-2">{title}</h1>
+      <p className="text-gray-500 mb-6 text-center">{message}</p>
+      <LoadingLink
+        href="/"
+        className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+      >
+        Go back home
+      </LoadingLink>
+    </div>
+  );
 
-  if (authorized.data?.hasViewed === false) {
-    return <UnauthorizedRedirect authorizedCode={code} />;
+  // STEP 1: Get story data and check if it exists
+  const storyResult = await getStoryByCode(code);
+  if (!storyResult.success || !storyResult.data) {
+    return renderError(
+      "Story not found",
+      storyResult.error || "Sorry, the story you are looking for does not exist or the code is invalid."
+    );
+  }
+
+  const { story, isActive, codeId } = storyResult.data;
+
+  // STEP 2: Check if student has viewed this story before
+  const viewedResult = await hasStudentViewedStory(code, name, section, deviceId);
+  const hasViewed = viewedResult.success && viewedResult.data?.hasViewed;
+
+  // STEP 3: Apply access control logic
+  // If student hasn't viewed the story, they can only access if code is active
+  // If student has viewed the story, they can access regardless of code status (library access)
+  if (!hasViewed || !isActive) {
+    return renderError(
+      "Quiz not available",
+      "This quiz is currently not available. Please check with your teacher."
+    );
   }
 
   // Check if student has already taken the quiz on this device
@@ -69,28 +101,6 @@ export default async function QuizPage({
     // Student has already taken the quiz, redirect to results page
     redirect(`/student/quiz/${code}/results`);
   }
-
-  // Get story from database using the code
-  const storyResult = await getStoryByCode(code);
-
-  if (!storyResult.success || !storyResult.data) {
-    return (
-      <div className="h-[85vh] flex flex-col items-center justify-center mx-4">
-        <h1 className="text-3xl font-extrabold text-blue-700 mb-2">Quiz not found</h1>
-        <p className="text-gray-500 mb-6 text-center">
-          {storyResult.error || "Sorry, the story you are looking for does not exist or the code is invalid."}
-        </p>
-        <LoadingLink
-          href="/"
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-        >
-          Go back home
-        </LoadingLink>
-      </div>
-    );
-  }
-
-  const { story, codeId } = storyResult.data;
 
   return (
     <StudentSessionWrapper>

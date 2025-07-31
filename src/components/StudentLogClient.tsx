@@ -122,28 +122,6 @@ export default function StudentLogClient() {
         )
     }
 
-    // if (loading && viewMode === 'students') {
-    //     return (
-    //         <div className="flex items-center justify-center min-h-64">
-    //             <div className="text-center">
-    //                 <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-    //                 <p className="text-gray-600">Loading student activity data...</p>
-    //             </div>
-    //         </div>
-    //     )
-    // }
-
-    // if (loading && viewMode === 'submission') {
-    //     return (
-    //         <div className="flex items-center justify-center min-h-64">
-    //             <div className="text-center">
-    //                 <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-    //                 <p className="text-gray-600">Loading student submission data...</p>
-    //             </div>
-    //         </div>
-    //     )
-    // }
-
     return (
         <div className="space-y-6">
             {/* Header - only show on codes view */}

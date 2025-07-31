@@ -23,14 +23,10 @@ export default async function StudentInfoPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const code = (await searchParams).code
-
-  // create FormData and append code
-  const formData = new FormData();
-  formData.append('code', Array.isArray(code) ? code[0] ?? '' : code ?? '');
+  const code = (await searchParams).code as string ;
 
   // use the handleCodeSubmit action to validate the code
-  const result = await handleCodeSubmit(formData);
+  const result = await handleCodeSubmit(code);
 
   // reverse the logic here if the code is invalid or not provided then redirect back to home
   if (!result.success || !result.redirectTo || !code) {
@@ -64,7 +60,6 @@ export default async function StudentInfoPage({
   if (env.NODE_ENV === "development") {
     console.log("Type of searchParams", typeof searchParams);
     console.log("code", code);
-    console.log("formData", formData);
     console.log("result", result);
     console.log("existingStudentData", existingStudentData);
   }

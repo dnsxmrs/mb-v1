@@ -20,20 +20,21 @@ export default function ClientForm() {
             setClientError('Code must be at least 6 characters long')
             return
         }
-
-        const result = await handleCodeSubmit(formData)
+        // check if code is existing and not deleted and active
+        const result = await handleCodeSubmit(code)
 
         if (result.success && result.redirectTo) {
             router.push(result.redirectTo)
         } else if (result.error) {
             setClientError(result.error)
         }
+        setIsSubmitting(false)
     }
 
     return (
         <form action={handleFormAction} className="space-y-3 xs:space-y-4">
             {clientError && (
-                <div className="mb-3 xs:mb-4 sm:mb-5 p-2.5 xs:p-3 bg-red-50 border border-red-200 rounded-xl">
+                <div className="mb-1 xs:mb-2 sm:mb-3 p-2.5 xs:p-3 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-xs xs:text-sm text-red-600 text-center">{clientError}</p>
                 </div>
             )}

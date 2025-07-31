@@ -132,14 +132,15 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
             <div className="flex items-center gap-4">
                 <button
                     onClick={onBack}
-                    className="text-black p-2 hover:bg-gray-100 rounded-lg"
+                    className="flex items-center gap-2 text-black p-2 hover:bg-gray-100 rounded-lg"
                 >
                     <ArrowLeft className="h-5 w-5" />
+                    <span>Back</span>
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Student Activity</h1>
                     <p className="text-gray-600">
-                        Code: <span className="font-mono font-medium">{code.code}</span> - {code.Story.title}
+                        Code: <span className="font-medium">{code.code}</span> - {code.Story.title}
                     </p>
                 </div>
             </div>

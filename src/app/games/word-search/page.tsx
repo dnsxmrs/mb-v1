@@ -1,10 +1,10 @@
 import GuestHeader from "@/components/GuestHeader";
 import GuestFooter from "@/components/GuestFooter";
+import WordSearchListing from "@/components/WordSearchListing";
 import { Metadata } from "next";
-import GamesComponent from "@/components/GamesComponent";
 
 export const metadata: Metadata = {
-    title: 'Games | E-KWENTO',
+    title: 'Word Search | E-KWENTO',
     description: 'Explore our collection of educational games',
 }
 
@@ -26,9 +26,9 @@ export default function Games() {
                 </div>
 
                 {/* Main Content */}
-                <main className="relative z-10 py-12 px-4 sm:px-6 lg:px-8 h-full">
-                    <div className="max-w-7xl mx-auto h-full flex flex-col justify-center">
-                        <GamesComponent />
+                <main className="relative z-10 py-8 px-4 sm:px-6 lg:px-8 h-full">
+                    <div className="max-w-7xl mx-auto h-full">
+                        <WordSearchListing />
                     </div>
                 </main>
             </div>

@@ -68,7 +68,7 @@ export async function createNotification(type: string, message: string): Promise
 /**
  * Get notifications for a specific user or all notifications if no userId provided
  */
-export async function getNotifications(userId?: number, limit: number = 50): Promise<{
+export async function getNotifications(limit: number = 50, userId?: number): Promise<{
     success: boolean
     data?: Notification[]
     error?: string

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import TeacherNav from './TeacherNav'
 
 export const metadata: Metadata = {
-  title: "Teacher Module",
+  title: "Teacher Dashboard | E-KWENTO",
   description: "Dashboard for teachers to manage their stories and students",
 };
 

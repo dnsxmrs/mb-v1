@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { getStories } from '@/actions/story'
-import { generateAccessCode } from '@/actions/code'
 import { getCurrentUser } from '@/actions/user'
 import { getWeeklyTrends } from '@/actions/analytics'
+import { generateAccessCode } from '@/actions/code'
 import { getNotifications, Notification } from '@/actions/notification'
 
 interface Story {
@@ -51,50 +51,107 @@ export default function TeacherDashboard() {
   const [isLoadingStories, setIsLoadingStories] = useState(true)
   const [isLoadingUser, setIsLoadingUser] = useState(true)
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(true)
+  const [isActivityOverflowing, setIsActivityOverflowing] = useState(false)
+  const [isStoryPerformanceOverflowing, setIsStoryPerformanceOverflowing] = useState(false)
+  const activityContentRef = useRef<HTMLDivElement>(null)
+  const storyPerformanceContentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    async function loadData() {
+    // Load stories independently
+    const loadStories = async () => {
       try {
-        // Load stories
-        const storiesResult = await getStories()
-        if (storiesResult.success && storiesResult.data) {
-          setStories(storiesResult.data)
+        const result = await getStories()
+        if (result.success && result.data) {
+          setStories(result.data)
         }
-        setIsLoadingStories(false)
-
-        // Load current user
-        const userResult = await getCurrentUser()
-        if (userResult.success && userResult.data) {
-          setCurrentUser(userResult.data)
-        }
-        setIsLoadingUser(false)
-
-        // Load weekly trends
-        const trendsResult = await getWeeklyTrends()
-        if (trendsResult.success && trendsResult.data) {
-          setWeeklyTrends(trendsResult.data)
-        }
-        setIsLoadingKPIs(false)
-
-        // Load notifications
-        const notificationsResult = await getNotifications(undefined, 10) // Get latest 10 notifications
-        if (notificationsResult.success && notificationsResult.data) {
-          setNotifications(notificationsResult.data)
-        }
-        setIsLoadingNotifications(false)
       } catch (error) {
-        console.error('Error loading data:', error)
+        console.error('Error loading stories:', error)
+      } finally {
         setIsLoadingStories(false)
-        setIsLoadingKPIs(false)
+      }
+    }
+
+    // Load user independently
+    const loadUser = async () => {
+      try {
+        const result = await getCurrentUser()
+        if (result.success && result.data) {
+          setCurrentUser(result.data)
+        }
+      } catch (error) {
+        console.error('Error loading user:', error)
+      } finally {
         setIsLoadingUser(false)
+      }
+    }
+
+    // Load trends independently
+    const loadTrends = async () => {
+      try {
+        const result = await getWeeklyTrends()
+        if (result.success && result.data) {
+          setWeeklyTrends(result.data)
+        }
+      } catch (error) {
+        console.error('Error loading trends:', error)
+      } finally {
+        setIsLoadingKPIs(false)
+      }
+    }
+
+    // Load notifications independently
+    const loadNotifications = async () => {
+      try {
+        const result = await getNotifications(10)
+        if (result.success && result.data) {
+          setNotifications(result.data)
+          console.log('Notifications loaded:', result.data)
+        }
+      } catch (error) {
+        console.error('Error loading notifications:', error)
+      } finally {
         setIsLoadingNotifications(false)
       }
     }
 
-    loadData()
+    // Start all loads simultaneously but handle them independently
+    loadStories()
+    loadUser()
+    loadTrends()
+    loadNotifications()
   }, [])
 
-  const handleGenerateCode = async () => {
+  // Check if activity content overflows
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (activityContentRef.current && !isLoadingNotifications) {
+        const element = activityContentRef.current
+        const maxHeight = 500 // Max height before scrolling (500px)
+        const contentHeight = element.scrollHeight
+        setIsActivityOverflowing(contentHeight > maxHeight)
+      }
+    }
+
+    checkOverflow()
+    // Recheck when notifications change
+  }, [notifications, isLoadingNotifications])
+
+  // Check if story performance content overflows
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (storyPerformanceContentRef.current && !isLoadingStories) {
+        const element = storyPerformanceContentRef.current
+        const maxHeight = 500 // Max height before scrolling (500px)
+        const contentHeight = element.scrollHeight
+        setIsStoryPerformanceOverflowing(contentHeight > maxHeight)
+      }
+    }
+
+    checkOverflow()
+    // Recheck when stories change
+  }, [stories, isLoadingStories])
+
+  const handleGenerateCode = useCallback(async () => {
     if (!selectedStoryId || !currentUser) {
       setError('Please select a story first')
       return
@@ -117,83 +174,150 @@ export default function TeacherDashboard() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [selectedStoryId, currentUser])
 
-  const copyToClipboard = () => {
+  const copyToClipboard = useCallback(() => {
     navigator.clipboard.writeText(generatedCode)
-  }
+  }, [generatedCode])
 
-  // Helper function to get notification color based on type
-  const getNotificationColor = (type: string) => {
-    const baseType = type.split('_')[0] // Extract base type (story, user, code, etc.)
-    switch (baseType) {
-      case 'story': return 'bg-blue-500'
-      case 'user': return 'bg-green-500'
-      case 'code': return 'bg-purple-500'
-      case 'category': return 'bg-orange-500'
-      case 'system': return 'bg-gray-500'
-      case 'quiz': return 'bg-yellow-500'
-      case 'submission': return 'bg-pink-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
-  // Helper function to format time elapsed
-  const formatTimeElapsed = (date: Date) => {
-    const now = new Date()
-    const diffInSeconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000)
-    
-    if (diffInSeconds < 60) {
-      return `${diffInSeconds} seconds ago`
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60)
-      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600)
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`
-    } else {
-      const days = Math.floor(diffInSeconds / 86400)
-      return `${days} ${days === 1 ? 'day' : 'days'} ago`
-    }
-  }
-
-  // Calculate KPI values from stories data
-  const totalStories = stories.length
-  const totalCodes = stories.reduce((sum, story) => sum + story._count.Codes, 0)
-  const totalSubmissions = stories.reduce((sum, story) => sum + story._count.Submissions, 0)
-
-  // Use real average score from database
-  const averageScore = weeklyTrends.currentAverageScore
-
-  // Helper function to format trend text and color
-  const formatTrend = (value: number, unit: string = '', isPercentage: boolean = false) => {
-    const numValue = isPercentage ? parseFloat(value.toString()) : value
-    const absValue = isPercentage ? Math.abs(numValue).toFixed(2) : Math.abs(numValue)
-    const sign = numValue >= 0 ? '+' : ''
-
-    if (numValue === 0) {
-      return {
-        text: `→ No change${unit}`,
-        color: 'text-gray-600'
-      }
-    } else if (numValue > 0) {
-      return {
-        text: `↗ ${sign}${absValue}${unit} from last week`,
-        color: 'text-green-600'
-      }
-    } else {
-      return {
-        text: `↘ ${sign}${absValue}${unit} from last week`,
-        color: 'text-red-600'
+  // Helper function to get notification color based on type (moved outside or memoized for performance)
+  const getNotificationColor = useMemo(() => {
+    return (type: string) => {
+      const baseType = type.split('_')[0] // Extract base type (story, user, code, etc.)
+      switch (baseType) {
+        case 'story': return 'bg-blue-500'
+        case 'user': return 'bg-green-500'
+        case 'code': return 'bg-purple-500'
+        case 'category': return 'bg-orange-500'
+        case 'system': return 'bg-gray-500'
+        case 'quiz': return 'bg-yellow-500'
+        case 'submission': return 'bg-pink-500'
+        default: return 'bg-gray-500'
       }
     }
-  }
+  }, [])
 
-  // KPI data array with real weekly trends
-  const kpiData = [
+  // Helper function to format time elapsed (memoized for performance)
+  const formatTimeElapsed = useMemo(() => {
+    return (date: Date) => {
+      const now = new Date()
+      const diffInSeconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000)
+
+      if (diffInSeconds < 60) {
+        return `${diffInSeconds} seconds ago`
+      } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60)
+        return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`
+      } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600)
+        return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`
+      } else {
+        const days = Math.floor(diffInSeconds / 86400)
+        return `${days} ${days === 1 ? 'day' : 'days'} ago`
+      }
+    }
+  }, [])
+
+  // Memoize skeleton loaders to prevent unnecessary re-renders
+  const kpiSkeletonLoader = useMemo(() => (
+    Array.from({ length: 4 }).map((_, index) => (
+      <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+            <div className="h-8 bg-gray-200 rounded w-16"></div>
+          </div>
+          <div className="p-3 bg-gray-100 rounded-full">
+            <div className="w-6 h-6 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+        <div className="mt-4">
+          <div className="h-3 bg-gray-200 rounded w-32"></div>
+        </div>
+      </div>
+    ))
+  ), [])
+
+  const storyPerformanceSkeletonLoader = useMemo(() => (
+    Array.from({ length: 5 }).map((_, index) => (
+      <div key={index} className="flex items-center justify-between p-3 rounded-lg animate-pulse">
+        <div className="flex items-center space-x-3 flex-1">
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0"></div>
+          <div className="flex-1">
+            <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
+            <div className="h-3 bg-gray-200 rounded w-20"></div>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3 flex-shrink-0">
+          <div className="flex items-center space-x-2">
+            <div className="w-20 h-2 bg-gray-200 rounded-full"></div>
+            <div className="h-3 bg-gray-200 rounded w-12"></div>
+          </div>
+        </div>
+      </div>
+    ))
+  ), [])
+
+  const recentActivitySkeletonLoader = useMemo(() => (
+    Array.from({ length: 6 }).map((_, index) => (
+      <div key={index} className="flex items-start space-x-3 animate-pulse">
+        <div className="w-2 h-2 bg-gray-200 rounded-full mt-2"></div>
+        <div className="flex-1">
+          <div className="h-4 bg-gray-200 rounded w-48 mb-1"></div>
+          <div className="h-3 bg-gray-200 rounded w-20"></div>
+        </div>
+      </div>
+    ))
+  ), [])
+
+  // Memoize limited stories array to prevent unnecessary recalculations
+  const limitedStories = useMemo(() => stories.slice(0, 5), [stories])
+  const limitedNotifications = useMemo(() => notifications.slice(0, 10), [notifications])
+  const kpiCalculations = useMemo(() => {
+    const totalStories = stories.length
+    const totalCodes = stories.reduce((sum, story) => sum + story._count.Codes, 0)
+    const totalSubmissions = stories.reduce((sum, story) => sum + story._count.Submissions, 0)
+    const averageScore = weeklyTrends.currentAverageScore
+
+    return {
+      totalStories,
+      totalCodes,
+      totalSubmissions,
+      averageScore
+    }
+  }, [stories, weeklyTrends.currentAverageScore])
+
+  // Helper function to format trend text and color (memoized)
+  const formatTrend = useMemo(() => {
+    return (value: number, unit: string = '', isPercentage: boolean = false) => {
+      const numValue = isPercentage ? parseFloat(value.toString()) : value
+      const absValue = isPercentage ? Math.abs(numValue).toFixed(2) : Math.abs(numValue)
+      const sign = numValue >= 0 ? '+' : ''
+
+      if (numValue === 0) {
+        return {
+          text: `→ No change${unit}`,
+          color: 'text-gray-600'
+        }
+      } else if (numValue > 0) {
+        return {
+          text: `↗ ${sign}${absValue}${unit} from last week`,
+          color: 'text-green-600'
+        }
+      } else {
+        return {
+          text: `↘ ${sign}${absValue}${unit} from last week`,
+          color: 'text-red-600'
+        }
+      }
+    }
+  }, [])
+
+  // KPI data array with real weekly trends (memoized)
+  const kpiData = useMemo(() => [
     {
       title: "Total Stories",
-      value: totalStories,
+      value: kpiCalculations.totalStories,
       icon: "📚",
       iconBg: "bg-blue-100",
       iconColor: "text-blue-600",
@@ -202,7 +326,7 @@ export default function TeacherDashboard() {
     },
     {
       title: "Access Codes",
-      value: totalCodes,
+      value: kpiCalculations.totalCodes,
       icon: "🔐",
       iconBg: "bg-green-100",
       iconColor: "text-green-600",
@@ -211,7 +335,7 @@ export default function TeacherDashboard() {
     },
     {
       title: "Submissions",
-      value: totalSubmissions,
+      value: kpiCalculations.totalSubmissions,
       icon: "📝",
       iconBg: "bg-purple-100",
       iconColor: "text-purple-600",
@@ -220,14 +344,14 @@ export default function TeacherDashboard() {
     },
     {
       title: "Avg. Score",
-      value: `${(averageScore || 0).toFixed(2)}%`,
+      value: `${(kpiCalculations.averageScore || 0).toFixed(2)}%`,
       icon: "⭐",
       iconBg: "bg-yellow-100",
       iconColor: "text-yellow-600",
       trend: formatTrend((weeklyTrends.averageScoreChange || 0), '%', true).text,
       trendColor: formatTrend((weeklyTrends.averageScoreChange || 0), '%', true).color
     }
-  ]
+  ], [kpiCalculations, weeklyTrends, formatTrend])
 
   return (
     <div className="space-y-6">
@@ -261,22 +385,7 @@ export default function TeacherDashboard() {
             <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-4">
               {isLoadingKPIs ? (
                 // Skeleton loader for KPI cards
-                Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-                        <div className="h-8 bg-gray-200 rounded w-16"></div>
-                      </div>
-                      <div className="p-3 bg-gray-100 rounded-full">
-                        <div className="w-6 h-6 bg-gray-200 rounded"></div>
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <div className="h-3 bg-gray-200 rounded w-32"></div>
-                    </div>
-                  </div>
-                ))
+                kpiSkeletonLoader
               ) : (
                 kpiData.map((kpi, index) => (
                   <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -300,32 +409,18 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               {/* Story Performance Chart */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${
+                isStoryPerformanceOverflowing ? 'h-[500px] overflow-y-scroll' : 'h-fit'
+              }`}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Story Performance</h3>
-                <div className="space-y-4">
+                <div ref={storyPerformanceContentRef} className="space-y-4">
                   {isLoadingStories ? (
                     // Skeleton loader for story performance
-                    Array.from({ length: 5 }).map((_, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg animate-pulse">
-                        <div className="flex items-center space-x-3 flex-1">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
-                            <div className="h-3 bg-gray-200 rounded w-20"></div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3 flex-shrink-0">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-20 h-2 bg-gray-200 rounded-full"></div>
-                            <div className="h-3 bg-gray-200 rounded w-12"></div>
-                          </div>
-                        </div>
-                      </div>
-                    ))
+                    storyPerformanceSkeletonLoader
                   ) : (
-                    stories.slice(0, 5).map((story, index) => (
+                    limitedStories.map((story, index) => (
                       <div key={story.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium text-sm flex-shrink-0">
@@ -345,7 +440,7 @@ export default function TeacherDashboard() {
                             <div className="w-20 bg-gray-200 rounded-full h-2">
                               <div
                                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${Math.min(100, (story._count.Submissions / Math.max(totalSubmissions, 1)) * 100)}%` }}
+                                style={{ width: `${Math.min(100, (story._count.Submissions / Math.max(kpiCalculations.totalSubmissions, 1)) * 100)}%` }}
                               ></div>
                             </div>
                             <span className="text-xs text-gray-600 font-medium min-w-0">
@@ -360,22 +455,16 @@ export default function TeacherDashboard() {
               </div>
 
               {/* Recent Activity */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${
+                isActivityOverflowing ? 'h-[500px] overflow-y-scroll' : 'h-fit'
+              }`}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                <div className="space-y-4">
+                <div ref={activityContentRef} className="space-y-4">
                   {isLoadingNotifications ? (
                     // Skeleton loader for recent activity
-                    Array.from({ length: 4 }).map((_, index) => (
-                      <div key={index} className="flex items-start space-x-3 animate-pulse">
-                        <div className="w-2 h-2 bg-gray-200 rounded-full mt-2"></div>
-                        <div className="flex-1">
-                          <div className="h-4 bg-gray-200 rounded w-48 mb-1"></div>
-                          <div className="h-3 bg-gray-200 rounded w-20"></div>
-                        </div>
-                      </div>
-                    ))
+                    recentActivitySkeletonLoader
                   ) : notifications.length > 0 ? (
-                    notifications.slice(0, 6).map((notification) => (
+                    limitedNotifications.map((notification) => (
                       <div key={notification.id} className="flex items-start space-x-3">
                         <div className={`w-2 h-2 ${getNotificationColor(notification.type)} rounded-full mt-2`}></div>
                         <div>
@@ -392,29 +481,6 @@ export default function TeacherDashboard() {
                 </div>
               </div>
             </div>
-
-            {/* Quick Actions */}
-            {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="w-8 h-8 text-2xl mb-2">📖</div>
-                <span className="text-sm font-medium text-gray-700">Add Story</span>
-              </button>
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="w-8 h-8 text-2xl mb-2">❓</div>
-                <span className="text-sm font-medium text-gray-700">Create Quiz</span>
-              </button>
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="w-8 h-8 text-2xl mb-2">👥</div>
-                <span className="text-sm font-medium text-gray-700">Manage Users</span>
-              </button>
-              <button className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="w-8 h-8 text-2xl mb-2">📊</div>
-                <span className="text-sm font-medium text-gray-700">View Reports</span>
-              </button>
-            </div>
-          </div> */}
           </div>
 
           {/* Right Column - Code Generator (Responsive) */}
