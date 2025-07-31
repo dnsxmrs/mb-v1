@@ -157,20 +157,21 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
 
                 // Preferred voice options for English/Tagalog (in order of preference)
                 const preferredVoices = [
-                    'Microsoft Zira',
-                    'Microsoft David',
-                    'Microsoft Mark',
-                    'Google US English',
-                    'en-US',
-                    'en-GB',
-                    'Alex', // macOS
-                    'Samantha', // macOS
-                    'Daniel', // macOS
+                    'Microsoft Angelo Online (Natural) - Filipino (Philippines)',
+                    'Microsoft Blessica Online (Natural) - Filipino (Philippines)',
+                    'Microsoft James Online (Natural) - English (Philippines)',
+                    'Microsoft Rosa Online (Natural) - English (Philippines)',
+                    'Microsoft James',
+                    'Microsoft Rosa',
+                    'Microsoft Angelo',
+                    'Microsoft Blessica',
+                    'Filipino',
+                    'Philippines',
                 ]
 
                 // Find the best available voice
                 let selectedVoice = null
-                
+
                 // First try to find by name
                 for (const preferredVoice of preferredVoices) {
                     selectedVoice = availableVoices.find(voice =>
@@ -217,15 +218,15 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
             // If no voices are available, try to load them and retry
             if (availableVoices.length === 0) {
                 console.log('No voices available, attempting to reload...')
-                
+
                 // Try to trigger voice loading
                 speechSynthesis.getVoices()
-                
+
                 // Wait a bit and try again
                 setTimeout(() => {
                     availableVoices = speechSynthesis.getVoices()
                     console.log('Retry - Available voices:', availableVoices.length)
-                    
+
                     if (availableVoices.length > 0) {
                         setVoices(availableVoices)
                         speakWithVoices(availableVoices)
@@ -536,8 +537,8 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Word Search Grid */}
-                <div className="lg:col-span-2">
-                    <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="lg:col-span-3">
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
                         <div
                             className="text-gray-500 inline-block border-2 border-gray-400 p-2 bg-gray-50 relative"
                             onMouseLeave={() => {
@@ -564,52 +565,27 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                             {/* Strikethrough lines for found words */}
                             {placedWords.map((word) => getWordStrikethrough(word))}
                         </div>
+
+                        {/* Found Word Display - Inside Grid Container */}
+                        {foundWordMessage && (
+                            <div className="lg:col-span-1 mt-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <span className="font-semibold text-gray-800">{foundWordMessage.word}</span>
+                                        {foundWordMessage.description && (
+                                            <span className="text-gray-600 ml-2">- {foundWordMessage.description}</span>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => speakWord(foundWordMessage.word + ". " + (foundWordMessage.description || ''))}
+                                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+                                    >
+                                        🔊
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                </div>
-
-                {/* Found Word Display */}
-                <div className="lg:col-span-1">
-                    {foundWordMessage ? (
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-xl shadow-lg p-6 mb-4">
-                            <div className="text-center mb-4">
-                                <Trophy className="w-12 h-12 text-green-500 mx-auto mb-2" />
-                                <h3 className="text-xl font-bold text-green-600 mb-2">Word Found!</h3>
-                                <div className="text-2xl font-bold text-gray-800 py-2 px-4 bg-white rounded-lg shadow-sm border border-green-200">
-                                    {foundWordMessage.word}
-                                </div>
-                            </div>
-
-                            {foundWordMessage.description && (
-                                <div className="mb-4">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Definition:</h4>
-                                    <p className="text-gray-600 text-sm leading-relaxed bg-white p-3 rounded-lg border border-green-200">
-                                        {foundWordMessage.description}
-                                    </p>
-                                </div>
-                            )}
-
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => speakWord(foundWordMessage.word + ". " + (foundWordMessage.description || ''))}
-                                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                                >
-                                    🔊 Listen
-                                </button>
-                                <button
-                                    onClick={() => setFoundWordMessage(null)}
-                                    className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="bg-white rounded-xl shadow-md p-6 mb-4">
-                            <h3 className="text-lg font-semibold text-gray-600 text-center">
-                                Find words to see their definitions here!
-                            </h3>
-                        </div>
-                    )}
                 </div>
 
                 {/* Words List */}

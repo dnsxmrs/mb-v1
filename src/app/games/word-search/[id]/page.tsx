@@ -6,9 +6,9 @@ import WordSearchGame from "@/components/WordSearchGame"
 import { getWordSearches } from '@/actions/word-search'
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 // Generate metadata for SEO
