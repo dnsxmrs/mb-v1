@@ -32,7 +32,7 @@ export default function GuestHeader() {
     );
 
     return (
-        <header className="w-full bg-[#DBEAFE] border-b border-[#60A5FA]/20">
+        <header className="w-full bg-[#DBEAFE] border-b border-[#60A5FA]/20 relative">
             <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 py-3 xs:py-4 sm:py-6 flex justify-between items-center">
                 <Link href="/" className="flex items-center">
                     <Image
@@ -153,7 +153,7 @@ export default function GuestHeader() {
 
             {/* Mobile Navigation Menu */}
             {isMobileMenuOpen && (
-                <div className="md:hidden bg-[#DBEAFE] border-t border-[#60A5FA]/20">
+                <div className="md:hidden absolute top-full left-0 right-0 bg-[#DBEAFE] border-t border-[#60A5FA]/20 shadow-lg z-50">
                     <div className="px-3 xs:px-4 py-3 space-y-3">
                         <div className="flex items-center justify-center">
                             <Link
