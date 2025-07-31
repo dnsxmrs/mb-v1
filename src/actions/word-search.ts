@@ -2,6 +2,7 @@
 
 import { prisma } from '@/utils/prisma'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from './notification'
 
 export interface WordSearchData {
     title: string
@@ -61,6 +62,8 @@ export async function createWordSearch(data: WordSearchData) {
         // Revalidate the games management page
         revalidatePath('/games-management')
 
+        await createNotification('word_search_created', `Word search '${wordSearch.title}' created`)
+
         return {
             success: true,
             data: wordSearch,
@@ -90,7 +93,7 @@ export async function getWordSearches() {
                 }
             },
             orderBy: {
-                createdAt: 'desc'
+                createdAt: 'asc'
             }
         })
 
@@ -111,7 +114,7 @@ export async function updateWordSearchStatus(id: number, status: 'active' | 'ina
     try {
         const wordSearch = await prisma.wordSearch.update({
             where: { id },
-            data: { 
+            data: {
                 status,
                 updatedAt: new Date()
             }
@@ -119,6 +122,8 @@ export async function updateWordSearchStatus(id: number, status: 'active' | 'ina
 
         // Revalidate the games management page
         revalidatePath('/games-management')
+
+        await createNotification('word_search_status_updated', `Word search '${wordSearch.title}' ${status === 'active' ? 'activated' : 'deactivated'}`)
 
         return {
             success: true,
@@ -139,7 +144,7 @@ export async function deleteWordSearch(id: number) {
         // Soft delete - update deletedAt timestamp
         const wordSearch = await prisma.wordSearch.update({
             where: { id },
-            data: { 
+            data: {
                 deletedAt: new Date(),
                 updatedAt: new Date()
             }
@@ -148,7 +153,7 @@ export async function deleteWordSearch(id: number) {
         // Also soft delete all associated items
         await prisma.wordSearchItem.updateMany({
             where: { wordSearchId: id },
-            data: { 
+            data: {
                 deletedAt: new Date(),
                 updatedAt: new Date()
             }
@@ -156,6 +161,8 @@ export async function deleteWordSearch(id: number) {
 
         // Revalidate the games management page
         revalidatePath('/games-management')
+
+        await createNotification('word_search_deleted', `Word search '${wordSearch.title}' deleted`)
 
         return {
             success: true,
@@ -167,6 +174,73 @@ export async function deleteWordSearch(id: number) {
         return {
             success: false,
             error: 'Failed to delete word search'
+        }
+    }
+}
+
+export async function updateWordSearch (id: number, data: WordSearchData) {
+    try {
+        // Validate required fields
+        if (!data.title || !data.title.trim()) {
+            return {
+                success: false,
+                error: 'Title is required'
+            }
+        }
+
+        if (!data.words || data.words.length === 0) {
+            return {
+                success: false,
+                error: 'At least one word is required'
+            }
+        }
+
+        // Validate each word
+        for (const wordItem of data.words) {
+            if (!wordItem.word || !wordItem.word.trim()) {
+                return {
+                    success: false,
+                    error: 'All words must have a value'
+                }
+            }
+        }
+
+        // Update word search with nested word items
+        const updatedWordSearch = await prisma.wordSearch.update({
+            where: { id },
+            data: {
+                title: data.title.trim(),
+                description: data.description?.trim() || null,
+                status: data.status,
+                items: {
+                    deleteMany: {}, // Delete all existing items
+                    create: data.words.map(wordItem => ({
+                        word: wordItem.word.trim(),
+                        description: wordItem.description?.trim() || null
+                    }))
+                }
+            },
+            include: {
+                items: true
+            }
+        })
+
+        // Revalidate the games management page
+        revalidatePath('/games-management')
+
+        await createNotification('word_search_updated', `Word search '${updatedWordSearch.title}' updated`)
+
+        return {
+            success: true,
+            data: updatedWordSearch,
+            message: 'Word search updated successfully!'
+        }
+
+    } catch (error) {
+        console.error('Error updating word search:', error)
+        return {
+            success: false,
+            error: 'Failed to update word search. Please try again.'
         }
     }
 }

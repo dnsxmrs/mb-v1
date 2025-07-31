@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { ArrowLeft, RotateCcw, Trophy, Clock, Volume2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -21,6 +21,68 @@ interface WordSearchData {
         updatedAt: Date | string
         deletedAt: Date | string | null
     }[]
+}
+
+// Custom hook for managing sound effects
+const useSoundEffects = () => {
+    const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({})
+
+    const playSound = useCallback((soundName: 'correct' | 'wrong' | 'complete') => {
+        try {
+            const soundFiles = {
+                correct: '/sfx/correct_01.mp3',
+                wrong: '/sfx/wrong_01.mp3',
+                complete: '/sfx/done_01.mp3'
+            }
+
+            const soundPath = soundFiles[soundName]
+
+            // Create or get existing audio element
+            if (!audioRefs.current[soundName]) {
+                const audio = new Audio(soundPath)
+                audio.preload = 'auto'
+                audio.volume = 0.7 // Set volume to 70%
+                audioRefs.current[soundName] = audio
+            }
+
+            const audio = audioRefs.current[soundName]
+
+            // Reset audio to beginning and play
+            audio.currentTime = 0
+            audio.play().catch(error => {
+                console.warn(`Failed to play ${soundName} sound:`, error)
+            })
+        } catch (error) {
+            console.warn(`Error playing ${soundName} sound:`, error)
+        }
+    }, [])
+
+    // Preload all sound effects
+    useEffect(() => {
+        const soundFiles = {
+            correct: '/sfx/correct_01.mp3',
+            wrong: '/sfx/wrong_01.mp3',
+            complete: '/sfx/done_01.mp3'
+        }
+
+        Object.entries(soundFiles).forEach(([name, path]) => {
+            const audio = new Audio(path)
+            audio.preload = 'auto'
+            audio.volume = 0.7
+            audioRefs.current[name] = audio
+        })
+
+        // Cleanup function
+        return () => {
+            Object.values(audioRefs.current).forEach(audio => {
+                audio.pause()
+                audio.src = ''
+            })
+            audioRefs.current = {}
+        }
+    }, [])
+
+    return { playSound }
 }
 
 interface WordSearchGameProps {
@@ -237,6 +299,11 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     const [foundWordMessage, setFoundWordMessage] = useState<{ word: string, description: string | null } | null>(null)
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
     const [isSpeaking, setIsSpeaking] = useState(false)
+    const [cellSize, setCellSize] = useState(24) // Dynamic cell size
+    const [pendingGameCompletion, setPendingGameCompletion] = useState(false) // Track if game completion is pending TTS
+
+    // Initialize sound effects hook
+    const { playSound } = useSoundEffects()
 
     // Load voices function with proper async handling
     const loadVoices = () => {
@@ -249,8 +316,8 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         return []
     }
 
-    // Text-to-speech function with better voice selection
-    const speakWord = (word: string) => {
+    // Text-to-speech function with better voice selection and completion callback
+    const speakWord = (word: string, onComplete?: () => void) => {
         if ('speechSynthesis' in window) {
             // Stop any ongoing speech immediately
             if (speechSynthesis.speaking) {
@@ -270,11 +337,19 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
             utterance.onend = () => {
                 console.log('Speech ended')
                 setIsSpeaking(false)
+                // Call completion callback if provided
+                if (onComplete) {
+                    onComplete()
+                }
             }
 
             utterance.onerror = () => {
                 // console.error('Speech error:', event.error)
                 setIsSpeaking(false)
+                // Call completion callback even on error to prevent hanging
+                if (onComplete) {
+                    onComplete()
+                }
             }
 
             // Function to speak with available voices
@@ -372,23 +447,33 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     useEffect(() => {
         const words = wordSearch.items.map(item => item.word)
 
-        // Calculate appropriate grid size
+        // Calculate appropriate grid size based on words
         const longestWordLength = Math.max(...words.map(word => word.length))
         const wordCount = words.length
 
-        // Calculate grid size with enough space for all words
-        // Formula: max(longest_word + 3, sqrt(total_chars) + 4, 15)
+        // Calculate grid size with better logic for smaller word sets
         const totalChars = words.reduce((sum, word) => sum + word.length, 0)
-        const minSizeForChars = Math.ceil(Math.sqrt(totalChars)) + 4
-        const minSizeForLongest = longestWordLength + 3
-        const gridSize = Math.max(minSizeForLongest, minSizeForChars, 15)
+
+        // Different calculation based on word count
+        let gridSize: number
+
+        if (wordCount <= 5) {
+            // For small word sets, use a more compact calculation
+            gridSize = Math.max(longestWordLength + 2, Math.ceil(Math.sqrt(totalChars * 2)) + 2, 8)
+        } else if (wordCount <= 10) {
+            // For medium word sets
+            gridSize = Math.max(longestWordLength + 3, Math.ceil(Math.sqrt(totalChars * 1.5)) + 3, 10)
+        } else {
+            // For large word sets, use the original logic
+            const minSizeForChars = Math.ceil(Math.sqrt(totalChars)) + 4
+            const minSizeForLongest = longestWordLength + 3
+            gridSize = Math.max(minSizeForLongest, minSizeForChars, 12)
+        }
 
         console.log(`Grid size calculation:`)
         console.log(`- Words: ${wordCount}`)
         console.log(`- Longest word: ${longestWordLength} chars`)
         console.log(`- Total characters: ${totalChars}`)
-        console.log(`- Min size for chars: ${minSizeForChars}`)
-        console.log(`- Min size for longest: ${minSizeForLongest}`)
         console.log(`- Final grid size: ${gridSize}x${gridSize}`)
 
         const { grid, placedWords: placed } = generateWordSearchGrid(words, gridSize)
@@ -438,11 +523,42 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     // Check if game is completed
     useEffect(() => {
         if (placedWords.length > 0 && foundWords.size === placedWords.length && !gameCompleted && !modalDismissed) {
-            setEndTime(new Date())
-            setGameCompleted(true)
-            console.log('Game completed! Setting modal to show.')
+            // Set pending completion state - will be triggered after TTS finishes
+            setPendingGameCompletion(true)
+            console.log('Game completed! Waiting for TTS to finish before showing modal.')
         }
     }, [foundWords, placedWords, gameCompleted, modalDismissed])
+
+    // Handle pending game completion after TTS finishes
+    const triggerGameCompletion = useCallback(() => {
+        if (pendingGameCompletion) {
+            setEndTime(new Date())
+            setGameCompleted(true)
+            setPendingGameCompletion(false)
+            // Play completion sound effect
+            playSound('complete')
+            console.log('TTS finished - showing game completion modal with sound effect.')
+        }
+    }, [pendingGameCompletion, playSound])
+
+    // Fallback timeout for game completion in case TTS fails
+    useEffect(() => {
+        let timeoutId: NodeJS.Timeout
+
+        if (pendingGameCompletion) {
+            // Set a fallback timeout of 10 seconds in case TTS gets stuck
+            timeoutId = setTimeout(() => {
+                console.log('TTS timeout - triggering game completion fallback')
+                triggerGameCompletion()
+            }, 10000)
+        }
+
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId)
+            }
+        }
+    }, [pendingGameCompletion, triggerGameCompletion])
 
     // Handle escape key to close modal
     useEffect(() => {
@@ -461,15 +577,28 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     const resetGame = () => {
         const words = wordSearch.items.map(item => item.word)
 
-        // Calculate appropriate grid size (same logic as initialization)
+        // Calculate appropriate grid size based on words (same logic as initialization)
         const longestWordLength = Math.max(...words.map(word => word.length))
         const wordCount = words.length
 
-        // Calculate grid size with enough space for all words
+        // Calculate grid size with better logic for smaller word sets
         const totalChars = words.reduce((sum, word) => sum + word.length, 0)
-        const minSizeForChars = Math.ceil(Math.sqrt(totalChars)) + 4
-        const minSizeForLongest = longestWordLength + 3
-        const gridSize = Math.max(minSizeForLongest, minSizeForChars, 15)
+
+        // Different calculation based on word count
+        let gridSize: number
+
+        if (wordCount <= 5) {
+            // For small word sets, use a more compact calculation
+            gridSize = Math.max(longestWordLength + 2, Math.ceil(Math.sqrt(totalChars * 2)) + 2, 8)
+        } else if (wordCount <= 10) {
+            // For medium word sets
+            gridSize = Math.max(longestWordLength + 3, Math.ceil(Math.sqrt(totalChars * 1.5)) + 3, 10)
+        } else {
+            // For large word sets, use the original logic
+            const minSizeForChars = Math.ceil(Math.sqrt(totalChars)) + 4
+            const minSizeForLongest = longestWordLength + 3
+            gridSize = Math.max(minSizeForLongest, minSizeForChars, 12)
+        }
 
         console.log(`Reset: Grid size ${gridSize}x${gridSize} for ${wordCount} words`)
 
@@ -484,6 +613,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         setEndTime(null)
         setGameCompleted(false)
         setModalDismissed(false) // Reset modal dismissal when starting new game
+        setPendingGameCompletion(false) // Reset pending completion state
     }
 
     const closeModal = () => {
@@ -548,7 +678,11 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         )
 
         if (matchedWord) {
-            setFoundWords(prev => new Set([...prev, matchedWord.word]))
+            // Play correct answer sound effect
+            playSound('correct')
+
+            const newFoundWords = new Set([...foundWords, matchedWord.word])
+            setFoundWords(newFoundWords)
 
             // Find the word item for description
             const wordItem = wordSearch.items.find(item =>
@@ -561,13 +695,25 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                 description: wordItem?.description || null
             })
 
-            // Speak the word
-            speakWord(matchedWord.originalWord + ', ' + (wordItem?.description || ''))
+            // Check if this is the last word to be found
+            const isLastWord = newFoundWords.size === placedWords.length
 
-            // Auto-clear the message after 8 seconds (longer for reading)
-            // setTimeout(() => {
-            //     setFoundWordMessage(null)
-            // }, 8000)
+            if (isLastWord) {
+                // Speak the word with completion callback for the last word
+                if ('speechSynthesis' in window) {
+                    speakWord(matchedWord.originalWord + ', ' + (wordItem?.description || ''), triggerGameCompletion)
+                } else {
+                    // If speech synthesis is not available, trigger completion immediately
+                    triggerGameCompletion()
+                }
+            } else {
+                // Speak the word normally for non-last words
+                speakWord(matchedWord.originalWord + ', ' + (wordItem?.description || ''))
+            }
+        } else if (selectedPositions.length > 1) {
+            // Only play wrong sound if user actually made a selection (more than 1 cell)
+            // Play wrong answer sound effect
+            playSound('wrong')
         }
 
         setIsSelecting(false)
@@ -584,9 +730,55 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     }
 
+    // Calculate dynamic cell size based on screen width and grid size
+    const calculateCellSize = useCallback(() => {
+        if (typeof window === 'undefined' || gameGrid.length === 0) return 24
+
+        const gridSize = gameGrid.length
+        const screenWidth = window.innerWidth
+
+        // Account for container padding and margins
+        const containerPadding = screenWidth < 640 ? 32 : screenWidth < 1024 ? 48 : 64 // px-4, px-6, px-8
+        const gridContainerPadding = screenWidth < 640 ? 16 : 32 // p-4, p-6
+        const gridWrapperPadding = 16 // px-2 (8px each side)
+        const borderWidth = 4 // border-2
+        const gridHorizontalPadding = screenWidth < 640 ? 8 : 16 // px-1 sm:px-2 (4px each side)
+
+        const totalPadding = containerPadding + gridContainerPadding + gridWrapperPadding + borderWidth + gridHorizontalPadding
+        const availableWidth = screenWidth - totalPadding
+
+        // Calculate cell size to fit the available width
+        const calculatedSize = Math.floor(availableWidth / gridSize)
+
+        // Set minimum and maximum cell sizes
+        const minSize = 12
+        const maxSize = screenWidth < 640 ? 28 : screenWidth < 768 ? 36 : 44
+
+        return Math.max(minSize, Math.min(maxSize, calculatedSize))
+    }, [gameGrid.length])
+
+    // Update cell size on window resize
+    useEffect(() => {
+        const updateCellSize = () => {
+            const newSize = calculateCellSize()
+            setCellSize(newSize)
+        }
+
+        updateCellSize()
+        window.addEventListener('resize', updateCellSize)
+
+        return () => window.removeEventListener('resize', updateCellSize)
+    }, [calculateCellSize])
+
+    // Update cell size when grid changes
+    useEffect(() => {
+        const newSize = calculateCellSize()
+        setCellSize(newSize)
+    }, [calculateCellSize])
+
     const getCellClass = (row: number, col: number) => {
         const cellKey = `${row}-${col}`
-        let classes = 'w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 flex items-center justify-center text-xs sm:text-sm font-bold border border-gray-300 cursor-pointer select-none relative touch-none '
+        let classes = 'text-gray-500 flex items-center justify-center font-bold border border-gray-300 cursor-pointer select-none relative touch-none '
 
         if (selectedCells.has(cellKey)) {
             classes += 'bg-blue-200 '
@@ -613,16 +805,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         const firstPos = word.positions[0]
         const lastPos = word.positions[word.positions.length - 1]
 
-        // Calculate the line position and angle - responsive cell sizes
-        let cellSize = 16 // default (w-4 h-4)
-        if (window.innerWidth >= 768) { // md breakpoint
-            cellSize = 32
-        } else if (window.innerWidth >= 640) { // sm breakpoint
-            cellSize = 24
-        } else if (window.innerWidth >= 475) { // xs breakpoint (custom)
-            cellSize = 20
-        }
-
+        // Use dynamic cell size
         const cellOffset = cellSize / 2
 
         const startX = firstPos.col * cellSize + cellOffset
@@ -633,15 +816,8 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2))
         const angle = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI)
 
-        // Responsive line thickness
-        let lineHeight = '2px'
-        if (window.innerWidth >= 768) {
-            lineHeight = '5px'
-        } else if (window.innerWidth >= 640) {
-            lineHeight = '4px'
-        } else if (window.innerWidth >= 475) {
-            lineHeight = '3px'
-        }
+        // Responsive line thickness based on cell size
+        const lineHeight = Math.max(2, Math.floor(cellSize / 8))
 
         return (
             <div
@@ -651,7 +827,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                     left: startX,
                     top: startY,
                     width: length,
-                    height: lineHeight,
+                    height: `${lineHeight}px`,
                     transformOrigin: '0 50%',
                     transform: `rotate(${angle}deg)`,
                 }}
@@ -691,7 +867,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                         </button> */}
                                 <button
                                     onClick={resetGame}
-                                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-xs sm:text-sm"
+                                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm"
                                 >
                                     <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
                                     <span className="hidden sm:inline">Reset</span>
@@ -703,76 +879,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                             <p className="text-sm sm:text-base text-gray-600 text-justify">{wordSearch.description}</p>
                         )}
                     </div>
-
-
                 </div>
-
-                {/* Game Completed Modal */}
-                {gameCompleted && !modalDismissed && (
-                    <div
-                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                        onClick={() => {
-                            console.log('Background clicked')
-                            closeModal()
-                        }}
-                    >
-                        <div
-                            className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center relative"
-                            onClick={(e) => {
-                                console.log('Modal content clicked - preventing close')
-                                e.stopPropagation()
-                            }}
-                        >
-                            {/* Close Button */}
-                            <button
-                                onClick={(e) => {
-                                    console.log('Close button clicked')
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    closeModal()
-                                }}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10"
-                                aria-label="Close modal"
-                                type="button"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-
-                            <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Congratulations!</h2>
-                            <p className="text-gray-600 mb-4">
-                                You completed the word search in {getElapsedTime()}!
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={resetGame}
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                    Play Again
-                                </button>
-                                <Link
-                                    href="/games/word-search"
-                                    className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center"
-                                >
-                                    More Games
-                                </Link>
-                                <button
-                                    onClick={(e) => {
-                                        console.log('Close button in footer clicked')
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                        closeModal()
-                                    }}
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 <div className="space-y-4 sm:space-y-6">
                     {/* First Row: Words to Find and Found Word */}
@@ -780,7 +887,8 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                         {/* Words to Find */}
                         <div className="">
                             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
-                                Words to Find ({foundWords.size}/{placedWords.length})
+                                Words to Find
+                                {/* ({foundWords.size}/{placedWords.length}) */}
                             </h3>
                             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
                                 {placedWords.map((word, index) => {
@@ -845,50 +953,57 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
 
                     {/* Second Row: Word Search Grid */}
                     <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-5">
-                        <div className="flex justify-center">
-                            <div className="overflow-x-auto touch-pan-x">
+                        <div className="flex justify-center w-full px-2">
+                            <div className="w-full flex justify-center">
                                 <div
-                                    className="text-gray-500 inline-block border-2 border-gray-400 p-1 sm:p-2 bg-gray-50 relative min-w-fit select-none"
-                                    style={{ touchAction: 'none' }}
+                                    className="grid gap-0 border-2 border-gray-400 bg-gray-50 relative select-none w-fit"
+                                    style={{
+                                        gridTemplateColumns: `repeat(${gameGrid.length}, ${cellSize}px)`,
+                                        gridTemplateRows: `repeat(${gameGrid.length}, ${cellSize}px)`,
+                                        touchAction: 'none'
+                                    }}
                                     onMouseLeave={() => {
                                         if (isSelecting) {
                                             handleCellMouseUp()
                                         }
                                     }}
                                 >
-                                    {gameGrid.map((row, rowIndex) => (
-                                        <div key={rowIndex} className="flex">
-                                            {row.map((cell, colIndex) => (
-                                                <div
-                                                    key={`${rowIndex}-${colIndex}`}
-                                                    className={getCellClass(rowIndex, colIndex)}
-                                                    onMouseDown={() => handleCellMouseDown(rowIndex, colIndex)}
-                                                    onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
-                                                    onMouseUp={handleCellMouseUp}
-                                                    onTouchStart={(e) => {
-                                                        e.preventDefault()
-                                                        handleCellMouseDown(rowIndex, colIndex)
-                                                    }}
-                                                    onTouchMove={(e) => {
-                                                        e.preventDefault()
-                                                        const touch = e.touches[0]
-                                                        const element = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement
-                                                        if (element && element.dataset && element.dataset.row && element.dataset.col) {
-                                                            handleCellMouseEnter(parseInt(element.dataset.row), parseInt(element.dataset.col))
-                                                        }
-                                                    }}
-                                                    onTouchEnd={(e) => {
-                                                        e.preventDefault()
-                                                        handleCellMouseUp()
-                                                    }}
-                                                    data-row={rowIndex}
-                                                    data-col={colIndex}
-                                                >
-                                                    {cell}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ))}
+                                    {gameGrid.map((row, rowIndex) =>
+                                        row.map((cell, colIndex) => (
+                                            <div
+                                                key={`${rowIndex}-${colIndex}`}
+                                                className={getCellClass(rowIndex, colIndex)}
+                                                style={{
+                                                    fontSize: `${Math.max(10, cellSize / 2.5)}px`,
+                                                    width: `${cellSize}px`,
+                                                    height: `${cellSize}px`
+                                                }}
+                                                onMouseDown={() => handleCellMouseDown(rowIndex, colIndex)}
+                                                onMouseEnter={() => handleCellMouseEnter(rowIndex, colIndex)}
+                                                onMouseUp={handleCellMouseUp}
+                                                onTouchStart={(e) => {
+                                                    e.preventDefault()
+                                                    handleCellMouseDown(rowIndex, colIndex)
+                                                }}
+                                                onTouchMove={(e) => {
+                                                    e.preventDefault()
+                                                    const touch = e.touches[0]
+                                                    const element = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement
+                                                    if (element && element.dataset && element.dataset.row && element.dataset.col) {
+                                                        handleCellMouseEnter(parseInt(element.dataset.row), parseInt(element.dataset.col))
+                                                    }
+                                                }}
+                                                onTouchEnd={(e) => {
+                                                    e.preventDefault()
+                                                    handleCellMouseUp()
+                                                }}
+                                                data-row={rowIndex}
+                                                data-col={colIndex}
+                                            >
+                                                {cell}
+                                            </div>
+                                        ))
+                                    )}
                                     {/* Strikethrough lines for found words */}
                                     {placedWords.map((word) => getWordStrikethrough(word))}
                                 </div>
@@ -896,6 +1011,64 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                         </div>
                     </div>
                 </div>
+
+
+                {/* Game Completed Modal */}
+                {gameCompleted && !modalDismissed && (
+                    <div
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                        onClick={() => {
+                            console.log('Background clicked')
+                            closeModal()
+                        }}
+                    >
+                        <div
+                            className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center relative"
+                            onClick={(e) => {
+                                console.log('Modal content clicked - preventing close')
+                                e.stopPropagation()
+                            }}
+                        >
+                            {/* Close Button */}
+                            <button
+                                onClick={(e) => {
+                                    console.log('Close button clicked')
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    closeModal()
+                                }}
+                                className="absolute top-4 right-4 text-black hover:text-gray-600 transition-colors z-10"
+                                aria-label="Close modal"
+                                type="button"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+
+                            <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4 mt-4 animate-bounce" />
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">Congratulations!</h2>
+                            <p className="text-gray-600 mb-4">
+                                You completed the word search in {getElapsedTime()}!
+                            </p>
+                            <div className="flex gap-2 xs:gap-3">
+                                <button
+                                    onClick={resetGame}
+                                    className="flex-1 px-3 xs:px-4 py-2 xs:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm xs:text-base font-medium"
+                                >
+                                    Play Again
+                                </button>
+                                <Link
+                                    href="/games/word-search"
+                                    className="flex-1 px-3 xs:px-4 py-2 xs:py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center text-sm xs:text-base font-medium"
+                                >
+                                    <span className="hidden xs:inline">Back to Word Search Menu</span>
+                                    <span className="xs:hidden">Back to Menu</span>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )

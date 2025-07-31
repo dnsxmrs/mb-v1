@@ -16,10 +16,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     try {
         const { id } = await params
         const result = await getWordSearches()
-        
+
         if (result.success && result.data) {
             const wordSearch = result.data.find(ws => ws.id === parseInt(id))
-            
+
             if (wordSearch) {
                 return {
                     title: `${wordSearch.title} | Word Search | E-KWENTO`,
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export async function generateStaticParams() {
     try {
         const result = await getWordSearches()
-        
+
         if (result.success && result.data) {
             return result.data
                 .filter(ws => ws.status === 'active')
@@ -58,7 +58,7 @@ export async function generateStaticParams() {
 
 export default async function WordSearchGamePage({ params }: PageProps) {
     const { id } = await params
-    
+
     // Validate ID
     const wordSearchId = parseInt(id)
     if (isNaN(wordSearchId)) {
@@ -69,11 +69,11 @@ export default async function WordSearchGamePage({ params }: PageProps) {
     let wordSearch = null
     try {
         const result = await getWordSearches()
-        
+
         if (result.success && result.data) {
-            wordSearch = result.data.find(ws => 
-                ws.id === wordSearchId && 
-                ws.status === 'active' && 
+            wordSearch = result.data.find(ws =>
+                ws.id === wordSearchId &&
+                ws.status === 'active' &&
                 ws.deletedAt === null
             )
         }

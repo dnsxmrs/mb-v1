@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Edit, Trash2, Eye, MoreVertical, Search } from 'lucide-react'
+import { Edit, Trash2, Eye, MoreVertical, Search, X } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { getWordSearches, updateWordSearchStatus, deleteWordSearch } from '@/actions/word-search'
+import { getWordSearches, updateWordSearchStatus, updateWordSearch, deleteWordSearch } from '@/actions/word-search'
 
 interface WordSearchData {
     id: number
@@ -29,6 +29,15 @@ export default function WordSearchTable() {
     const [showDropdown, setShowDropdown] = useState<number | null>(null)
     const [loadingToggle, setLoadingToggle] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [viewingItem, setViewingItem] = useState<WordSearchData | null>(null)
+    const [editingItem, setEditingItem] = useState<WordSearchData | null>(null)
+    const [editForm, setEditForm] = useState({
+        title: '',
+        description: '',
+        status: 'active' as 'active' | 'inactive',
+        words: [] as { word: string; description?: string }[]
+    })
+    const [isSaving, setIsSaving] = useState(false)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,10 +60,37 @@ export default function WordSearchTable() {
         fetchData()
     }, [])
 
+    // Handle escape key to close modals
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (editingItem) {
+                    setEditingItem(null)
+                } else if (viewingItem) {
+                    setViewingItem(null)
+                }
+            }
+        }
+
+        document.addEventListener('keydown', handleEscape)
+        return () => document.removeEventListener('keydown', handleEscape)
+    }, [viewingItem, editingItem])
+
     const handleEdit = (id: number) => {
-        console.log('Edit item:', id)
+        const item = data.find(item => item.id === id)
+        if (item) {
+            setEditingItem(item)
+            setEditForm({
+                title: item.title,
+                description: item.description || '',
+                status: item.status as 'active' | 'inactive',
+                words: item.items.map(wordItem => ({
+                    word: wordItem.word,
+                    description: wordItem.description || ''
+                }))
+            })
+        }
         setShowDropdown(null)
-        toast.success('Edit functionality is not implemented yet')
     }
 
     const handleDelete = async (id: number) => {
@@ -78,9 +114,11 @@ export default function WordSearchTable() {
     }
 
     const handleView = (id: number) => {
-        console.log('View item:', id)
+        const item = data.find(item => item.id === id)
+        if (item) {
+            setViewingItem(item)
+        }
         setShowDropdown(null)
-        toast.success('View functionality is not implemented yet')
     }
 
     const handleToggleStatus = async (id: number) => {
@@ -121,6 +159,37 @@ export default function WordSearchTable() {
             toast.error('Failed to update status. Please try again.')
         } finally {
             setLoadingToggle(null)
+        }
+    }
+
+    const handleSaveEdit = async () => {
+        if (!editingItem) return
+
+        setIsSaving(true)
+        try {
+            // Here you would call your update API
+            // For now, just simulate the update
+            console.log('Saving edit:', editForm)
+
+            const result = await updateWordSearch(editingItem.id, editForm)
+
+            if (result.success) {
+                // Refetch data to get updated information from server
+                const updatedResult = await getWordSearches()
+                if (updatedResult.success && updatedResult.data) {
+                    setData(updatedResult.data)
+                }
+                toast.success(result.message || 'Word search updated successfully')
+            } else {
+                toast.error(result.error || 'Failed to update word search')
+                return
+            }
+            setEditingItem(null)
+        } catch (error) {
+            console.error('Error updating word search:', error)
+            toast.error('Failed to update word search. Please try again.')
+        } finally {
+            setIsSaving(false)
         }
     }
 
@@ -421,6 +490,201 @@ export default function WordSearchTable() {
                         </div>
                     )}
                 </>
+            )}
+
+            {/* Minimalist View Modal */}
+            {viewingItem && (
+                <div
+                    className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setViewingItem(null)}
+                >
+                    <div
+                        className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6">
+                            {/* Header */}
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-900">{viewingItem.title}</h2>
+                                    {viewingItem.description && (
+                                        <p className="text-gray-600 mt-2 text-justify">{viewingItem.description}</p>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => setViewingItem(null)}
+                                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                                >
+                                    <X />
+                                </button>
+                            </div>
+
+                            {/* Words List */}
+                            <div className="space-y-3">
+                                <table className="w-full">
+                                    <tbody>
+                                        {viewingItem.items.map((item) => (
+                                            <tr key={item.id}>
+                                                <td className="text-sm font-medium text-gray-900 pr-3 py-1 align-top">
+                                                    {item.word}
+                                                </td>
+                                                <td className="text-gray-400 px-3 py-1 align-top">
+                                                    -
+                                                </td>
+                                                <td className="text-sm text-gray-600 pl-3 py-1 align-top text-justify">
+                                                    {item.description || 'No description'}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {editingItem && (
+                <div
+                    className="fixed inset-0 text-black bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setEditingItem(null)}
+                >
+                    <div
+                        className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6">
+                            {/* Header */}
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Edit Word Search</h2>
+                                <button
+                                    onClick={() => setEditingItem(null)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={(e) => {
+                                e.preventDefault()
+                                // Handle form submission
+                                handleSaveEdit()
+                            }}>
+                                {/* Basic Information */}
+                                <div className="space-y-4 mb-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-black mb-2">
+                                            Title <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editForm.title}
+                                            onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-black mb-2">
+                                            Description
+                                        </label>
+                                        <textarea
+                                            value={editForm.description}
+                                            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            rows={3}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Words Section */}
+                                <div className="mb-6">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="text-lg font-semibold text-black">Words</h3>
+                                    </div>
+
+                                    <div className="space-y-3 mb-2">
+                                        {editForm.words.map((item, index) => (
+                                            <div key={index} className="flex gap-3 items-start">
+                                                <div className="flex-1">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Word"
+                                                        value={item.word}
+                                                        onChange={(e) => {
+                                                            const newWords = [...editForm.words]
+                                                            newWords[index].word = e.target.value
+                                                            setEditForm({ ...editForm, words: newWords })
+                                                        }}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="flex-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Description"
+                                                        value={item.description || ''}
+                                                        onChange={(e) => {
+                                                            const newWords = [...editForm.words]
+                                                            newWords[index].description = e.target.value
+                                                            setEditForm({ ...editForm, words: newWords })
+                                                        }}
+                                                        required
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newWords = editForm.words.filter((_, i) => i !== index)
+                                                        setEditForm({ ...editForm, words: newWords })
+                                                    }}
+                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                                    disabled={editForm.words.length === 1}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex justify-end">
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditForm({
+                                                ...editForm,
+                                                words: [...editForm.words, { word: '', description: '' }]
+                                            })}
+                                            className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                                        >
+                                            Add Word
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingItem(null)}
+                                        className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                                    >
+                                        {isSaving ? 'Saving...' : 'Save Changes'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     )

@@ -162,6 +162,8 @@ export async function updateCodeStatus(codeId: number, status: string) {
             data: { status }
         });
 
+        await createNotification('code_status_updated', `Code '${updatedCode.code}' status updated to '${status}'`);
+
         return {
             success: true,
             data: updatedCode

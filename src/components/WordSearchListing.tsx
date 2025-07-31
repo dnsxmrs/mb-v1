@@ -105,10 +105,10 @@ export default function WordSearchListing() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="text-center">
+            <div className="text-center px-4">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Word Search Games</h1>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                    Challenge yourself with our collection of educational word search puzzles. 
+                <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                    Challenge yourself with our collection of educational word search puzzles.
                     Find hidden words and expand your vocabulary!
                 </p>
             </div>
@@ -116,25 +116,34 @@ export default function WordSearchListing() {
             {/* Word Search Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {wordSearches.map((wordSearch) => (
-                    <Link 
-                        key={wordSearch.id} 
+                    <Link
+                        key={wordSearch.id}
                         href={`/games/word-search/${wordSearch.id}`}
                         className="group"
                     >
                         <div className="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all duration-300 p-6 h-full flex flex-col">
                             {/* Title */}
-                            <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors"
+                                style={{
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical' as const,
+                                    overflow: 'hidden'
+                                }}
+                                title={wordSearch.title}>
                                 {wordSearch.title}
                             </h3>
 
                             {/* Description */}
                             {wordSearch.description && (
-                                <p className="text-gray-600 text-sm mb-4 flex-grow overflow-hidden" 
-                                   style={{ 
-                                       display: '-webkit-box',
-                                       WebkitLineClamp: 2,
-                                       WebkitBoxOrient: 'vertical' as const
-                                   }}>
+                                <p className="text-gray-600 text-sm mb-4 flex-grow"
+                                    style={{
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 3,
+                                        WebkitBoxOrient: 'vertical' as const,
+                                        overflow: 'hidden'
+                                    }}
+                                    title={wordSearch.description}>
                                     {wordSearch.description}
                                 </p>
                             )}
@@ -142,38 +151,37 @@ export default function WordSearchListing() {
                             {/* Stats */}
                             <div className="space-y-3 mb-4">
                                 <div className="flex items-center text-sm text-gray-500">
-                                    <Users className="w-4 h-4 mr-2" />
-                                    <span>{wordSearch.items.length} words to find</span>
+                                    <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+                                    <span className="truncate">{wordSearch.items.length} words to find</span>
                                 </div>
                                 <div className="flex items-center text-sm text-gray-500">
-                                    <Calendar className="w-4 h-4 mr-2" />
-                                    <span>Added {new Date(wordSearch.createdAt).toLocaleDateString('en-US', { 
-                                        year: 'numeric', 
-                                        month: 'short', 
-                                        day: 'numeric' 
+                                    <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                                    <span className="truncate">Added {new Date(wordSearch.createdAt).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
                                     })}</span>
                                 </div>
                             </div>
 
                             {/* Difficulty Badge */}
-                            <div className="flex justify-between items-center">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                    wordSearch.items.length <= 5 
-                                        ? 'bg-green-100 text-green-800' 
-                                        : wordSearch.items.length <= 10 
-                                        ? 'bg-yellow-100 text-yellow-800' 
-                                        : 'bg-red-100 text-red-800'
-                                }`}>
-                                    {wordSearch.items.length <= 5 
-                                        ? 'Easy' 
-                                        : wordSearch.items.length <= 10 
-                                        ? 'Medium' 
-                                        : 'Hard'
+                            <div className="flex justify-between items-center gap-2">
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${wordSearch.items.length <= 5
+                                        ? 'bg-green-100 text-green-800'
+                                        : wordSearch.items.length <= 10
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : 'bg-red-100 text-red-800'
+                                    }`}>
+                                    {wordSearch.items.length <= 5
+                                        ? 'Easy'
+                                        : wordSearch.items.length <= 10
+                                            ? 'Medium'
+                                            : 'Hard'
                                     }
                                 </span>
 
                                 {/* Play Button */}
-                                <div className="flex items-center text-blue-600 group-hover:text-blue-700 font-medium">
+                                <div className="flex items-center text-blue-600 group-hover:text-blue-700 font-medium flex-shrink-0">
                                     <Play className="w-4 h-4 mr-1" />
                                     <span>Play</span>
                                 </div>
