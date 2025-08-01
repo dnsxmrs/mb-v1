@@ -93,7 +93,7 @@ export async function getWordSearches() {
                 }
             },
             orderBy: {
-                createdAt: 'asc'
+                createdAt: 'desc'
             }
         })
 

@@ -13,6 +13,12 @@ export default function GamesManagementClient() {
     const [showAddModal, setShowAddModal] = useState(false)
     const [refreshKey, setRefreshKey] = useState(0)
 
+    const handleAddSuccess = () => {
+        // Trigger refresh of both tables by incrementing key
+        setRefreshKey(prev => prev + 1)
+        setShowAddModal(false)
+    }
+
     const tabs = [
         {
             id: 'word-search' as GameType,
@@ -74,9 +80,9 @@ export default function GamesManagementClient() {
             </div>
 
             {/* Content Tables */}
-            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div className="overflow-hidden">
                 {activeTab === 'word-search' && <WordSearchTable key={refreshKey} />}
-                {activeTab === 'mystery-box' && <MysteryBoxTable />}
+                {activeTab === 'mystery-box' && <MysteryBoxTable key={refreshKey} />}
             </div>
 
             {/* Add Content Modal */}
@@ -84,10 +90,7 @@ export default function GamesManagementClient() {
                 <AddContentModal
                     gameType={activeTab}
                     onClose={() => setShowAddModal(false)}
-                    onSuccess={() => {
-                        // Trigger refresh of WordSearchTable
-                        setRefreshKey(prev => prev + 1)
-                    }}
+                    onSuccess={handleAddSuccess}
                 />
             )}
         </div>

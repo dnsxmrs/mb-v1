@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
-import { Eye, Users, FileText, Calendar, ChevronRight, Search, ChevronLeft } from 'lucide-react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { Eye, Users, FileText, Calendar, ChevronRight, Search, ChevronLeft, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { CodeWithStoryData } from '@/actions/student-log'
-import { updateCodeStatus } from '@/actions/code'
+import { updateCodeStatus, deleteCode } from '@/actions/code'
 
 interface CodesTableProps {
     codes: CodeWithStoryData[]
@@ -15,11 +15,19 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
     const [searchTerm, setSearchTerm] = useState('')
     const [loadingToggles, setLoadingToggles] = useState<Set<number>>(new Set())
     const [currentPage, setCurrentPage] = useState(1)
+    const [deletingCode, setDeletingCode] = useState<CodeWithStoryData | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [localCodes, setLocalCodes] = useState<CodeWithStoryData[]>(codes)
     const itemsPerPage = 10
+
+    // Update localCodes when codes prop changes
+    useEffect(() => {
+        setLocalCodes(codes)
+    }, [codes])
     const [codeStatuses, setCodeStatuses] = useState<Record<number, string>>(() => {
         // Initialize with current statuses from props
         const initialStatuses: Record<number, string> = {}
-        codes.forEach(code => {
+        localCodes.forEach(code => {
             initialStatuses[code.id] = code.status
         })
         return initialStatuses
@@ -27,19 +35,19 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
 
     // Helper function to get current status (either from local state or original props)
     const getCurrentStatus = useCallback((codeId: number) => {
-        return codeStatuses[codeId] || codes.find(code => code.id === codeId)?.status || 'inactive'
-    }, [codeStatuses, codes])
+        return codeStatuses[codeId] || localCodes.find(code => code.id === codeId)?.status || 'inactive'
+    }, [codeStatuses, localCodes])
 
     // Memoized filtered codes to prevent unnecessary recalculations
     const filteredCodes = useMemo(() => {
-        if (!searchTerm.trim()) return codes
+        if (!searchTerm.trim()) return localCodes
 
         const lowerSearchTerm = searchTerm.toLowerCase()
-        return codes.filter(code =>
+        return localCodes.filter(code =>
             code.code.toLowerCase().includes(lowerSearchTerm) ||
             code.storyTitle.toLowerCase().includes(lowerSearchTerm)
         )
-    }, [codes, searchTerm])
+    }, [localCodes, searchTerm])
 
     // Pagination calculations
     const totalPages = Math.ceil(filteredCodes.length / itemsPerPage)
@@ -113,6 +121,34 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
         }
     }, [loadingToggles, setCodeStatuses])
 
+    const handleDelete = (codeId: number) => {
+        const code = localCodes.find(code => code.id === codeId)
+        if (code) {
+            setDeletingCode(code)
+        }
+    }
+
+    const confirmDelete = async (code: CodeWithStoryData) => {
+        setIsDeleting(true)
+        try {
+            const result = await deleteCode(code.id)
+
+            if (result.success) {
+                // Remove from local state
+                setLocalCodes(localCodes.filter(localCode => localCode.id !== code.id))
+                toast.success(result.message || 'Code deleted successfully')
+            } else {
+                toast.error(result.error || 'Failed to delete code')
+            }
+        } catch (error) {
+            console.error('Error deleting code:', error)
+            toast.error('Failed to delete code. Please try again.')
+        } finally {
+            setIsDeleting(false)
+            setDeletingCode(null)
+        }
+    }
+
     return (
         <div className="space-y-4">
             {/* Search Bar */}
@@ -123,9 +159,9 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                         placeholder="Search codes or stories..."
                         value={searchTerm}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        className="text-black w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="text-[#1E3A8A] w-full pl-9 pr-4 py-2 bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#3B82F6] border border-[#3B82F6] rounded-lg  focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]"
                     />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#60A5FA]" size={16} />
                 </div>
                 {searchTerm && (
                     <div className="text-sm text-gray-600">
@@ -155,7 +191,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                 Submissions
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Action
+                                Actions
                             </th>
                         </tr>
                     </thead>
@@ -223,13 +259,22 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <button
-                                            onClick={() => onCodeClick(code.id)}
-                                            className="text-blue-600 hover:text-blue-900 text-sm font-medium inline-flex items-center"
-                                        >
-                                            View Details
-                                            <ChevronRight className="h-4 w-4 ml-1" />
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => onCodeClick(code.id)}
+                                                className="text-blue-600 hover:text-blue-900 text-sm font-medium inline-flex items-center"
+                                            >
+                                                View Details
+                                                <ChevronRight className="h-4 w-4 ml-1" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(code.id)}
+                                                className="text-red-600 hover:text-red-900 text-sm font-medium inline-flex items-center"
+                                                title="Delete code"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             )
@@ -304,13 +349,22 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => onCodeClick(code.id)}
-                                className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-md text-sm inline-flex items-center justify-center"
-                            >
-                                View Details
-                                <ChevronRight className="h-4 w-4 ml-1" />
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => onCodeClick(code.id)}
+                                    className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-md text-sm inline-flex items-center justify-center"
+                                >
+                                    View Details
+                                    <ChevronRight className="h-4 w-4 ml-1" />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(code.id)}
+                                    className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-3 rounded-md text-sm inline-flex items-center justify-center"
+                                    title="Delete code"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            </div>
                         </div>
                     )
                 })}
@@ -386,6 +440,61 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                             : 'Codes will appear here when stories are shared with students'
                         }
                     </p>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deletingCode && (
+                <div
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setDeletingCode(null)}
+                >
+                    <div
+                        className="bg-white rounded-lg max-w-md w-full p-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Delete Code</h3>
+                            <button
+                                onClick={() => setDeletingCode(null)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <p className="text-gray-700">
+                                Are you sure you want to delete code &ldquo;<strong className="font-mono">{deletingCode.code}</strong>&rdquo; for story &ldquo;<strong>{deletingCode.storyTitle}</strong>&rdquo;?
+                            </p>
+                            <p className="text-red-600 text-sm">
+                                This action cannot be undone. The code will be permanently deleted and students will no longer be able to access the story using this code.
+                            </p>
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => setDeletingCode(null)}
+                                    disabled={isDeleting}
+                                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => confirmDelete(deletingCode)}
+                                    disabled={isDeleting}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        'Delete Code'
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

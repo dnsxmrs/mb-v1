@@ -232,7 +232,7 @@ export default async function ResultPage({
                             href="/libraries"
                             className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
                         >
-                            E-Aklatan
+                            Aklatan
                         </LoadingLink>
                     </div>
                 </div>

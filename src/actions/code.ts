@@ -176,3 +176,47 @@ export async function updateCodeStatus(codeId: number, status: string) {
         };
     }
 }
+
+export async function deleteCode(codeId: number) {
+    try {
+        // Get the code details before soft deleting
+        const codeToDelete = await prisma.code.findUnique({
+            where: { id: codeId },
+            select: { code: true, Story: { select: { title: true } } }
+        });
+
+        if (!codeToDelete) {
+            return {
+                success: false,
+                error: 'Code not found'
+            };
+        }
+
+        // Soft delete by setting deletedAt timestamp
+        const deletedCode = await prisma.code.update({
+            where: { id: codeId },
+            data: { 
+                deletedAt: new Date(),
+                status: 'inactive' // Also set status to inactive when deleted
+            }
+        });
+
+        // Create notification
+        await createNotification(
+            'code_deleted', 
+            `Code '${codeToDelete.code}' for story '${codeToDelete.Story?.title}' has been deleted`
+        );
+
+        return {
+            success: true,
+            message: 'Code deleted successfully',
+            data: deletedCode
+        };
+    } catch (error) {
+        console.error('Error deleting code:', error);
+        return {
+            success: false,
+            error: 'Failed to delete code'
+        };
+    }
+}

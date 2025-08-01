@@ -23,6 +23,17 @@ interface WordSearchData {
     }[]
 }
 
+interface WordSearchGameProps {
+    wordSearch: WordSearchData
+}
+
+interface PlacedWord {
+    word: string
+    originalWord: string
+    positions: { row: number; col: number }[]
+    found: boolean
+}
+
 // Custom hook for managing sound effects
 const useSoundEffects = () => {
     const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({})
@@ -83,17 +94,6 @@ const useSoundEffects = () => {
     }, [])
 
     return { playSound }
-}
-
-interface WordSearchGameProps {
-    wordSearch: WordSearchData
-}
-
-interface PlacedWord {
-    word: string
-    originalWord: string
-    positions: { row: number; col: number }[]
-    found: boolean
 }
 
 // Improved word search grid generator with word intersections
@@ -295,7 +295,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     const [endTime, setEndTime] = useState<Date | null>(null)
     const [gameCompleted, setGameCompleted] = useState(false)
     const [modalDismissed, setModalDismissed] = useState(false) // Track if user dismissed the modal
-    const [currentTime, setCurrentTime] = useState<Date>(new Date())
+    const [elapsedSeconds, setElapsedSeconds] = useState<number>(0) // Track elapsed time in seconds
     const [foundWordMessage, setFoundWordMessage] = useState<{ word: string, description: string | null } | null>(null)
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
     const [isSpeaking, setIsSpeaking] = useState(false)
@@ -511,14 +511,16 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
 
     // Update timer every second
     useEffect(() => {
-        if (!gameCompleted) {
+        if (!gameCompleted && startTime) {
             const timer = setInterval(() => {
-                setCurrentTime(new Date())
+                const now = new Date()
+                const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000)
+                setElapsedSeconds(elapsed)
             }, 1000)
 
             return () => clearInterval(timer)
         }
-    }, [gameCompleted])
+    }, [gameCompleted, startTime])
 
     // Check if game is completed
     useEffect(() => {
@@ -609,7 +611,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         setSelectedCells(new Set())
         setFoundWordMessage(null)
         setStartTime(new Date())
-        setCurrentTime(new Date())
+        setElapsedSeconds(0) // Reset elapsed time to 0
         setEndTime(null)
         setGameCompleted(false)
         setModalDismissed(false) // Reset modal dismissal when starting new game
@@ -722,9 +724,16 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     }
 
     const getElapsedTime = () => {
-        if (!startTime) return '00:00'
-        const endTimeToUse = endTime || currentTime
-        const elapsed = Math.floor((endTimeToUse.getTime() - startTime.getTime()) / 1000)
+        let elapsed: number
+        
+        if (endTime && startTime) {
+            // Game is completed, calculate final elapsed time
+            elapsed = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+        } else {
+            // Game is ongoing, use the current elapsed seconds
+            elapsed = elapsedSeconds
+        }
+        
         const minutes = Math.floor(elapsed / 60)
         const seconds = elapsed % 60
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
@@ -817,7 +826,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         const angle = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI)
 
         // Responsive line thickness based on cell size
-        const lineHeight = Math.max(2, Math.floor(cellSize / 8))
+        const lineHeight = Math.max(4, Math.floor(cellSize / 8))
 
         return (
             <div
@@ -839,41 +848,35 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="space-y-4 sm:space-y-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="w-full sm:w-auto">
-                        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-2">
-                            <Link
-                                href="/games/word-search"
-                                className="text-gray-900 flex items-center gap-1 sm:gap-2 p-2 hover:bg-white/20 rounded-lg transition-colors"
-                            >
-                                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span className="text-sm sm:text-base">Back</span>
-                            </Link>
-                            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
-                                <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-black">
-                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span>{getElapsedTime()}</span>
-                                </div>
-                                {/* Debug button for testing speech synthesis */}
-                                {/* <button
-                            onClick={() => {
-                                console.log('Testing speech synthesis...')
-                                console.log('Available voices:', voices.length, voices.map(v => v.name))
-                                speakWord('Test speech synthesis')
-                            }}
-                            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm"
+                <div className="space-y-4">
+                    {/* Navigation and Controls */}
+                    <div className="flex items-center justify-between">
+                        <Link
+                            href="/games/word-search"
+                            className="text-gray-900 flex items-center gap-1 sm:gap-2 p-2 hover:bg-white/20 rounded-lg transition-colors"
                         >
-                            🔊 <span className="hidden sm:inline">Test TTS</span>
-                        </button> */}
-                                <button
-                                    onClick={resetGame}
-                                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm"
-                                >
-                                    <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
-                                    <span className="hidden sm:inline">Reset</span>
-                                </button>
+                            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <span className="text-sm sm:text-base">Back</span>
+                        </Link>
+
+                        <div className="flex items-center gap-3 sm:gap-4">
+                            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-black">
+                                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span>{getElapsedTime()}</span>
                             </div>
+
+                            <button
+                                onClick={resetGame}
+                                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm"
+                            >
+                                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline">Reset</span>
+                            </button>
                         </div>
+                    </div>
+                    
+                    {/* Title and Description */}
+                    <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-justify">{wordSearch.title}</h1>
                         {wordSearch.description && (
                             <p className="text-sm sm:text-base text-gray-600 text-justify">{wordSearch.description}</p>

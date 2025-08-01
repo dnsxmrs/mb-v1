@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Edit, Trash2, Eye, MoreVertical, Search, X } from 'lucide-react'
+import { Edit, Trash2, Eye, Search, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getWordSearches, updateWordSearchStatus, updateWordSearch, deleteWordSearch } from '@/actions/word-search'
 
@@ -26,11 +26,12 @@ interface WordSearchData {
 
 export default function WordSearchTable() {
     const [data, setData] = useState<WordSearchData[]>([])
-    const [showDropdown, setShowDropdown] = useState<number | null>(null)
     const [loadingToggle, setLoadingToggle] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [viewingItem, setViewingItem] = useState<WordSearchData | null>(null)
     const [editingItem, setEditingItem] = useState<WordSearchData | null>(null)
+    const [deletingItem, setDeletingItem] = useState<WordSearchData | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
     const [editForm, setEditForm] = useState({
         title: '',
         description: '',
@@ -64,7 +65,9 @@ export default function WordSearchTable() {
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
-                if (editingItem) {
+                if (deletingItem) {
+                    setDeletingItem(null)
+                } else if (editingItem) {
                     setEditingItem(null)
                 } else if (viewingItem) {
                     setViewingItem(null)
@@ -74,7 +77,7 @@ export default function WordSearchTable() {
 
         document.addEventListener('keydown', handleEscape)
         return () => document.removeEventListener('keydown', handleEscape)
-    }, [viewingItem, editingItem])
+    }, [viewingItem, editingItem, deletingItem])
 
     const handleEdit = (id: number) => {
         const item = data.find(item => item.id === id)
@@ -90,27 +93,34 @@ export default function WordSearchTable() {
                 }))
             })
         }
-        setShowDropdown(null)
     }
 
-    const handleDelete = async (id: number) => {
-        if (confirm('Are you sure you want to delete this item?')) {
-            try {
-                const result = await deleteWordSearch(id)
-
-                if (result.success) {
-                    // Remove from local state
-                    setData(data.filter(item => item.id !== id))
-                    toast.success(result.message || 'Word search deleted successfully')
-                } else {
-                    toast.error(result.error || 'Failed to delete word search')
-                }
-            } catch (error) {
-                console.error('Error deleting word search:', error)
-                toast.error('Failed to delete word search. Please try again.')
-            }
+    const handleDelete = (id: number) => {
+        const item = data.find(item => item.id === id)
+        if (item) {
+            setDeletingItem(item)
         }
-        setShowDropdown(null)
+    }
+
+    const confirmDelete = async (item: WordSearchData) => {
+        setIsDeleting(true)
+        try {
+            const result = await deleteWordSearch(item.id)
+
+            if (result.success) {
+                // Remove from local state
+                setData(data.filter(dataItem => dataItem.id !== item.id))
+                toast.success(result.message || 'Word search deleted successfully')
+            } else {
+                toast.error(result.error || 'Failed to delete word search')
+            }
+        } catch (error) {
+            console.error('Error deleting word search:', error)
+            toast.error('Failed to delete word search. Please try again.')
+        } finally {
+            setIsDeleting(false)
+            setDeletingItem(null)
+        }
     }
 
     const handleView = (id: number) => {
@@ -118,7 +128,6 @@ export default function WordSearchTable() {
         if (item) {
             setViewingItem(item)
         }
-        setShowDropdown(null)
     }
 
     const handleToggleStatus = async (id: number) => {
@@ -197,7 +206,7 @@ export default function WordSearchTable() {
         <div className="overflow-hidden">
             {/* Loading Skeleton */}
             {isLoading ? (
-                <div className="p-4">
+                <div className="">
                     {/* Mobile Skeleton */}
                     <div className="block sm:hidden space-y-3">
                         {[...Array(3)].map((_, i) => (
@@ -224,7 +233,7 @@ export default function WordSearchTable() {
                     {/* Desktop Skeleton */}
                     <div className="hidden sm:block">
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gray-200">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
@@ -276,88 +285,114 @@ export default function WordSearchTable() {
                 <>
                     {/* Mobile View */}
                     <div className="block sm:hidden">
-                        <div className="space-y-3 p-4">
+                        <div className="space-y-3">
                             {data.map((item) => (
-                                <div key={item.id} className="bg-gray-50 rounded-lg p-4 space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex-1">
-                                            <h3 className="font-semibold text-gray-900">{item.title}</h3>
-                                            {item.description && (
-                                                <p className="text-sm text-gray-500">{item.description}</p>
-                                            )}
-                                        </div>
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => setShowDropdown(showDropdown === item.id ? null : item.id)}
-                                                className="p-1 hover:bg-gray-200 rounded"
-                                            >
-                                                <MoreVertical size={16} />
-                                            </button>
-                                            {showDropdown === item.id && (
-                                                <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg border z-10">
-                                                    <button
-                                                        onClick={() => handleView(item.id)}
-                                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                                    >
-                                                        <Eye size={14} />
-                                                        View
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEdit(item.id)}
-                                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                                    >
-                                                        <Edit size={14} />
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(item.id)}
-                                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 items-center">
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {item.items.length} words
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`text-xs font-medium ${item.status === 'active' ? 'text-green-700' : 'text-gray-700'}`}>
-                                                {item.status}
-                                            </span>
-                                            <button
-                                                onClick={() => handleToggleStatus(item.id)}
-                                                disabled={loadingToggle === item.id}
-                                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${loadingToggle === item.id ? 'opacity-50 cursor-not-allowed' :
-                                                    item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${item.status === 'active' ? 'translate-x-5' : 'translate-x-1'
+                                <div key={item.id} className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                                    {/* Card Content */}
+                                    <div className="p-4 space-y-3">
+                                        {/* Title */}
+                                        {/* <h3 className="font-semibold text-gray-900 text-lg">{item.title}</h3> */}
+                                        {/* Words count and Status */}
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-semibold text-gray-900 text-lg">{item.title}</h3>
+                                            {/* <div className="flex items-center gap-2">
+                                                <span className={`text-xs font-medium ${item.status === 'active' ? 'text-green-700' : 'text-red-700'}`}>
+                                                    {item.status}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleToggleStatus(item.id)}
+                                                    disabled={loadingToggle === item.id}
+                                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${loadingToggle === item.id ? 'opacity-50 cursor-not-allowed' :
+                                                        item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
                                                         }`}
-                                                />
-                                                {loadingToggle === item.id && (
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                                                    </div>
-                                                )}
+                                                >
+                                                    <span
+                                                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${item.status === 'active' ? 'translate-x-5' : 'translate-x-1'
+                                                            }`}
+                                                    />
+                                                    {loadingToggle === item.id && (
+                                                        <div className="absolute inset-0 flex items-center justify-center">
+                                                            <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            </div> */}
+                                        </div>
+
+                                        {/* Description (truncated) - only show if description exists */}
+                                        {item.description && (
+                                            <p className="text-sm text-gray-600 line-clamp-2">
+                                                {item.description.length > 80
+                                                    ? `${item.description.substring(0, 80)}...`
+                                                    : item.description}
+                                            </p>
+                                        )}
+
+                                        {/* Words count and Status */}
+                                        <div className="flex items-center justify-between">
+                                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {item.items.length} words
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-xs font-medium ${item.status === 'active' ? 'text-green-700' : 'text-red-700'}`}>
+                                                    {item.status}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleToggleStatus(item.id)}
+                                                    disabled={loadingToggle === item.id}
+                                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${loadingToggle === item.id ? 'opacity-50 cursor-not-allowed' :
+                                                        item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
+                                                        }`}
+                                                >
+                                                    <span
+                                                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${item.status === 'active' ? 'translate-x-5' : 'translate-x-1'
+                                                            }`}
+                                                    />
+                                                    {loadingToggle === item.id && (
+                                                        <div className="absolute inset-0 flex items-center justify-center">
+                                                            <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Created date */}
+                                        <p className="text-sm text-gray-500">
+                                            Created: {new Date(item.createdAt).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                                timeZone: 'Asia/Manila'
+                                            })}
+                                        </p>
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="border-t border-gray-200 px-4 py-3">
+                                        <div className="flex justify-between gap-2">
+                                            <button
+                                                onClick={() => handleView(item.id)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                                            >
+                                                <Eye size={16} />
+                                                View
+                                            </button>
+                                            <button
+                                                onClick={() => handleEdit(item.id)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                                            >
+                                                <Edit size={16} />
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(item.id)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
+                                            >
+                                                <Trash2 size={16} />
+                                                Delete
                                             </button>
                                         </div>
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                        <p>Created: {new Date(item.createdAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}</p>
-                                        <p>Updated: {new Date(item.updatedAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}</p>
                                     </div>
                                 </div>
                             ))}
@@ -367,7 +402,7 @@ export default function WordSearchTable() {
                     {/* Desktop Table View */}
                     <div className="hidden sm:block overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gray-200">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Title
@@ -437,7 +472,8 @@ export default function WordSearchTable() {
                                                 {new Date(item.createdAt).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'long',
-                                                    day: 'numeric'
+                                                    day: 'numeric',
+                                                    timeZone: "Asia/Manila",
                                                 })}
                                             </div>
                                         </td>
@@ -446,7 +482,8 @@ export default function WordSearchTable() {
                                                 {new Date(item.updatedAt).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'long',
-                                                    day: 'numeric'
+                                                    day: 'numeric',
+                                                    timeZone: "Asia/Manila",
                                                 })}
                                             </div>
                                         </td>
@@ -682,6 +719,61 @@ export default function WordSearchTable() {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deletingItem && (
+                <div
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setDeletingItem(null)}
+                >
+                    <div
+                        className="bg-white rounded-lg max-w-md w-full p-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Delete Word Search</h3>
+                            <button
+                                onClick={() => setDeletingItem(null)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <p className="text-gray-700">
+                                Are you sure you want to delete &ldquo;<strong>{deletingItem.title}</strong>&rdquo;?
+                            </p>
+                            <p className="text-red-600 text-sm">
+                                This action cannot be undone. All associated words and data will be permanently deleted.
+                            </p>
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => setDeletingItem(null)}
+                                    disabled={isDeleting}
+                                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => confirmDelete(deletingItem)}
+                                    disabled={isDeleting}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        'Delete Word Search'
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

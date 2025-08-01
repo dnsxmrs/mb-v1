@@ -88,7 +88,8 @@ export default function TeacherNav({ children }: TeacherNavProps) {
         {/* Logo */}
         <div className="flex flex-col items-center justify-center h-16 mt-3">
           <Link
-            href="/dashboard"
+            href="/"
+            title="Go to Home"
             className="text-[10px] font-medium text-blue-800 px-2 mt-1 text-center items-center flex-col align-center flex gap-2 hover:text-blue-800 transition-colors"
           >
             <Image
@@ -209,7 +210,8 @@ export default function TeacherNav({ children }: TeacherNavProps) {
               <span className="text-xs font-medium text-center leading-tight">
                 {item.name === "Quiz Viewing" ? "Quiz" :
                   item.name === "Student Submissions" ? "Logs" :
-                    item.name}
+                    item.name === "Games Management" ? "Games" :
+                      item.name}
               </span>
               {/* Active indicator underline */}
               {pathname === item.href && (

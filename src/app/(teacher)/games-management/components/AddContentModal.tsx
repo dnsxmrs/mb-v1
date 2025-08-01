@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { X, Plus, Trash2 } from 'lucide-react'
 import { createWordSearch, type WordSearchData } from '@/actions/word-search'
+import { createMysteryBoxItems, type MysteryBoxData } from '@/actions/mystery-box'
+import ImageUploadCrop from '@/components/ImageUploadCrop'
 import toast from 'react-hot-toast'
 
 interface AddContentModalProps {
@@ -20,16 +22,15 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
         // Word Search specific
         words: [{ word: '', description: '' }],
         // Mystery Box specific
-        questions: [{ question: '', answer: '', options: ['', '', '', ''] }],
-        rewards: ['']
+        items: [{ word: '', description: '', imageUrl: '' }],
     })
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        
+
         if (gameType === 'word-search') {
             setIsLoading(true)
-            
+
             try {
                 // Prepare data for word search
                 const wordSearchData: WordSearchData = {
@@ -44,7 +45,6 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
                 if (result.success) {
                     toast.success(result.message || 'Word search created successfully!')
                     onSuccess?.()
-                    onClose()
                 } else {
                     toast.error(result.error || 'Failed to create word search')
                 }
@@ -55,10 +55,29 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
                 setIsLoading(false)
             }
         } else {
-            // Handle mystery box submission (placeholder for now)
-            console.log('Mystery box form submitted:', formData)
-            toast.success('Mystery box created successfully!')
-            onClose()
+            // Handle mystery box submission
+            setIsLoading(true)
+
+            try {
+                const mysteryBoxData: MysteryBoxData = {
+                    status: formData.status as 'active' | 'inactive',
+                    items: formData.items.filter(item => item.word.trim() !== '')
+                }
+
+                const result = await createMysteryBoxItems(mysteryBoxData)
+
+                if (result.success) {
+                    toast.success(result.message || 'Mystery box items created successfully!')
+                    onSuccess?.()
+                } else {
+                    toast.error(result.error || 'Failed to create mystery box items')
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error)
+                toast.error('An unexpected error occurred')
+            } finally {
+                setIsLoading(false)
+            }
         }
     }
 
@@ -85,58 +104,26 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
         }))
     }
 
-    const addQuestion = () => {
+    const addItem = () => {
         setFormData(prev => ({
             ...prev,
-            questions: [...prev.questions, { question: '', answer: '', options: ['', '', '', ''] }]
+            items: [...prev.items, { word: '', description: '', imageUrl: '' }]
         }))
     }
 
-    const removeQuestion = (index: number) => {
+    const removeItem = (index: number) => {
         setFormData(prev => ({
             ...prev,
-            questions: prev.questions.filter((_, i) => i !== index)
+            items: prev.items.filter((_, i) => i !== index)
         }))
     }
 
-    const updateQuestion = (index: number, field: string, value: string) => {
+    const updateItem = (index: number, field: 'word' | 'description' | 'imageUrl', value: string) => {
         setFormData(prev => ({
             ...prev,
-            questions: prev.questions.map((q, i) =>
-                i === index ? { ...q, [field]: value } : q
+            items: prev.items.map((item, i) =>
+                i === index ? { ...item, [field]: value } : item
             )
-        }))
-    }
-
-    const updateQuestionOption = (questionIndex: number, optionIndex: number, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            questions: prev.questions.map((q, i) =>
-                i === questionIndex
-                    ? { ...q, options: q.options.map((opt, j) => j === optionIndex ? value : opt) }
-                    : q
-            )
-        }))
-    }
-
-    const addReward = () => {
-        setFormData(prev => ({
-            ...prev,
-            rewards: [...prev.rewards, '']
-        }))
-    }
-
-    const removeReward = (index: number) => {
-        setFormData(prev => ({
-            ...prev,
-            rewards: prev.rewards.filter((_, i) => i !== index)
-        }))
-    }
-
-    const updateReward = (index: number, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            rewards: prev.rewards.map((reward, i) => i === index ? value : reward)
         }))
     }
 
@@ -159,49 +146,70 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[calc(90vh-120px)]">
                     <div className="p-6 space-y-6">
-                        {/* Basic Info */}
-                        <div className="grid grid-cols-1 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-black mb-2">
-                                    Title <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={formData.title}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                                    className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter title of the word search"
-                                    maxLength={250}
-                                />
+                        {/* Basic Info - Only for Word Search */}
+                        {gameType === 'word-search' && (
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-black mb-2">
+                                        Title <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.title}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                                        className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter title of the word search"
+                                        maxLength={250}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-black mb-2">
+                                        Description <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={formData.description}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                                        className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter description of the word search"
+                                        rows={3}
+                                        maxLength={250}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-black mb-2">
+                                        Status <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        disabled
+                                        value={formData.status}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
+                                        className="cursor-not-allowed text-gray-500 bg-gray-300 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="active">Active (default)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-black mb-2">
-                                    Description <span className="text-red-500">*</span>
-                                </label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                    className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter description of the word search"
-                                    rows={3}
-                                    maxLength={250}
-                                />
+                        )}
+
+                        {/* Status field for Mystery Box */}
+                        {gameType === 'mystery-box' && (
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-black mb-2">
+                                        Status <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        disabled
+                                        value={formData.status}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
+                                        className="cursor-not-allowed text-gray-500 bg-gray-300 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    >
+                                        <option value="active">Active (default)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-black mb-2">
-                                    Status <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    disabled
-                                    value={formData.status}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
-                                    className="cursor-not-allowed text-gray-500 bg-gray-300 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="active">Active (default)</option>
-                                </select>
-                            </div>
-                        </div>
+                        )}
 
                         {/* Word Search Content */}
                         {gameType === 'word-search' && (
@@ -273,107 +281,80 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
 
                         {/* Mystery Box Content */}
                         {gameType === 'mystery-box' && (
-                            <>
-                                {/* Questions */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <label className="block text-sm font-medium text-black">
-                                            Questions *
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={addQuestion}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700"
-                                        >
-                                            <Plus size={14} />
-                                            Add Question
-                                        </button>
-                                    </div>
-                                    <div className="space-y-4">
-                                        {formData.questions.map((q, qIndex) => (
-                                            <div key={qIndex} className="border rounded-lg p-4 space-y-3">
-                                                <div className="flex justify-between items-center">
-                                                    <h4 className="font-medium text-gray-900">Question {qIndex + 1}</h4>
-                                                    {formData.questions.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeQuestion(qIndex)}
-                                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    value={q.question}
-                                                    onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                    placeholder="Enter question"
-                                                />
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    {q.options.map((option, oIndex) => (
-                                                        <input
-                                                            key={oIndex}
-                                                            type="text"
-                                                            value={option}
-                                                            onChange={(e) => updateQuestionOption(qIndex, oIndex, e.target.value)}
-                                                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                            placeholder={`Option ${oIndex + 1}`}
-                                                        />
-                                                    ))}
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    value={q.answer}
-                                                    onChange={(e) => updateQuestion(qIndex, 'answer', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                    placeholder="Correct answer"
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
+                            <div>
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-medium text-black">
+                                        Items <span className="text-red-500">*</span>
+                                    </label>
                                 </div>
-
-                                {/* Rewards */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <label className="block text-sm font-medium text-black">
-                                            Rewards
-                                        </label>
-                                        <button
-                                            type="button"
-                                            onClick={addReward}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700"
-                                        >
-                                            <Plus size={14} />
-                                            Add Reward
-                                        </button>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {formData.rewards.map((reward, index) => (
-                                            <div key={index} className="flex gap-2">
-                                                <input
-                                                    type="text"
-                                                    value={reward}
-                                                    onChange={(e) => updateReward(index, e.target.value)}
-                                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                                    placeholder={`Reward ${index + 1}`}
-                                                />
-                                                {formData.rewards.length > 1 && (
+                                <div className="space-y-3">
+                                    {formData.items.map((item, index) => (
+                                        <div key={index} className="border border-gray-300 rounded-lg p-4 space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <h4 className="font-medium text-black">Item {index + 1}</h4>
+                                                {formData.items.length > 1 && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => removeReward(index)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                                                        onClick={() => removeItem(index)}
+                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <Trash2 size={14} />
                                                     </button>
                                                 )}
                                             </div>
-                                        ))}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-black mb-1">
+                                                        Word <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={item.word}
+                                                        onChange={(e) => updateItem(index, 'word', e.target.value)}
+                                                        className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                        placeholder="Enter a word"
+                                                        maxLength={250}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-black mb-1">
+                                                        Description
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={item.description}
+                                                        onChange={(e) => updateItem(index, 'description', e.target.value)}
+                                                        className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                        placeholder="Enter the description"
+                                                        maxLength={250}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-black mb-1">
+                                                    Image
+                                                </label>
+                                                <ImageUploadCrop
+                                                    value={item.imageUrl}
+                                                    onChange={(imageDataUrl) => updateItem(index, 'imageUrl', imageDataUrl)}
+                                                    onRemove={() => updateItem(index, 'imageUrl', '')}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={addItem}
+                                            className="flex items-center  gap-1 px-3 py-1 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                                        >
+                                            <Plus size={14} />
+                                            Add Item
+                                        </button>
                                     </div>
                                 </div>
-                            </>
+                            </div>
                         )}
                     </div>
 

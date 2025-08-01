@@ -178,3 +178,29 @@ model WordSearchItem {
 
   @@unique([wordSearchId, word]) // prevent duplicate words in same puzzle
 }
+
+// model MysteryBox {
+//   id          Int      @id @default(autoincrement())
+//   title       String   @db.VarChar(255)
+//   description String?  @db.VarChar(255)
+//   status      String   @default("active") @db.VarChar(50)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+//   deletedAt   DateTime?
+//   items       MysteryBoxItem[]
+// }
+
+model MysteryBoxItem {
+  id          Int       @id @default(autoincrement())
+  // mysteryBoxId Int
+  word        String    @db.VarChar(255)
+  description String?   @db.VarChar(255)
+  imageUrl    String?   @db.VarChar(255) // URL to item image
+  status      String    @default("active") @db.VarChar(50)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  // MysteryBox   MysteryBox @relation(fields: [mysteryBoxId], references: [id], onDelete: Cascade)
+
+  @@unique([word]) // prevent duplicate items in same box
+}

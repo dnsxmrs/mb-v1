@@ -53,10 +53,10 @@ export default function GuestHeader() {
                         Home
                     </Link>
                     <Link href="/libraries" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
-                        Libraries
+                        Aklatan
                     </Link>
                     <Link href="/games" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
-                        Games
+                        Mga Laro
                     </Link>
                 </div>
 
@@ -90,8 +90,8 @@ export default function GuestHeader() {
                                     onClick={() => handleNavigation('teachers')}
                                 >
                                     {loadingStates.teachers && <LoadingSpinner />}
-                                    <span className="hidden xs:inline">For Teachers</span>
-                                    <span className="xs:hidden">Teachers</span>
+                                    <span className="hidden xs:inline">Para sa Guro</span>
+                                    <span className="xs:hidden">Mga Guro</span>
                                 </Link>
                             )}
                         </div>
@@ -104,8 +104,8 @@ export default function GuestHeader() {
                                 onClick={() => handleNavigation('dashboard')}
                             >
                                 {loadingStates.dashboard && <LoadingSpinner />}
-                                <span className="hidden xs:inline">Go to Dashboard</span>
-                                <span className="xs:hidden">Dashboard</span>
+                                <span className="hidden xs:inline">Pumunta sa Ulat</span>
+                                <span className="xs:hidden">Ulat at Datos</span>
                             </button>
                         </Link>
                         {/* center the user button in the div */}
@@ -168,14 +168,14 @@ export default function GuestHeader() {
                                 className="font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2 px-10 text-sm"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                Libraries
+                                Aklatan
                             </Link>
                             <Link
                                 href="/games"
                                 className="font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2 px-10 text-sm"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                Games
+                                Mga Laro
                             </Link>
                         </div>
                         <div className="pt-3 border-t border-[#60A5FA]/20">
@@ -197,7 +197,7 @@ export default function GuestHeader() {
                                             onClick={() => handleNavigation('teachers')}
                                         >
                                             {loadingStates.teachers && <LoadingSpinner />}
-                                            For Teachers
+                                            Para sa Guro
                                         </Link>
                                     )}
                                 </div>
@@ -211,7 +211,7 @@ export default function GuestHeader() {
                                             onClick={() => handleNavigation('dashboard')}
                                         >
                                             {loadingStates.dashboard && <LoadingSpinner />}
-                                            Go to Dashboard
+                                            Pumunta sa Ulat
                                         </button>
                                     </Link>
                                     <div className="flex items-center justify-center">

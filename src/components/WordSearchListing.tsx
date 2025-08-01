@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Play, Users, Calendar } from 'lucide-react'
+import { Search, Play, 
+    // Users, Calendar, 
+    ArrowLeft } from 'lucide-react'
 import { getWordSearches } from '@/actions/word-search'
 import Link from 'next/link'
 
@@ -106,6 +108,17 @@ export default function WordSearchListing() {
         <div className="space-y-8">
             {/* Header */}
             <div className="text-center px-4">
+                {/* Back Button */}
+                <div className="flex justify-start mb-6">
+                    <Link
+                        href="/games"
+                        className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors group"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                        <span>Back to Games</span>
+                    </Link>
+                </div>
+
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Word Search Games</h1>
                 <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
                     Challenge yourself with our collection of educational word search puzzles.
@@ -149,7 +162,7 @@ export default function WordSearchListing() {
                             )}
 
                             {/* Stats */}
-                            <div className="space-y-3 mb-4">
+                            {/* <div className="space-y-3 mb-4">
                                 <div className="flex items-center text-sm text-gray-500">
                                     <Users className="w-4 h-4 mr-2 flex-shrink-0" />
                                     <span className="truncate">{wordSearch.items.length} words to find</span>
@@ -162,15 +175,15 @@ export default function WordSearchListing() {
                                         day: 'numeric'
                                     })}</span>
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* Difficulty Badge */}
                             <div className="flex justify-between items-center gap-2">
                                 <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${wordSearch.items.length <= 5
-                                        ? 'bg-green-100 text-green-800'
-                                        : wordSearch.items.length <= 10
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : 'bg-red-100 text-red-800'
+                                    ? 'bg-green-100 text-green-800'
+                                    : wordSearch.items.length <= 10
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : 'bg-red-100 text-red-800'
                                     }`}>
                                     {wordSearch.items.length <= 5
                                         ? 'Easy'

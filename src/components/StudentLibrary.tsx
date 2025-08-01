@@ -303,7 +303,7 @@ export default function StudentLibrary() {
         <div className="text-[#1E3A8A] space-y-8">
             <div className="text-center space-y-4">
                 <h1 className="text-4xl md:text-5xl font-bold text-[#1E3A8A] mb-4">
-                    Iyong E-Aklatan
+                    Iyong Aklatan
                 </h1>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                     Mga panitikang iyong na-explore at nagustuhan

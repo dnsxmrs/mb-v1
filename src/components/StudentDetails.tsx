@@ -204,9 +204,9 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                         placeholder="Search students..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="text-black w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="text-[#1E3A8A] w-full pl-9 pr-4 py-2 bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#3B82F6] border border-[#3B82F6] rounded-lg  focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]"
                     />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#60A5FA]" size={16} />
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                     <select
