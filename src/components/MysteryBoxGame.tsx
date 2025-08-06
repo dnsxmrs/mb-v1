@@ -8,13 +8,62 @@ import Image from 'next/image'
 import { getMysteryBoxItems, type MysteryBoxItem } from "@/actions/mystery-box"
 
 export default function MysteryBoxGame() {
-    const [selectedItem, setSelectedItem] = useState<MysteryBoxItem | null>(null)
-    const [userAnswer, setUserAnswer] = useState('')
+    // const [selectedItem, setSelectedItem] = useState<MysteryBoxItem | null>(null)
+    // const [userAnswer, setUserAnswer] = useState('')
     const [completedItems, setCompletedItems] = useState<Set<number>>(new Set())
     const [availableItems, setAvailableItems] = useState<MysteryBoxItem[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [openedBoxId, setOpenedBoxId] = useState<number | null>(null)
     const [inputValues, setInputValues] = useState<{ [key: number]: string[] }>({})
+    const [showSuccess, setShowSuccess] = useState<number | null>(null)
+    const [showError, setShowError] = useState<number | null>(null)
+
+    // Play sound effect
+    const playSound = (soundType: 'correct' | 'wrong') => {
+        const audio = new Audio(`/sfx/${soundType}_01.mp3`)
+        audio.volume = 0.5
+        audio.play().catch(error => {
+            console.log('Could not play sound:', error)
+        })
+    }
+
+    // Check if the answer is correct
+    const checkAnswer = (itemId: number) => {
+        const item = availableItems.find(item => item.id === itemId)
+        if (!item || !inputValues[itemId]) return
+
+        const userAnswer = inputValues[itemId].join('').toUpperCase()
+        const correctAnswer = item.word.replace(/\s/g, '').toUpperCase()
+
+        if (userAnswer === correctAnswer) {
+            // Correct answer
+            playSound('correct')
+            setShowSuccess(itemId)
+
+            // Show success animation for 1.5 seconds then close
+            setTimeout(() => {
+                setCompletedItems(prev => new Set([...prev, itemId]))
+                setOpenedBoxId(null) // Close the box
+                setShowSuccess(null)
+
+                // Clear input values for this item
+                setInputValues(prev => {
+                    const newValues = { ...prev }
+                    delete newValues[itemId]
+                    return newValues
+                })
+            }, 1500)
+        } else if (userAnswer.length === correctAnswer.length) {
+            // Wrong answer (only check when all inputs are filled)
+            playSound('wrong')
+            setShowError(itemId)
+
+            // Show error animation for 1 second
+            setTimeout(() => {
+                setShowError(null)
+            }, 1000)
+        }
+    }
 
     // Initialize input values for a word
     const initializeInputs = (itemId: number, wordLength: number) => {
@@ -34,6 +83,12 @@ export default function MysteryBoxGame() {
                 newValues[itemId] = new Array(availableItems.find(item => item.id === itemId)?.word.replace(/\s/g, '').length || 0).fill('')
             }
             newValues[itemId][index] = value.toUpperCase()
+
+            // Check if answer is complete and correct after state update
+            setTimeout(() => {
+                checkAnswer(itemId)
+            }, 0)
+
             return newValues
         })
 
@@ -81,14 +136,17 @@ export default function MysteryBoxGame() {
         loadMysteryBoxItems()
     }, [])
 
-    // Update available items when items are completed
-    useEffect(() => {
-        setAvailableItems(prev =>
-            prev.filter(item => !completedItems.has(item.id))
-        )
-    }, [completedItems])
+    // Don't filter out completed items anymore - keep them visible
+    // useEffect(() => {
+    //     setAvailableItems(prev =>
+    //         prev.filter(item => !completedItems.has(item.id))
+    //     )
+    // }, [completedItems])
 
     const handleItemClick = (item: MysteryBoxItem) => {
+        // Don't allow opening completed items
+        if (completedItems.has(item.id)) return
+
         if (openedBoxId === item.id) {
             setOpenedBoxId(null) // Close if already open
         } else {
@@ -147,7 +205,8 @@ export default function MysteryBoxGame() {
                         <motion.div
                             key={item.id}
                             layout
-                            className="relative cursor-pointer flex flex-col items-center"
+                            className={`relative flex flex-col items-center ${completedItems.has(item.id) ? 'opacity-75' : 'cursor-pointer'
+                                }`}
                             onClick={() => handleItemClick(item)}
                             style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
                         >
@@ -155,7 +214,10 @@ export default function MysteryBoxGame() {
                             <div className="relative w-40 h-40 mb-6">
                                 {/* Box Base/Bottom */}
                                 <motion.div
-                                    className="absolute inset-0 bg-gradient-to-br from-gray-800 to-black rounded-lg"
+                                    className={`absolute inset-0 rounded-lg ${completedItems.has(item.id)
+                                            ? 'bg-gradient-to-br from-green-600 to-green-800'
+                                            : 'bg-gradient-to-br from-gray-800 to-black'
+                                        }`}
                                     style={{ transformStyle: 'preserve-3d' }}
                                 >
                                     {/* Bottom face */}
@@ -184,7 +246,7 @@ export default function MysteryBoxGame() {
                                         }}
                                     />
 
-                                    {/* Question mark (disappears when opening) */}
+                                    {/* Question mark or Check mark */}
                                     <AnimatePresence>
                                         {openedBoxId !== item.id && (
                                             <motion.div
@@ -193,7 +255,11 @@ export default function MysteryBoxGame() {
                                                 transition={{ duration: 0.3 }}
                                                 className="absolute inset-0 flex items-center justify-center z-10"
                                             >
-                                                <span className="text-white text-6xl font-bold drop-shadow-lg">?</span>
+                                                {completedItems.has(item.id) ? (
+                                                    <CheckCircle className="text-green-400 w-16 h-16 drop-shadow-lg" />
+                                                ) : (
+                                                    <span className="text-white text-6xl font-bold drop-shadow-lg">?</span>
+                                                )}
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
@@ -201,7 +267,10 @@ export default function MysteryBoxGame() {
 
                                 {/* Box Lid with Opening Animation */}
                                 <motion.div
-                                    className="absolute inset-0 bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg shadow-lg border-2 border-gray-500"
+                                    className={`absolute inset-0 rounded-lg shadow-lg border-2 ${completedItems.has(item.id)
+                                            ? 'bg-gradient-to-br from-green-500 to-green-700 border-green-400'
+                                            : 'bg-gradient-to-br from-gray-600 to-gray-800 border-gray-500'
+                                        }`}
                                     style={{ transformStyle: 'preserve-3d', transformOrigin: 'bottom' }}
                                     animate={openedBoxId === item.id ? {
                                         rotateX: -130,
@@ -278,14 +347,31 @@ export default function MysteryBoxGame() {
                                             className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20"
                                         >
                                             {/* Card */}
-                                            <div 
-                                                className="bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl p-6 shadow-2xl border-4 border-amber-300"
-                                                style={{ 
+                                            <div
+                                                className="bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl p-6 shadow-2xl border-4 border-amber-300 relative"
+                                                style={{
                                                     minWidth: '16rem', // 256px minimum
                                                     width: `${Math.max(16, (item.word.length * 3) + 8)}rem` // Dynamic width based on word length
                                                 }}
                                                 onClick={(e) => e.stopPropagation()}
                                             >
+                                                {/* Success Overlay */}
+                                                <AnimatePresence>
+                                                    {showSuccess === item.id && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, scale: 0.8 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            exit={{ opacity: 0, scale: 0.8 }}
+                                                            className="absolute inset-0 bg-green-500/90 rounded-xl flex items-center justify-center z-10"
+                                                        >
+                                                            <div className="text-center text-white">
+                                                                <CheckCircle className="w-16 h-16 mx-auto mb-2" />
+                                                                <h3 className="text-2xl font-bold">Correct!</h3>
+                                                                <p className="text-lg">Well done!</p>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                                 {/* Card Image */}
                                                 <div className="bg-white rounded-lg p-4 mb-4 aspect-square flex items-center justify-center mx-auto max-w-48">
                                                     {item.imageUrl ? (
@@ -313,21 +399,25 @@ export default function MysteryBoxGame() {
                                                     )}
 
                                                     {/* Answer blanks - Individual input boxes in single line */}
-                                                    <div className="bg-white/90 p-4 rounded-lg mb-4">
+                                                    <motion.div
+                                                        className="bg-white/90 p-4 rounded-lg mb-4"
+                                                        animate={showError === item.id ? { x: [-10, 10, -10, 10, 0] } : { x: 0 }}
+                                                        transition={{ duration: 0.5 }}
+                                                    >
                                                         <div className="flex justify-center items-center gap-2">
                                                             {item.word.split('').map((char, charIndex) => {
                                                                 if (char === ' ') {
                                                                     return (
-                                                                        <div 
+                                                                        <div
                                                                             key={`space-${charIndex}`}
                                                                             className="w-4"
                                                                         />
                                                                     )
                                                                 }
-                                                                
+
                                                                 // Get the actual input index (excluding spaces)
                                                                 const inputIndex = item.word.substring(0, charIndex).replace(/\s/g, '').length
-                                                                
+
                                                                 return (
                                                                     <input
                                                                         key={`input-${charIndex}`}
@@ -339,12 +429,15 @@ export default function MysteryBoxGame() {
                                                                         onKeyDown={(e) => handleKeyDown(item.id, inputIndex, e)}
                                                                         onClick={(e) => e.stopPropagation()}
                                                                         onFocus={(e) => e.stopPropagation()}
-                                                                        className="w-10 h-10 text-center border-2 border-gray-300 rounded-md text-base font-bold text-gray-800 focus:border-purple-500 focus:outline-none bg-white shadow-sm"
+                                                                        className={`w-10 h-10 text-center border-2 rounded-md text-base font-bold text-gray-800 focus:outline-none bg-white shadow-sm transition-colors ${showError === item.id
+                                                                                ? 'border-red-500 bg-red-50'
+                                                                                : 'border-gray-300 focus:border-purple-500'
+                                                                            }`}
                                                                     />
                                                                 )
                                                             })}
                                                         </div>
-                                                    </div>
+                                                    </motion.div>
 
                                                     <div className="text-sm text-gray-600 bg-white/70 rounded-full px-4 py-2">
                                                         Click to close
@@ -355,8 +448,8 @@ export default function MysteryBoxGame() {
                                     )}
                                 </AnimatePresence>
 
-                                {/* Floating animation for closed boxes */}
-                                {openedBoxId !== item.id && (
+                                {/* Floating animation for closed boxes (only for non-completed items) */}
+                                {openedBoxId !== item.id && !completedItems.has(item.id) && (
                                     <motion.div
                                         animate={{ y: [-3, 3, -3] }}
                                         transition={{
@@ -383,12 +476,15 @@ export default function MysteryBoxGame() {
 
                                         {item.description && (
                                             <p className="text-gray-600 text-sm mb-3 max-w-48 mx-auto">
-                                                Tap to reveal!
+                                                {completedItems.has(item.id) ? 'Completed!' : 'Tap to reveal!'}
                                             </p>
                                         )}
 
-                                        <span className="inline-block bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-shadow">
-                                            Click to open
+                                        <span className={`inline-block text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all ${completedItems.has(item.id)
+                                                ? 'bg-gradient-to-r from-green-500 to-green-600 cursor-default'
+                                                : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-xl cursor-pointer'
+                                            }`}>
+                                            {completedItems.has(item.id) ? 'Completed ✓' : 'Click to open'}
                                         </span>
                                     </motion.div>
                                 )}
@@ -399,7 +495,7 @@ export default function MysteryBoxGame() {
             </div>
 
             {/* Completed Message */}
-            {availableItems.length === 0 && (
+            {availableItems.length > 0 && completedItems.size === availableItems.length && (
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
