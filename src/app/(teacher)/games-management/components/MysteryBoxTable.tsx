@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Edit, Trash2, Eye, MoreVertical, Gift, X } from 'lucide-react'
+import { Edit, Trash2, Eye, Gift, X } from 'lucide-react'
 import { getAllMysteryBoxItems, updateMysteryBoxItem, deleteMysteryBoxItem, updateMysteryBoxItemStatus } from '@/actions/mystery-box'
 import ImageUploadCrop from '@/components/ImageUploadCrop'
 import toast from 'react-hot-toast'
@@ -20,7 +20,6 @@ interface MysteryBoxItem {
 
 export default function MysteryBoxTable() {
     const [data, setData] = useState<MysteryBoxItem[]>([])
-    const [showDropdown, setShowDropdown] = useState<number | null>(null)
     const [loadingToggle, setLoadingToggle] = useState<number | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [viewingItem, setViewingItem] = useState<MysteryBoxItem | null>(null)
@@ -86,7 +85,6 @@ export default function MysteryBoxTable() {
                 status: item.status as 'active' | 'inactive'
             })
         }
-        setShowDropdown(null)
     }
 
     const handleDelete = (id: number) => {
@@ -94,7 +92,6 @@ export default function MysteryBoxTable() {
         if (item) {
             setDeletingItem(item)
         }
-        setShowDropdown(null)
     }
 
     const confirmDelete = async (item: MysteryBoxItem) => {
@@ -123,7 +120,6 @@ export default function MysteryBoxTable() {
         if (item) {
             setViewingItem(item)
         }
-        setShowDropdown(null)
     }
 
     const handleToggleStatus = async (id: number) => {
@@ -155,7 +151,7 @@ export default function MysteryBoxTable() {
                 )
 
                 // Show success toast
-                toast.success(result.message || `Mystery box item has been ${newStatus === 'active' ? 'activated' : 'deactivated'}`)
+                toast.success(result.message || `${item.word} has been ${newStatus === 'active' ? 'activated' : 'deactivated'}`)
             } else {
                 toast.error(result.error || 'Failed to update status')
             }
@@ -279,88 +275,88 @@ export default function MysteryBoxTable() {
                 <>
                     {/* Mobile View */}
                     <div className="block sm:hidden">
-                        <div className="space-y-3 p-4">
+                        <div className="space-y-3">
                             {data.map((item) => (
-                                <div key={item.id} className="bg-gray-50 rounded-lg p-4 space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex-1">
+                                <div key={item.id} className="bg-white rounded-lg border border-gray-200 shadow-sm">
+                                    {/* Card Content */}
+                                    <div className="p-4 space-y-3">
+                                        {/* Title and Status */}
+                                        <div className="flex items-center justify-between">
                                             <h3 className="font-semibold text-gray-900">{item.word}</h3>
-                                            <p className="text-sm text-gray-500">{item.description}</p>
-                                        </div>
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => setShowDropdown(showDropdown === item.id ? null : item.id)}
-                                                className="p-1 hover:bg-gray-200 rounded"
-                                            >
-                                                <MoreVertical size={16} />
-                                            </button>
-                                            {showDropdown === item.id && (
-                                                <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg border z-10">
-                                                    <button
-                                                        onClick={() => handleView(item.id)}
-                                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                                    >
-                                                        <Eye size={14} />
-                                                        View
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEdit(item.id)}
-                                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                                    >
-                                                        <Edit size={14} />
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(item.id)}
-                                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 items-center">
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            Image: {item.imageUrl ? 'Available' : 'Not set'}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`text-xs font-medium ${item.status === 'active' ? 'text-green-700' : 'text-gray-700'}`}>
-                                                {item.status}
-                                            </span>
-                                            <button
-                                                onClick={() => handleToggleStatus(item.id)}
-                                                disabled={loadingToggle === item.id}
-                                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${loadingToggle === item.id ? 'opacity-50 cursor-not-allowed' :
-                                                    item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${item.status === 'active' ? 'translate-x-5' : 'translate-x-1'
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleToggleStatus(item.id)}
+                                                    disabled={loadingToggle === item.id}
+                                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${loadingToggle === item.id ? 'opacity-50 cursor-not-allowed' :
+                                                        item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
                                                         }`}
-                                                />
-                                                {loadingToggle === item.id && (
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                                                    </div>
-                                                )}
+                                                >
+                                                    <span
+                                                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${item.status === 'active' ? 'translate-x-5' : 'translate-x-1'
+                                                            }`}
+                                                    />
+                                                    {loadingToggle === item.id && (
+                                                        <div className="absolute inset-0 flex items-center justify-center">
+                                                            <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Description */}
+                                        {item.description && (
+                                            <p className="text-sm text-gray-500">{item.description}</p>
+                                        )}
+
+                                        {/* Status and Image Info */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex gap-2">
+                                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    Image: {item.imageUrl ? 'Available' : 'Not set'}
+                                                </span>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                    {item.status}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Date Created */}
+                                        <p className="text-sm text-gray-500">
+                                            Created: {new Date(item.createdAt).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric',
+                                                timeZone: "Asia/Manila",
+                                            })}
+                                        </p>
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="border-t border-gray-200 px-4 py-3">
+                                        <div className="flex justify-between gap-2">
+                                            <button
+                                                onClick={() => handleView(item.id)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-purple-600 rounded-md hover:bg-purple-100 transition-colors"
+                                            >
+                                                <Eye size={14} />
+                                                View
+                                            </button>
+                                            <button
+                                                onClick={() => handleEdit(item.id)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-green-600 rounded-md hover:bg-green-100 transition-colors"
+                                            >
+                                                <Edit size={14} />
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(item.id)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                                            >
+                                                <Trash2 size={14} />
+                                                Delete
                                             </button>
                                         </div>
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                        <p>Created: {new Date(item.createdAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric',
-                                            timeZone: "Asia/Manila",
-                                        })}</p>
-                                        <p>Updated: {new Date(item.updatedAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric',
-                                            timeZone: "Asia/Manila",
-                                        })}</p>
                                     </div>
                                 </div>
                             ))}
@@ -586,7 +582,7 @@ export default function MysteryBoxTable() {
 
                                             <div>
                                                 <label className="block text-sm font-medium text-black mb-2">
-                                                    Description
+                                                    Description <span className="text-red-500">*</span>
                                                 </label>
                                                 <textarea
                                                     value={editForm.description}
@@ -594,6 +590,7 @@ export default function MysteryBoxTable() {
                                                     className="text-black w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                     rows={3}
                                                     placeholder="Enter a description for this word..."
+                                                    required
                                                 />
                                             </div>
 

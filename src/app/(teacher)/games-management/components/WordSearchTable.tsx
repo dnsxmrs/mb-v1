@@ -295,48 +295,10 @@ export default function WordSearchTable() {
                                         {/* Words count and Status */}
                                         <div className="flex items-center justify-between">
                                             <h3 className="font-semibold text-gray-900 text-lg">{item.title}</h3>
-                                            {/* <div className="flex items-center gap-2">
-                                                <span className={`text-xs font-medium ${item.status === 'active' ? 'text-green-700' : 'text-red-700'}`}>
-                                                    {item.status}
-                                                </span>
-                                                <button
-                                                    onClick={() => handleToggleStatus(item.id)}
-                                                    disabled={loadingToggle === item.id}
-                                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${loadingToggle === item.id ? 'opacity-50 cursor-not-allowed' :
-                                                        item.status === 'active' ? 'bg-green-500' : 'bg-gray-300'
-                                                        }`}
-                                                >
-                                                    <span
-                                                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${item.status === 'active' ? 'translate-x-5' : 'translate-x-1'
-                                                            }`}
-                                                    />
-                                                    {loadingToggle === item.id && (
-                                                        <div className="absolute inset-0 flex items-center justify-center">
-                                                            <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            </div> */}
-                                        </div>
-
-                                        {/* Description (truncated) - only show if description exists */}
-                                        {item.description && (
-                                            <p className="text-sm text-gray-600 line-clamp-2">
-                                                {item.description.length > 80
-                                                    ? `${item.description.substring(0, 80)}...`
-                                                    : item.description}
-                                            </p>
-                                        )}
-
-                                        {/* Words count and Status */}
-                                        <div className="flex items-center justify-between">
-                                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {item.items.length} words
-                                            </span>
                                             <div className="flex items-center gap-2">
-                                                <span className={`text-xs font-medium ${item.status === 'active' ? 'text-green-700' : 'text-red-700'}`}>
+                                                {/* <span className={`text-xs font-medium ${item.status === 'active' ? 'text-green-700' : 'text-red-700'}`}>
                                                     {item.status}
-                                                </span>
+                                                </span> */}
                                                 <button
                                                     onClick={() => handleToggleStatus(item.id)}
                                                     disabled={loadingToggle === item.id}
@@ -357,6 +319,25 @@ export default function WordSearchTable() {
                                             </div>
                                         </div>
 
+                                        {/* Description (truncated) - only show if description exists */}
+                                        {item.description && (
+                                            <p className="text-sm text-gray-600 line-clamp-2">
+                                                {item.description.length > 80
+                                                    ? `${item.description.substring(0, 80)}...`
+                                                    : item.description}
+                                            </p>
+                                        )}
+
+                                        {/* Words count and Status */}
+                                        <div className="flex items-center justify-start">
+                                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {item.items.length} words
+                                            </span>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                {item.status}
+                                            </span>
+                                        </div>
+
                                         {/* Created date */}
                                         <p className="text-sm text-gray-500">
                                             Created: {new Date(item.createdAt).toLocaleDateString('en-US', {
@@ -373,21 +354,21 @@ export default function WordSearchTable() {
                                         <div className="flex justify-between gap-2">
                                             <button
                                                 onClick={() => handleView(item.id)}
-                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
                                             >
                                                 <Eye size={16} />
                                                 View
                                             </button>
                                             <button
                                                 onClick={() => handleEdit(item.id)}
-                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
                                             >
                                                 <Edit size={16} />
                                                 Edit
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(item.id)}
-                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
+                                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-100 transition-colors"
                                             >
                                                 <Trash2 size={16} />
                                                 Delete
@@ -458,7 +439,7 @@ export default function WordSearchTable() {
                                                     )}
                                                 </button>
                                                 <span className={`text-xs font-medium ${item.status === 'active' ? 'text-green-700' :
-                                                    item.status === 'inactive' ? 'text-red-700' : 'text-gray-700'
+                                                    item.status === 'inactive' ? 'text-gray-700' : 'text-gray-700'
                                                     }`}>
                                                     {item.status}
                                                 </span>

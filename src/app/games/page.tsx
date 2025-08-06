@@ -18,7 +18,7 @@ export default function Games() {
                     {/* Background image goes to the back */}
                     <div
                         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 z-0"
-                        style={{ backgroundImage: 'url("/images/blue-bg.jpg")' }}
+                        style={{ backgroundImage: 'url("/images/blue-bg.webp")' }}
                     ></div>
 
                     {/* White overlay in front of the image */}

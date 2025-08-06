@@ -319,7 +319,7 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-medium text-black mb-1">
-                                                        Description
+                                                        Description <span className="text-red-500">*</span>
                                                     </label>
                                                     <input
                                                         type="text"
@@ -328,6 +328,7 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
                                                         className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                                                         placeholder="Enter the description"
                                                         maxLength={250}
+                                                        required
                                                     />
                                                 </div>
                                             </div>

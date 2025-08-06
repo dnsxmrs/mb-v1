@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import toast from 'react-hot-toast'
 import { getStoriesWithQuiz, deleteStory } from '@/actions/story'
 import { getCategories } from '@/actions/category'
-import { extractYouTubeVideoId } from '@/utils/youtube'
 import StoryWithQuizForm from '@/components/StoryWithQuizForm'
+import VideoThumbnail from '@/components/VideoThumbnail'
 import Modal from '@/components/Modal'
 import { Plus, Pen, Trash } from 'lucide-react'
 
@@ -60,7 +59,6 @@ export default function StoryList() {
     const [showAddForm, setShowAddForm] = useState(false)
     const [editingStory, setEditingStory] = useState<Story | null>(null)
     const [deletingStory, setDeletingStory] = useState<Story | null>(null)
-    const [thumbnails, setThumbnails] = useState<Record<number, string | null>>({})
     const [mounted, setMounted] = useState(false)
 
     // Prevent hydration mismatch by only rendering after mount
@@ -104,15 +102,6 @@ export default function StoryList() {
                     }))
                 }))
                 setStories(transformedStories)
-
-                // Generate thumbnails for all stories
-                const thumbnailMap = result.data.reduce((acc: Record<number, string | null>, story) => {
-                    const videoId = extractYouTubeVideoId(story.fileLink)
-                    acc[story.id] = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null
-                    return acc
-                }, {} as Record<number, string | null>)
-
-                setThumbnails(thumbnailMap)
                 setError('')
             } else {
                 const errorMsg = result.error || 'Failed to fetch stories'
@@ -266,38 +255,30 @@ export default function StoryList() {
 
                 return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-start">
-                        {filteredStories.map((story) => {
-                            const thumbnail = thumbnails[story.id]
-
-                            return (
-                                <div key={story.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-fit">
-                                    {/* Thumbnail */}
-                                    <div className="relative h-40 sm:h-48 bg-gray-200">
-                                        {thumbnail ? (
-                                            <Image
-                                                src={thumbnail}
-                                                alt={story.title}
-                                                width={400}
-                                                height={192}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                                <div className="text-center">
-                                                    <div className="text-3xl sm:text-4xl mb-2">🎬</div>
-                                                    <p className="text-xs sm:text-sm">Video Preview</p>
-                                                </div>
-                                            </div>
+                        {filteredStories.map((story) => (
+                            <div key={story.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-fit">
+                                {/* Thumbnail */}
+                                <div className="relative h-40 sm:h-48">
+                                    <VideoThumbnail
+                                        videoUrl={story.fileLink}
+                                        title={story.title}
+                                        className="w-full h-full"
+                                        width={400}
+                                        height={300}
+                                        quality="auto"
+                                        crop="fill"
+                                        gravity="auto"
+                                        startOffset="auto"
+                                    />
+                                    <div className="absolute top-2 right-2 px-2 py-1 rounded">
+                                        {/* Category Badge */}
+                                        {story.category && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {story.category.name}
+                                            </span>
                                         )}
-                                        <div className="absolute top-2 right-2 px-2 py-1 rounded">
-                                            {/* Category Badge */}
-                                            {story.category && (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                    {story.category.name}
-                                                </span>
-                                            )}
-                                        </div>
                                     </div>
+                                </div>
 
                                     {/* Content */}
                                     <div className="p-3 sm:p-4 flex flex-col">
@@ -350,8 +331,7 @@ export default function StoryList() {
                                         </div>
                                     </div>
                                 </div>
-                            )
-                        })}
+                        ))}
                     </div>
                 );
             })()}

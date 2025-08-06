@@ -5,7 +5,8 @@ import toast from 'react-hot-toast'
 import { createStoryWithQuiz, updateStoryQuizItems, type CreateStoryWithQuizData } from '@/actions/quiz'
 import { updateStory, type UpdateStoryData } from '@/actions/story'
 import { getCategories } from '@/actions/category'
-import { isValidYouTubeUrl } from '@/utils/youtube'
+import { isValidVideoFile, formatFileSize } from '@/utils/video'
+import { uploadVideoToCloudinaryClient } from '@/utils/cloudinary-client'
 import QuizForm from '@/components/QuizForm'
 import SubmitButton from '@/components/SubmitButton'
 
@@ -65,6 +66,9 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
 
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [videoFile, setVideoFile] = useState<File | null>(null)
+    const [isUploading, setIsUploading] = useState(false)
+    const [uploadProgress, setUploadProgress] = useState(0)
 
     const isEditing = !!story
 
@@ -91,10 +95,26 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
             newErrors.title = 'Title is required'
         }
 
-        if (!formData.fileLink.trim()) {
-            newErrors.fileLink = 'YouTube URL is required'
-        } else if (!isValidYouTubeUrl(formData.fileLink)) {
-            newErrors.fileLink = 'Please enter a valid YouTube URL'
+        // For new stories, require either video file or existing fileLink
+        if (!isEditing) {
+            if (!videoFile && !formData.fileLink.trim()) {
+                newErrors.fileLink = 'Video file is required'
+            }
+        } else {
+            // For editing, allow keeping existing video if no new file is selected
+            if (!videoFile && !formData.fileLink.trim()) {
+                newErrors.fileLink = 'Video file is required'
+            }
+        }
+
+        // Validate video file if provided
+        if (videoFile && !isValidVideoFile(videoFile)) {
+            newErrors.fileLink = 'Please select a valid video file (MP4, MOV, AVI, WMV, FLV, WEBM)'
+        }
+
+        // Check file size (50MB limit)
+        if (videoFile && videoFile.size > 50 * 1024 * 1024) {
+            newErrors.fileLink = 'Video file size must be less than 50MB'
         }
 
         // Quiz validation
@@ -133,6 +153,26 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
         return Object.keys(newErrors).length === 0
     }
 
+    const handleVideoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            setVideoFile(file)
+            // Clear any previous fileLink errors
+            if (errors.fileLink) {
+                setErrors(prev => ({ ...prev, fileLink: '' }))
+            }
+        }
+    }
+
+    const removeVideoFile = () => {
+        setVideoFile(null)
+        // Reset the file input
+        const fileInput = document.getElementById('videoFile') as HTMLInputElement
+        if (fileInput) {
+            fileInput.value = ''
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -143,6 +183,30 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
         setIsSubmitting(true)
 
         try {
+            let videoUrl = formData.fileLink
+
+            // Upload video file if provided
+            if (videoFile) {
+                setIsUploading(true)
+                setUploadProgress(0)
+
+                const uploadResult = await uploadVideoToCloudinaryClient(videoFile, (progress) => {
+                    setUploadProgress(progress.progress)
+                })
+
+                setIsUploading(false)
+
+                if (!uploadResult.success) {
+                    const errorMsg = uploadResult.error || 'Failed to upload video'
+                    setErrors({ fileLink: errorMsg })
+                    toast.error(errorMsg)
+                    return
+                }
+
+                videoUrl = uploadResult.url || ''
+                toast.success('Video uploaded successfully!')
+            }
+
             const subtitlesArray = formData.subtitles
                 .split('\n')
                 .map(line => line.trim())
@@ -164,7 +228,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                     title: formData.title.trim(),
                     author: formData.author.trim() || undefined,
                     description: formData.description.trim() || undefined,
-                    fileLink: formData.fileLink.trim(),
+                    fileLink: videoUrl.trim(),
                     subtitles: subtitlesArray.length > 0 ? subtitlesArray : undefined,
                     categoryId: formData.categoryId
                 }
@@ -193,7 +257,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                     title: formData.title.trim(),
                     author: formData.author.trim() || undefined,
                     description: formData.description.trim() || undefined,
-                    fileLink: formData.fileLink.trim(),
+                    fileLink: videoUrl.trim(),
                     subtitles: subtitlesArray.length > 0 ? subtitlesArray : undefined,
                     categoryId: formData.categoryId,
                     quizItems: cleanedQuizItems.map(item => ({
@@ -341,25 +405,75 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                             </div>
 
                             <div>
-                                <label htmlFor="fileLink" className="block text-sm font-medium text-gray-700 mb-2">
-                                    YouTube URL <span className="text-red-500">*</span>
+                                <label htmlFor="videoFile" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Story Video <span className="text-red-500">*</span>
                                 </label>
+                                
+                                {/* Show current video info if editing and no new file selected */}
+                                {isEditing && formData.fileLink && !videoFile && (
+                                    <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                        <p className="text-sm text-blue-700 mb-2">Current video:</p>
+                                        <video 
+                                            src={formData.fileLink} 
+                                            className="w-full max-w-xs h-32 object-cover rounded-md mb-2"
+                                            controls
+                                        />
+                                        <p className="text-xs text-blue-600 break-all">{formData.fileLink}</p>
+                                    </div>
+                                )}
+
+                                {/* Show selected file info */}
+                                {videoFile && (
+                                    <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-medium text-green-700">{videoFile.name}</p>
+                                                <p className="text-xs text-green-600">{formatFileSize(videoFile.size)}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={removeVideoFile}
+                                                className="text-red-500 hover:text-red-700 text-sm"
+                                                disabled={isSubmitting || isUploading}
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <input
-                                    type="url"
-                                    id="fileLink"
-                                    value={formData.fileLink}
-                                    onChange={(e) => handleInputChange('fileLink', e.target.value)}
+                                    type="file"
+                                    id="videoFile"
+                                    accept="video/*"
+                                    onChange={handleVideoFile}
                                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.fileLink ? 'border-red-500' : 'border-gray-300'
                                         }`}
-                                    placeholder="https://www.youtube.com/watch?v=..."
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || isUploading}
                                 />
+                                
                                 {errors.fileLink && (
                                     <p className="text-red-500 text-sm mt-1">{errors.fileLink}</p>
                                 )}
+                                
                                 <p className="text-gray-500 text-sm mt-1">
-                                    Enter a valid YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+                                    Select a video file (MP4, MOV, AVI, WMV, FLV, WEBM). Maximum size: 50MB
                                 </p>
+                                
+                                {isUploading && (
+                                    <div className="mt-2">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-sm text-blue-600">Uploading video...</span>
+                                            <span className="text-sm text-blue-600">{uploadProgress}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                            <div 
+                                                className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out" 
+                                                style={{ width: `${uploadProgress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -401,17 +515,17 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
             {/* Action Buttons */}
             <div className="flex gap-4 pt-4">
                 <SubmitButton
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isUploading}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isSubmitting ? 'Saving...' : (isEditing ? 'Update Story & Quiz' : 'Create Story & Quiz')}
+                    {isUploading ? `Uploading Video... ${uploadProgress}%` : (isSubmitting ? 'Saving...' : (isEditing ? 'Update Story & Quiz' : 'Create Story & Quiz'))}
                 </SubmitButton>
 
                 {onCancel && (
                     <button
                         type="button"
                         onClick={onCancel}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isUploading}
                         className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-3 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Cancel

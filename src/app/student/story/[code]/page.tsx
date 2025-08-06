@@ -5,7 +5,7 @@ import StudentSessionWrapper from "@/components/StudentSessionWrapper";
 // import StoryViewTracker from "@/components/StoryViewTracker";
 import QuizButton from "@/components/QuizButton";
 import { getStoryByCode } from "@/actions/code";
-import { convertToEmbedUrl, isValidYouTubeUrl } from "@/utils/youtube";
+import { isCloudinaryVideo } from "@/utils/video";
 import { Metadata } from "next";
 import { hasStudentViewedStory } from "@/actions/story-view";
 
@@ -117,23 +117,22 @@ export default async function StoryPage({
               {story.fileLink && (
                 <div className="mb-6">
                   <h2 className="text-lg font-semibold text-[#1E3A8A] mb-3">Panoorin ang kwento:</h2>
-                  {/* Check if it's a video/YouTube link */}
-                  {isValidYouTubeUrl(story.fileLink) ? (
+                  {/* Check if it's a Cloudinary video */}
+                  {isCloudinaryVideo(story.fileLink) ? (
                     <div className="aspect-video w-full max-w-full relative">
-                      <iframe
-                        src={convertToEmbedUrl(story.fileLink)}
+                      <video
+                        src={story.fileLink}
                         title={story.title}
-                        className="w-full h-full rounded-lg absolute inset-0"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        className="w-full h-full rounded-lg object-cover"
+                        controls
+                        preload="metadata"
                         style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
                           width: '100%',
                           height: '100%'
                         }}
-                      />
+                      >
+                        Your browser does not support the video tag.
+                      </video>
                     </div>
                   ) : (
                     <a

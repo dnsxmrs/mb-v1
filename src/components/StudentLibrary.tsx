@@ -7,9 +7,10 @@ import { getStudentViewedStories } from '@/actions/story-view'
 import { hasStudentTakenQuiz } from '@/actions/quiz'
 import { getCurrentStudentInfo } from '@/actions/student'
 import { useStudentSessionRefresh } from '@/hooks/useStudentSession'
-// import { updateStudentAuthorizedCode } from '@/actions/student'
 import { extractYouTubeVideoId } from '@/utils/youtube'
+import { isCloudinaryVideo } from '@/utils/video'
 import { Search } from 'lucide-react'
+import VideoThumbnail from '@/components/VideoThumbnail'
 
 interface ViewedStory {
     id: number
@@ -30,14 +31,13 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
     const [hasError, setHasError] = useState(false)
 
     const getBookThumbnail = (fileLink: string) => {
-        // Extract YouTube video ID from the file link
+        // Extract YouTube video ID from the file link (for legacy support)
         const videoId = extractYouTubeVideoId(fileLink)
-
         if (videoId) {
             return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
         }
 
-        // Fallback to placeholder image for non-YouTube videos
+        // Fallback to placeholder image
         return '/images/books.svg'
     }
 
@@ -46,9 +46,10 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
     }
 
     const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-        const videoId = extractYouTubeVideoId(story.fileLink)
         const target = e.currentTarget as HTMLImageElement
 
+        // Check if it's a YouTube video and try fallback thumbnails
+        const videoId = extractYouTubeVideoId(story.fileLink)
         if (videoId && !hasError) {
             // Try fallback thumbnails in order of quality
             if (target.src.includes('maxresdefault')) {
@@ -67,16 +68,31 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
 
     return (
         <div className="aspect-[3/4] bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-100 flex items-center justify-center relative overflow-hidden">
-
-            <Image
-                src={getBookThumbnail(story.fileLink)}
-                alt={`${story.title} thumbnail`}
-                fill
-                className={`relative z-10 transition-opacity duration-300 ${hasError ? 'w-16 h-16 object-contain opacity-50' : 'object-cover'
-                    } 'opacity-100'`}
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-            />
+            {/* Check if it's a Cloudinary video */}
+            {isCloudinaryVideo(story.fileLink) ? (
+                <VideoThumbnail
+                    videoUrl={story.fileLink}
+                    title={story.title}
+                    className="absolute inset-0 w-full h-full"
+                    width={400}
+                    height={600}
+                    quality="auto"
+                    crop="fill"
+                    gravity="auto"
+                    startOffset="auto"
+                />
+            ) : (
+                <Image
+                    src={getBookThumbnail(story.fileLink)}
+                    alt={`${story.title} thumbnail`}
+                    fill
+                    className={`transition-opacity duration-300 ${
+                        hasError ? 'object-contain opacity-50' : 'object-cover'
+                    } opacity-100`}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                />
+            )}
 
             {/* Semi-transparent overlay for better text readability */}
             <div className="absolute inset-0 bg-black/10 z-20"></div>
@@ -87,8 +103,6 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
                     {story.title}
                 </div>
             </div>
-
-            {/* className="text-white px-3 py-2 border border-[#60A5FA] rounded-lg bg-[#3B82F6] text-sm focus:outline-none focus:ring-1 focus:ring-[#60A5FA] focus:border-[#60A5FA] min-w-[140px]" */}
 
             {/* Quiz Status badge */}
             {quizTaken !== null && (

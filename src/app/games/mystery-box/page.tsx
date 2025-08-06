@@ -1,7 +1,6 @@
 import GuestHeader from "@/components/GuestHeader";
 import GuestFooter from "@/components/GuestFooter";
 import MysteryBoxGame from "@/components/MysteryBoxGame";
-import { getMysteryBoxItems, type MysteryBoxItem } from "@/actions/mystery-box";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,17 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function MysteryBoxPage() {
-    const result = await getMysteryBoxItems()
-    const mysteryBoxData = result.success ? result.data : []
 
-    // Map the data to match the component interface
-    const mysteryBoxItems: MysteryBoxItem[] = mysteryBoxData.map(item => ({
-        id: item.id,
-        word: item.word,
-        description: item.description,
-        imageUrl: item.imageUrl,
-        status: item.status as 'active' | 'inactive'
-    }))
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -31,7 +20,7 @@ export default async function MysteryBoxPage() {
                     {/* Background image goes to the back */}
                     <div
                         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 z-0"
-                        style={{ backgroundImage: 'url("/images/blue-bg.jpg")' }}
+                        style={{ backgroundImage: 'url("/images/blue-bg.webp")' }}
                     ></div>
 
                     {/* Purple overlay in front of the image */}
@@ -41,7 +30,7 @@ export default async function MysteryBoxPage() {
                 {/* Main Content */}
                 <main className="relative z-10 py-8 px-4 sm:px-6 lg:px-8 min-h-full">
                     <div className="max-w-7xl mx-auto">
-                        <MysteryBoxGame mysteryBoxItems={mysteryBoxItems} />
+                        <MysteryBoxGame />
                     </div>
                 </main>
             </div>
