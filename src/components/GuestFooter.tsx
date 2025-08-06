@@ -16,10 +16,10 @@ export default function GuestFooter() {
                 <div className="text-xs xs:text-sm text-center sm:text-right order-1 sm:order-2 mb-2 sm:mb-0">
                     Contact us at:
                     <a
-                        href="mailto:valerieannesangalang14@gmail.com"
+                        href="mailto:ekwento2025@gmail.com"
                         className="ml-1 hover:text-[#60A5FA] transition-colors duration-200 break-all xs:break-normal"
                     >
-                        valerieannesangalang14@gmail.com
+                        ekwento2025@gmail.com
                     </a>
                 </div>
             </div>
