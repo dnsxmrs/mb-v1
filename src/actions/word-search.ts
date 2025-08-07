@@ -59,15 +59,14 @@ export async function createWordSearch(data: WordSearchData) {
             }
         })
 
-        // Revalidate the games management page
-        revalidatePath('/games-management')
+        revalidatePath('/pamamahala-ng-laro')
 
-        await createNotification('word_search_created', `Word search '${wordSearch.title}' created`)
+        await createNotification('word_search_created', `Nabuo na ang hanap salita: '${wordSearch.title}'`)
 
         return {
             success: true,
             data: wordSearch,
-            message: 'Word search created successfully!'
+            message: 'Nabuo na ang hanap salita!'
         }
 
     } catch (error) {
@@ -120,15 +119,14 @@ export async function updateWordSearchStatus(id: number, status: 'active' | 'ina
             }
         })
 
-        // Revalidate the games management page
-        revalidatePath('/games-management')
+        revalidatePath('/pamamahala-ng-laro')
 
-        await createNotification('word_search_status_updated', `Word search '${wordSearch.title}' ${status === 'active' ? 'activated' : 'deactivated'}`)
+        await createNotification('word_search_status_updated', `Nabago na ang hanap salita: '${wordSearch.title}' ${status === 'active' ? 'na-activate' : 'na-deactivate'}`)
 
         return {
             success: true,
             data: wordSearch,
-            message: `Word search ${status === 'active' ? 'activated' : 'deactivated'} successfully!`
+            message: `Nabago na ang hanap salita ${status === 'active' ? 'na-activate' : 'na-deactivate'}!`
         }
     } catch (error) {
         console.error('Error updating word search status:', error)
@@ -159,15 +157,14 @@ export async function deleteWordSearch(id: number) {
             }
         })
 
-        // Revalidate the games management page
-        revalidatePath('/games-management')
+        revalidatePath('/pamamahala-ng-laro')
 
-        await createNotification('word_search_deleted', `Word search '${wordSearch.title}' deleted`)
+        await createNotification('word_search_deleted', `Nabura na ang word search: '${wordSearch.title}'`)
 
         return {
             success: true,
             data: wordSearch,
-            message: 'Word search deleted successfully!'
+            message: 'Nabura na ang word search!'
         }
     } catch (error) {
         console.error('Error deleting word search:', error)
@@ -225,22 +222,21 @@ export async function updateWordSearch (id: number, data: WordSearchData) {
             }
         })
 
-        // Revalidate the games management page
-        revalidatePath('/games-management')
+        revalidatePath('/pamamahala-ng-laro')
 
-        await createNotification('word_search_updated', `Word search '${updatedWordSearch.title}' updated`)
+        await createNotification('word_search_updated', `Nabago na ang hanap salita: '${updatedWordSearch.title}'`)
 
         return {
             success: true,
             data: updatedWordSearch,
-            message: 'Word search updated successfully!'
+            message: 'Nabago na ang hanap salita!'
         }
 
     } catch (error) {
         console.error('Error updating word search:', error)
         return {
             success: false,
-            error: 'Failed to update word search. Please try again.'
+            error: 'Nabigong i-update ang hanap salita. Pakisubukan muli.'
         }
     }
 }

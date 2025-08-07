@@ -57,10 +57,10 @@ export default function StudentLogClient() {
             if (result.success && result.data) {
                 setCodes(result.data)
             } else {
-                toast.error(result.error || 'Failed to load codes')
+                toast.error(result.error || 'Hindi na-load ang mga code')
             }
         } catch {
-            toast.error('An unexpected error occurred')
+            toast.error('May naganap na hindi inaasahang error')
         } finally {
             setLoading(false)
         }
@@ -74,10 +74,10 @@ export default function StudentLogClient() {
                 setSelectedCodeData(result.data)
                 setViewMode('students')
             } else {
-                toast.error(result.error || 'Failed to load code details')
+                toast.error(result.error || 'Hindi na-load ang mga detalye ng code')
             }
         } catch {
-            toast.error('An unexpected error occurred')
+            toast.error('May naganap na hindi inaasahang error')
         } finally {
             setLoading(false)
         }
@@ -91,10 +91,10 @@ export default function StudentLogClient() {
                 setSelectedSubmission(result.data)
                 setViewMode('submission')
             } else {
-                toast.error(result.error || 'Failed to load submission details')
+                toast.error(result.error || 'Hindi na-load ang mga detalye ng pagsusumite')
             }
         } catch {
-            toast.error('An unexpected error occurred')
+            toast.error('May naganap na hindi inaasahang error')
         } finally {
             setLoading(false)
         }
@@ -116,7 +116,7 @@ export default function StudentLogClient() {
             <div className="flex items-center justify-center min-h-64">
                 <div className="text-center">
                     <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading student activity data...</p>
+                    <p className="text-gray-600">Naglo-load ng mga datos ng aktibidad ng estudyante...</p>
                 </div>
             </div>
         )
@@ -128,8 +128,8 @@ export default function StudentLogClient() {
             {viewMode === 'codes' && (
                 <div className="flex items-center gap-3">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Student Activity Log</h1>
-                        <p className="text-gray-600">View story access codes and student submissions</p>
+                        <h1 className="text-2xl font-bold text-gray-900">Talaan ng Aktibidad ng Estudyante</h1>
+                        <p className="text-gray-600">Tingnan ang mga access code ng kuwento at mga pagsusumite ng estudyante</p>
                     </div>
                 </div>
             )}
@@ -139,7 +139,7 @@ export default function StudentLogClient() {
                 <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 text-center">
                         <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-                        <p className="text-gray-600">Loading...</p>
+                        <p className="text-gray-600">Naglo-load...</p>
                     </div>
                 </div>
             )}

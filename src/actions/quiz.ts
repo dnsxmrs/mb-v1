@@ -201,7 +201,7 @@ export async function createStoryWithQuiz(data: CreateStoryWithQuizData) {
                 })
             )
 
-            await createNotification('story_created', `Story '${data.title}' created with quiz items`)
+            await createNotification('story_created', `Nalikha ang kuwentong '${data.title}' na may kasamang mga tanong sa pagsusulit`)
 
             return { story, quizItems }
         })

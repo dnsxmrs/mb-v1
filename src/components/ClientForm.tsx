@@ -17,7 +17,7 @@ export default function ClientForm() {
 
         const code = formData.get('code')?.toString().toUpperCase() as string
         if (!code || code.length < 6) {
-            setClientError('Code must be at least 6 characters long')
+            setClientError('Ang code ay dapat na hindi bababa sa 6 na karakter')
             return
         }
         // check if code is existing and not deleted and active
@@ -55,7 +55,7 @@ export default function ClientForm() {
                 {isSubmitting ? (
                     <>
                         <div className="animate-spin rounded-full h-3 w-3 xs:h-4 xs:w-4 border-b-2 border-white mr-1.5 xs:mr-2"></div>
-                        <span className="text-xs xs:text-sm sm:text-base">Submitting...</span>
+                        <span className="text-xs xs:text-sm sm:text-base">Naghahanap...</span>
                     </>
                 ) : (
                     <span className="text-xs xs:text-sm sm:text-base">I-submit ang Code</span>

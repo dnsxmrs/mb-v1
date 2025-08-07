@@ -21,7 +21,7 @@ export default function MysteryBoxGame() {
     // Play sound effect
     const playSound = (soundType: 'correct' | 'wrong') => {
         const audio = new Audio(`/sfx/${soundType}_01.mp3`)
-        audio.volume = 0.5
+        audio.volume = 0.3
         audio.play().catch(error => {
             console.log('Could not play sound:', error)
         })
@@ -159,20 +159,20 @@ export default function MysteryBoxGame() {
 
     if (isLoading) {
         return (
-            <div className="text-center py-12">
-                <Gift className="mx-auto h-16 w-16 text-gray-400 mb-4 animate-pulse" />
-                <h3 className="text-xl font-medium text-gray-600">Loading mystery boxes...</h3>
-                <p className="text-gray-500 mt-2">Please wait while we prepare your puzzles!</p>
+            <div className="text-center py-8 sm:py-12 px-4">
+                <Gift className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-3 sm:mb-4 animate-pulse" />
+                <h3 className="text-lg sm:text-xl font-medium text-gray-600">Loading mystery boxes...</h3>
+                <p className="text-sm sm:text-base text-gray-500 mt-2">Please wait while we prepare your puzzles!</p>
             </div>
         )
     }
 
     if (!availableItems.length && !isLoading) {
         return (
-            <div className="text-center py-12">
-                <Gift className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                <h3 className="text-xl font-medium text-gray-600">No mystery box items available</h3>
-                <p className="text-gray-500 mt-2">Check back later for new puzzles!</p>
+            <div className="text-center py-8 sm:py-12 px-4">
+                <Gift className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-3 sm:mb-4" />
+                <h3 className="text-lg sm:text-xl font-medium text-gray-600">No mystery box items available</h3>
+                <p className="text-sm sm:text-base text-gray-500 mt-2">Check back later for new puzzles!</p>
             </div>
         )
     }
@@ -180,26 +180,26 @@ export default function MysteryBoxGame() {
     return (
         <div className="space-y-8">
             {/* Title */}
-            <div className="text-center px-4">
+            <div className="text-center px-4 sm:px-6">
                 {/* Back Button */}
-                <div className="flex justify-start mb-6">
+                <div className="flex justify-start mb-4 sm:mb-6">
                     <Link
-                        href="/games"
-                        className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors group"
+                        href="/mga-laro"
+                        className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors group text-sm sm:text-base"
                     >
-                        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                         <span>Back to Games</span>
                     </Link>
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Mystery Box</h1>
-                <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Mystery Box</h1>
+                <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto leading-relaxed">
                     Click on a mystery box to reveal a puzzle!
                 </p>
             </div>
 
             {/* Mystery Items Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 px-4 sm:px-0">
                 <AnimatePresence>
                     {availableItems.map((item) => (
                         <motion.div
@@ -211,12 +211,12 @@ export default function MysteryBoxGame() {
                             style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
                         >
                             {/* 3D Mystery Box Container */}
-                            <div className="relative w-40 h-40 mb-6">
+                            <div className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 mb-4 sm:mb-6">
                                 {/* Box Base/Bottom */}
                                 <motion.div
                                     className={`absolute inset-0 rounded-lg ${completedItems.has(item.id)
-                                            ? 'bg-gradient-to-br from-green-600 to-green-800'
-                                            : 'bg-gradient-to-br from-gray-800 to-black'
+                                        ? 'bg-gradient-to-br from-green-600 to-green-800'
+                                        : 'bg-gradient-to-br from-gray-800 to-black'
                                         }`}
                                     style={{ transformStyle: 'preserve-3d' }}
                                 >
@@ -256,9 +256,9 @@ export default function MysteryBoxGame() {
                                                 className="absolute inset-0 flex items-center justify-center z-10"
                                             >
                                                 {completedItems.has(item.id) ? (
-                                                    <CheckCircle className="text-green-400 w-16 h-16 drop-shadow-lg" />
+                                                    <CheckCircle className="text-green-400 w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 drop-shadow-lg" />
                                                 ) : (
-                                                    <span className="text-white text-6xl font-bold drop-shadow-lg">?</span>
+                                                    <span className="text-white text-3xl sm:text-4xl lg:text-6xl font-bold drop-shadow-lg">?</span>
                                                 )}
                                             </motion.div>
                                         )}
@@ -268,8 +268,8 @@ export default function MysteryBoxGame() {
                                 {/* Box Lid with Opening Animation */}
                                 <motion.div
                                     className={`absolute inset-0 rounded-lg shadow-lg border-2 ${completedItems.has(item.id)
-                                            ? 'bg-gradient-to-br from-green-500 to-green-700 border-green-400'
-                                            : 'bg-gradient-to-br from-gray-600 to-gray-800 border-gray-500'
+                                        ? 'bg-gradient-to-br from-green-500 to-green-700 border-green-400'
+                                        : 'bg-gradient-to-br from-gray-600 to-gray-800 border-gray-500'
                                         }`}
                                     style={{ transformStyle: 'preserve-3d', transformOrigin: 'bottom' }}
                                     animate={openedBoxId === item.id ? {
@@ -327,7 +327,7 @@ export default function MysteryBoxGame() {
                                             }}
                                             animate={{
                                                 opacity: 1,
-                                                y: -80,
+                                                y: -60,
                                                 scale: 1,
                                                 rotateX: 0
                                             }}
@@ -348,10 +348,11 @@ export default function MysteryBoxGame() {
                                         >
                                             {/* Card */}
                                             <div
-                                                className="bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl p-6 shadow-2xl border-4 border-amber-300 relative"
+                                                className="bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl p-3 sm:p-4 lg:p-6 shadow-2xl border-2 sm:border-4 border-amber-300 relative"
                                                 style={{
-                                                    minWidth: '16rem', // 256px minimum
-                                                    width: `${Math.max(16, (item.word.length * 3) + 8)}rem` // Dynamic width based on word length
+                                                    minWidth: '12rem', // Smaller minimum for mobile
+                                                    width: `${Math.max(12, Math.min(20, (item.word.length * 2.5) + 6))}rem`, // Responsive width with max limit
+                                                    maxWidth: '90vw' // Don't exceed viewport width
                                                 }}
                                                 onClick={(e) => e.stopPropagation()}
                                             >
@@ -365,27 +366,27 @@ export default function MysteryBoxGame() {
                                                             className="absolute inset-0 bg-green-500/90 rounded-xl flex items-center justify-center z-10"
                                                         >
                                                             <div className="text-center text-white">
-                                                                <CheckCircle className="w-16 h-16 mx-auto mb-2" />
-                                                                <h3 className="text-2xl font-bold">Correct!</h3>
-                                                                <p className="text-lg">Well done!</p>
+                                                                <CheckCircle className="w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 mx-auto mb-2" />
+                                                                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold">Correct!</h3>
+                                                                <p className="text-sm sm:text-base lg:text-lg">Well done!</p>
                                                             </div>
                                                         </motion.div>
                                                     )}
                                                 </AnimatePresence>
                                                 {/* Card Image */}
-                                                <div className="bg-white rounded-lg p-4 mb-4 aspect-square flex items-center justify-center mx-auto max-w-48">
+                                                <div className="bg-white rounded-lg p-2 sm:p-3 lg:p-4 mb-3 sm:mb-4 aspect-square flex items-center justify-center mx-auto max-w-32 sm:max-w-40 lg:max-w-48">
                                                     {item.imageUrl ? (
                                                         <Image
                                                             src={item.imageUrl}
-                                                            alt="Mystery item"
-                                                            width={140}
-                                                            height={140}
-                                                            className="max-w-full max-h-full object-contain rounded"
+                                                            alt="Misteriosong item"
+                                                            width={100}
+                                                            height={100}
+                                                            className="max-w-full max-h-full object-contain rounded sm:w-[120px] sm:h-[120px] lg:w-[140px] lg:h-[140px]"
                                                         />
                                                     ) : (
                                                         <div className="text-center">
-                                                            <Gift size={50} className="mx-auto text-purple-400 mb-2" />
-                                                            <p className="text-gray-500 text-sm">No Image</p>
+                                                            <Gift size={30} className="mx-auto text-purple-400 mb-1 sm:mb-2 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
+                                                            <p className="text-gray-500 text-xs sm:text-sm">No Image</p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -393,24 +394,24 @@ export default function MysteryBoxGame() {
                                                 {/* Card Content */}
                                                 <div className="text-center">
                                                     {item.description && (
-                                                        <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                                                        <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 leading-relaxed">
                                                             {item.description}
                                                         </p>
                                                     )}
 
                                                     {/* Answer blanks - Individual input boxes in single line */}
                                                     <motion.div
-                                                        className="bg-white/90 p-4 rounded-lg mb-4"
+                                                        className="bg-white/90 p-2 sm:p-3 lg:p-4 rounded-lg mb-3 sm:mb-4"
                                                         animate={showError === item.id ? { x: [-10, 10, -10, 10, 0] } : { x: 0 }}
                                                         transition={{ duration: 0.5 }}
                                                     >
-                                                        <div className="flex justify-center items-center gap-2">
+                                                        <div className="flex justify-center items-center gap-1 sm:gap-2 flex-wrap">
                                                             {item.word.split('').map((char, charIndex) => {
                                                                 if (char === ' ') {
                                                                     return (
                                                                         <div
                                                                             key={`space-${charIndex}`}
-                                                                            className="w-4"
+                                                                            className="w-2 sm:w-4"
                                                                         />
                                                                     )
                                                                 }
@@ -429,9 +430,9 @@ export default function MysteryBoxGame() {
                                                                         onKeyDown={(e) => handleKeyDown(item.id, inputIndex, e)}
                                                                         onClick={(e) => e.stopPropagation()}
                                                                         onFocus={(e) => e.stopPropagation()}
-                                                                        className={`w-10 h-10 text-center border-2 rounded-md text-base font-bold text-gray-800 focus:outline-none bg-white shadow-sm transition-colors ${showError === item.id
-                                                                                ? 'border-red-500 bg-red-50'
-                                                                                : 'border-gray-300 focus:border-purple-500'
+                                                                        className={`w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-center border-2 rounded-md text-sm sm:text-base font-bold text-gray-800 focus:outline-none bg-white shadow-sm transition-colors ${showError === item.id
+                                                                            ? 'border-red-500 bg-red-50'
+                                                                            : 'border-gray-300 focus:border-purple-500'
                                                                             }`}
                                                                     />
                                                                 )
@@ -439,7 +440,7 @@ export default function MysteryBoxGame() {
                                                         </div>
                                                     </motion.div>
 
-                                                    <div className="text-sm text-gray-600 bg-white/70 rounded-full px-4 py-2">
+                                                    <div className="text-xs sm:text-sm text-gray-600 bg-white/70 rounded-full px-3 sm:px-4 py-1 sm:py-2">
                                                         Click to close
                                                     </div>
                                                 </div>
@@ -470,19 +471,19 @@ export default function MysteryBoxGame() {
                                         exit={{ opacity: 0 }}
                                         className="text-center"
                                     >
-                                        <h3 className="text-lg font-bold text-gray-800 mb-1">
+                                        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1">
                                             Mystery Item #{item.id}
                                         </h3>
 
                                         {item.description && (
-                                            <p className="text-gray-600 text-sm mb-3 max-w-48 mx-auto">
+                                            <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 max-w-32 sm:max-w-48 mx-auto">
                                                 {completedItems.has(item.id) ? 'Completed!' : 'Tap to reveal!'}
                                             </p>
                                         )}
 
-                                        <span className={`inline-block text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all ${completedItems.has(item.id)
-                                                ? 'bg-gradient-to-r from-green-500 to-green-600 cursor-default'
-                                                : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-xl cursor-pointer'
+                                        <span className={`inline-block text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium shadow-lg transition-all ${completedItems.has(item.id)
+                                            ? 'bg-gradient-to-r from-green-500 to-green-600 cursor-default'
+                                            : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-xl cursor-pointer'
                                             }`}>
                                             {completedItems.has(item.id) ? 'Completed ✓' : 'Click to open'}
                                         </span>
@@ -499,11 +500,11 @@ export default function MysteryBoxGame() {
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center py-12"
+                    className="text-center py-8 sm:py-12 px-4"
                 >
-                    <CheckCircle className="mx-auto h-20 w-20 text-green-500 mb-4" />
-                    <h2 className="text-3xl font-bold text-green-600 mb-2">Congratulations!</h2>
-                    <p className="text-lg text-gray-600">You&apos;ve completed all mystery items!</p>
+                    <CheckCircle className="mx-auto h-12 w-12 sm:h-16 sm:w-16 lg:h-20 lg:w-20 text-green-500 mb-3 sm:mb-4" />
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600 mb-2">Congratulations!</h2>
+                    <p className="text-base sm:text-lg text-gray-600">You&apos;ve completed all mystery items!</p>
                 </motion.div>
             )}
 

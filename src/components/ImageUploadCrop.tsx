@@ -187,7 +187,7 @@ export default function ImageUploadCrop({ value, onChange, onRemove }: ImageUplo
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                                 src={value}
-                                alt="Preview"
+                                alt="Paunang-Tingin"
                                 className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
                             />
                         </div>
@@ -250,7 +250,7 @@ export default function ImageUploadCrop({ value, onChange, onRemove }: ImageUplo
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     ref={imgRef}
-                                    alt="Crop preview"
+                                    alt="Paunang-tingin ng Crop"
                                     src={imageSrc}
                                     style={{ transform: 'scale(1) rotate(0deg)' }}
                                     onLoad={onImageLoad}

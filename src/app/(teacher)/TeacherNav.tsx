@@ -26,7 +26,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
 
   const navItems = [
     {
-      href: "/dashboard",
+      href: "/ulatan",
       icon: (
         <path
           strokeLinecap="round"
@@ -35,10 +35,10 @@ export default function TeacherNav({ children }: TeacherNavProps) {
           d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
         />
       ),
-      name: "Dashboard",
+      name: "Ulatan",
     },
     {
-      href: "/story-management",
+      href: "/pamamahala-ng-kuwento",
       icon: (
         <path
           strokeLinecap="round"
@@ -47,20 +47,20 @@ export default function TeacherNav({ children }: TeacherNavProps) {
           d="M12 6v13m0-13C10.8 5.5 9.2 5 7.5 5S4.2 5.5 3 6.3V19c1.2-.8 2.8-1.3 4.5-1.3s3.3.5 4.5 1.3V6zM12 6c1.2-.5 2.8-1 4.5-1s3.3.5 4.5 1.3V19c-1.2-.8-2.8-1.3-4.5-1.3s-3.3.5-4.5 1.3"
         />
       ),
-      name: "Stories",
+      name: "Mga Kuwento",
     },
     {
-      href: "/student-log",
+      href: "/talaan-ng-estudyante",
       icon: <BookText />,
-      name: "Student Submissions",
+      name: "Talaan ng Estudyante",
     },
     {
-      href: "/games-management",
+      href: "/pamamahala-ng-laro",
       icon: <Gamepad2 />,
-      name: "Games Management",
+      name: "Pamamahala ng Laro",
     },
     {
-      href: "/user-management",
+      href: "/pamamahala-ng-user",
       icon: (
         <path
           strokeLinecap="round"
@@ -69,12 +69,12 @@ export default function TeacherNav({ children }: TeacherNavProps) {
           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
         />
       ),
-      name: "Users",
+      name: "Mga User",
     },
     {
-      href: "/settings",
+      href: "/mga-setting",
       icon: <Settings />,
-      name: "Settings",
+      name: "Mga Setting",
     },
   ];
 
@@ -89,7 +89,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
         <div className="flex flex-col items-center justify-center h-16 mt-3">
           <Link
             href="/"
-            title="Go to Home"
+            title="Pumunta sa Home"
             className="text-[10px] font-medium text-blue-800 px-2 mt-1 text-center items-center flex-col align-center flex gap-2 hover:text-blue-800 transition-colors"
           >
             <Image
@@ -133,7 +133,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white">
         {/* Mobile Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href="/ulatan" className="flex items-center gap-2">
             <Image
               src="/images/magandang-buhay-rbg.png"
               alt="logo"
@@ -208,10 +208,12 @@ export default function TeacherNav({ children }: TeacherNavProps) {
                 {item.icon}
               </svg>
               <span className="text-xs font-medium text-center leading-tight">
-                {item.name === "Quiz Viewing" ? "Quiz" :
-                  item.name === "Student Submissions" ? "Logs" :
-                    item.name === "Games Management" ? "Games" :
-                      item.name}
+                {item.name === "Talaan ng Estudyante" ? "Talaan" :
+                  item.name === "Pamamahala ng Laro" ? "Laro" :
+                    item.name === "Mga Kuwento" ? "Kuwento" :
+                      item.name === "Mga User" ? "Users" :
+                        item.name === "Mga Setting" ? "Setting" :
+                          item.name}
               </span>
               {/* Active indicator underline */}
               {pathname === item.href && (
@@ -232,7 +234,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0 flex-1">
               {/* Desktop date format */}
               <span className="hidden sm:block text-xl font-medium text-blue-800 truncate">
-                {mounted && new Date().toLocaleDateString("en-US", {
+                {mounted && new Date().toLocaleDateString("fil-PH", {
                   month: "long",
                   day: "numeric",
                   year: "numeric",
@@ -244,7 +246,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
               </span>
               {/* <span className="text-xl font-medium text-blue-800 truncate">
                 {
-                  pathname === "/dashboard"
+                  pathname === "/ulatan"
                     ? "Dashboard"
                     : pathname === "/story-management"
                       ? "Stories"

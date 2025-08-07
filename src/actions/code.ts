@@ -68,7 +68,7 @@ export async function generateAccessCode(storyId: number, createdById: number) {
             }
         });
 
-        await createNotification('code_generated', `Code '${newCode.code}' generated for story '${newCode.Story.title}'`);
+        await createNotification('code_generated', `Nagawa ang code na '${newCode.code}' para sa kuwentong '${newCode.Story.title}'`);
 
         return {
             success: true,
@@ -162,7 +162,7 @@ export async function updateCodeStatus(codeId: number, status: string) {
             data: { status }
         });
 
-        await createNotification('code_status_updated', `Code '${updatedCode.code}' status updated to '${status}'`);
+        await createNotification('code_status_updated', `Na-update ang status ng code '${updatedCode.code}' sa '${status}'`);
 
         return {
             success: true,
@@ -195,7 +195,7 @@ export async function deleteCode(codeId: number) {
         // Soft delete by setting deletedAt timestamp
         const deletedCode = await prisma.code.update({
             where: { id: codeId },
-            data: { 
+            data: {
                 deletedAt: new Date(),
                 status: 'inactive' // Also set status to inactive when deleted
             }
@@ -203,8 +203,8 @@ export async function deleteCode(codeId: number) {
 
         // Create notification
         await createNotification(
-            'code_deleted', 
-            `Code '${codeToDelete.code}' for story '${codeToDelete.Story?.title}' has been deleted`
+            'code_deleted',
+            `Na-delete ang code '${codeToDelete.code}' para sa kuwentong '${codeToDelete.Story?.title}'`
         );
 
         return {

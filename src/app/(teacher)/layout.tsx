@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
 import TeacherNav from './TeacherNav'
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Teacher Dashboard | E-KWENTO",
-  description: "Dashboard for teachers to manage their stories and students",
+  title: "Ulatan ng Guro | E-KWENTO",
+  description: "Ulatan para sa mga guro upang pamahalaan ang kanilang mga kwento at estudyante",
 };
 
 export default function TeacherLayout({

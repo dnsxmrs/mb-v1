@@ -725,7 +725,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
 
     const getElapsedTime = () => {
         let elapsed: number
-        
+
         if (endTime && startTime) {
             // Game is completed, calculate final elapsed time
             elapsed = Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
@@ -733,7 +733,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
             // Game is ongoing, use the current elapsed seconds
             elapsed = elapsedSeconds
         }
-        
+
         const minutes = Math.floor(elapsed / 60)
         const seconds = elapsed % 60
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
@@ -852,11 +852,11 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                     {/* Navigation and Controls */}
                     <div className="flex items-center justify-between">
                         <Link
-                            href="/games/word-search"
+                            href="/mga-laro/hanap-salita"
                             className="text-gray-900 flex items-center gap-1 sm:gap-2 p-2 hover:bg-white/20 rounded-lg transition-colors"
                         >
                             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                            <span className="text-sm sm:text-base">Back</span>
+                            <span className="text-sm sm:text-base">Bumalik</span>
                         </Link>
 
                         <div className="flex items-center gap-3 sm:gap-4">
@@ -870,11 +870,11 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                                 className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm"
                             >
                                 <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
-                                <span className="hidden sm:inline">Reset</span>
+                                <span className="hidden sm:inline">Ulitin</span>
                             </button>
                         </div>
                     </div>
-                    
+
                     {/* Title and Description */}
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-justify">{wordSearch.title}</h1>
@@ -890,7 +890,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                         {/* Words to Find */}
                         <div className="">
                             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
-                                Words to Find
+                                Salitang Hahanapin
                                 {/* ({foundWords.size}/{placedWords.length}) */}
                             </h3>
                             <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
@@ -948,7 +948,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                                 </div>
                             ) : (
                                 <div className="p-3 sm:p-4 bg-gray-50 rounded-lg text-center text-gray-500 text-xs sm:text-sm">
-                                    Find a word to see its description here
+                                    Hanapin ang salita upang malaman ang ibig-sabihin nito
                                 </div>
                             )}
                         </div>
@@ -1052,21 +1052,21 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                             <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-4 mt-4 animate-bounce" />
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">Congratulations!</h2>
                             <p className="text-gray-600 mb-4">
-                                You completed the word search in {getElapsedTime()}!
+                                Nakumpleto mo ang hanap-salita sa {getElapsedTime()}!
                             </p>
                             <div className="flex gap-2 xs:gap-3">
                                 <button
                                     onClick={resetGame}
                                     className="flex-1 px-3 xs:px-4 py-2 xs:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm xs:text-base font-medium"
                                 >
-                                    Play Again
+                                    Maglaro Muli
                                 </button>
                                 <Link
-                                    href="/games/word-search"
+                                    href="/mga-laro/hanap-salita"
                                     className="flex-1 px-3 xs:px-4 py-2 xs:py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center text-sm xs:text-base font-medium"
                                 >
-                                    <span className="hidden xs:inline">Back to Word Search Menu</span>
-                                    <span className="xs:hidden">Back to Menu</span>
+                                    <span className="hidden xs:inline">Bumalik sa Menu ng Hanap-Salita</span>
+                                    <span className="xs:hidden">Bumalik sa Menu</span>
                                 </Link>
                             </div>
                         </div>

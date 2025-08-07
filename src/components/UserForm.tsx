@@ -21,10 +21,10 @@ interface UserFormProps {
 }
 
 const STATUSES = [
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-    { value: 'invited', label: 'Invited' },
-    { value: 'suspended', label: 'Suspended' }
+    { value: 'active', label: 'Aktibo' },
+    { value: 'inactive', label: 'Hindi Aktibo' },
+    { value: 'invited', label: 'Naimbitahan' },
+    { value: 'suspended', label: 'Suspendido' }
 ]
 
 export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
@@ -44,7 +44,7 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
 
         // Validation
         if (!email || !first_name || !last_name || !role || !status) {
-            const errorMsg = 'Please fill in all required fields'
+            const errorMsg = 'Pakiusap na kumpletuhin ang lahat ng kinakailangang fields'
             setError(errorMsg)
             toast.error(errorMsg)
             return
@@ -91,12 +91,12 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
             if (result.success) {
                 onSuccess()
             } else {
-                const errorMsg = result.error || 'An error occurred'
+                const errorMsg = result.error || 'May naganap na error'
                 setError(errorMsg)
                 toast.error(errorMsg)
             }
         } catch {
-            const errorMsg = 'An unexpected error occurred'
+            const errorMsg = 'May hindi inaasahang error na naganap'
             setError(errorMsg)
             toast.error(errorMsg)
         }
@@ -113,7 +113,7 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
-                        First Name <span className="text-red-500">*</span>
+                        Unang Pangalan <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
@@ -128,7 +128,7 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
 
                 <div>
                     <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
-                        Last Name <span className="text-red-500">*</span>
+                        Apelyido <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
@@ -196,7 +196,7 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
 
                 <div>
                     <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                        Status <span className="text-red-500">*</span>
+                        Katayuan <span className="text-red-500">*</span>
                     </label>
                     <select
                         id="status"
@@ -218,7 +218,7 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                         <>
                             <input type="hidden" name="status" value="invited" />
                             <p className="text-xs text-gray-500 mt-1">
-                                New users are automatically set to &quot;Invited&quot; status
+                                Ang mga bagong user ay awtomatikong nase-set sa &quot;Naimbitahan&quot; na katayuan
                             </p>
                         </>
                     )}
@@ -231,10 +231,10 @@ export default function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                     onClick={onCancel}
                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                    Cancel
+                    Kanselahin
                 </button>
                 <SubmitButton>
-                    {user ? 'Update User' : 'Create User'}
+                    {user ? 'I-update ang User' : 'Gumawa ng User'}
                 </SubmitButton>
             </div>
         </form>

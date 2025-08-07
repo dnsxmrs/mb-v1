@@ -84,7 +84,7 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
             ) : (
                 <Image
                     src={getBookThumbnail(story.fileLink)}
-                    alt={`${story.title} thumbnail`}
+                    alt={`${story.title} na thumbnail`}
                     fill
                     className={`transition-opacity duration-300 ${
                         hasError ? 'object-contain opacity-50' : 'object-cover'
@@ -98,7 +98,7 @@ function StoryThumbnail({ story, quizTaken }: StoryThumbnailProps) {
             <div className="absolute inset-0 bg-black/10 z-20"></div>
 
             {/* Title overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-4 z-40">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex items-end p-4 z-40">
                 <div className="text-white text-sm font-medium line-clamp-2 relative z-50 drop-shadow-lg">
                     {story.title}
                 </div>
@@ -356,7 +356,7 @@ export default function StudentLibrary() {
                         {/* Sort Controls */}
                         <div className="flex items-center gap-2">
                             <label className="text-sm font-semibold text-[#1E3A8A] whitespace-nowrap">
-                                Sort:
+                                Ayusin:
                             </label>
                             <select
                                 value={sortBy}
@@ -375,7 +375,7 @@ export default function StudentLibrary() {
                         {/* Filter Controls */}
                         <div className="flex items-center gap-2">
                             <label className="text-sm font-semibold text-[#1E3A8A] whitespace-nowrap">
-                                Filter:
+                                Piliin:
                             </label>
                             <select
                                 value={filterBy}
@@ -434,9 +434,9 @@ export default function StudentLibrary() {
 
                                 {/* Book Details */}
                                 <div className="p-4 bg-white">
-                                    <h3 className="font-bold text-[#1E3A8A] text-base mb-1 line-clamp-2" title={story.title}>
+                                    {/* <h3 className="font-bold text-[#1E3A8A] text-base mb-1 line-clamp-2" title={story.title}>
                                         {story.title}
-                                    </h3>
+                                    </h3> */}
                                     <p className="text-gray-600 text-sm mb-2 font-medium" title={story.author}>
                                         ni {story.author}
                                     </p>
@@ -460,7 +460,6 @@ export default function StudentLibrary() {
 
                     {/* Results Summary */}
                     <div className="text-center mt-8 text-gray-500 text-sm">
-                        {searchTerm && ` na tumugma sa "${searchTerm}"`}
                         {filterBy !== 'all' && ` (${filterBy === 'with-quiz' ? 'may quiz' :
                             filterBy === 'quiz-completed' ? 'tapos na ang quiz' :
                                 filterBy === 'quiz-pending' ? 'hindi pa tapos ang quiz' :

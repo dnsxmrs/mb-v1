@@ -116,7 +116,7 @@ export default function StudentInfoForm({ code, initialData }: StudentInfoFormPr
             className="h-4 w-4 text-[#3B82F6] focus:ring-[#60A5FA] border-gray-300 rounded"
           />
           <label htmlFor="privacy" className="ml-2 block text-sm text-gray-700">
-            Nabasa ko at sumasang-ayon ako sa <a href="/privacy-statement" className="text-[#3B82F6] hover:text-[#60A5FA] underline" target="_blank">Privacy Notice</a>
+            Nabasa ko at sumasang-ayon ako sa <a href="/privacy-notice" className="text-[#3B82F6] hover:text-[#60A5FA] underline" target="_blank">Privacy Notice</a>
           </label>
         </div>
 

@@ -81,7 +81,7 @@ export async function createMysteryBoxItems(data: MysteryBoxData) {
             })
         )
 
-        await createNotification('mystery_box_item_created', `Mystery box items '${mysteryBoxItems.length}' created successfully`);
+        await createNotification('mystery_box_item_created', `Nagawa ang ${mysteryBoxItems.length} mystery box items`);
 
         return {
             success: true,
@@ -149,7 +149,7 @@ export async function updateMysteryBoxItem(id: number, data: { word: string; des
             }
         })
 
-        await createNotification('mystery_box_item_updated', `Mystery box item '${data.word}' updated successfully`);
+        await createNotification('mystery_box_item_updated', `Na-update ang mystery box item '${data.word}'`);
 
         return {
             success: true,
@@ -190,7 +190,7 @@ export async function deleteMysteryBoxItem(id: number) {
             }
         })
 
-        await createNotification('mystery_box_item_deleted', `Mystery box item '${item.word}' deleted successfully`);
+        await createNotification('mystery_box_item_deleted', `Na-delete ang mystery box item '${item.word}'`);
 
         return {
             success: true,
@@ -226,12 +226,12 @@ export async function updateMysteryBoxItemStatus(id: number, status: 'active' | 
             }
         })
 
-        await createNotification('mystery_box_item_status_updated', `Mystery box item '${item.word}' ${status === 'active' ? 'activated' : 'deactivated'}`);
+        await createNotification('mystery_box_item_status_updated', `Na-update ang status ng mystery box item '${item.word}' sa '${status}'`);
 
         return {
             success: true,
             data: updatedItem,
-            message: `Mystery box item ${status === 'active' ? 'activated' : 'deactivated'} successfully`
+            message: `Na-update ang status ng mystery box item '${item.word}' sa '${status}'`
         }
     } catch (error) {
         console.error('Error updating mystery box item status:', error)
@@ -270,7 +270,7 @@ export async function createMysteryBoxItem(data: { word: string; description?: s
             }
         })
 
-        await createNotification('mystery_box_item_created', `Mystery box item '${data.word}' created successfully`);
+        await createNotification('mystery_box_item_created', `Nagawa ang mystery box item '${data.word}'`);
 
         return {
             success: true,

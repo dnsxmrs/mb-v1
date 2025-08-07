@@ -38,7 +38,7 @@ export default function VideoThumbnail({
         <div className={`relative overflow-hidden ${className}`}>
             <Image
                 src={thumbnailUrl}
-                alt={`Thumbnail for ${title}`}
+                alt={`Thumbnail para sa ${title}`}
                 width={width}
                 height={height}
                 className="w-full h-full object-cover"

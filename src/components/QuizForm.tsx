@@ -121,7 +121,7 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800">Quiz Questions</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Mga Tanong sa Quiz</h3>
                 {/* <button
                     type="button"
                     onClick={addQuizItem}
@@ -135,15 +135,15 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
 
             {quizItems.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No quiz questions yet</h3>
-                    <p className="text-gray-600 mb-4">Add questions to create an interactive quiz for your story</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Wala pang mga tanong sa quiz</h3>
+                    <p className="text-gray-600 mb-4">Magdagdag ng mga tanong para gumawa ng interactive na quiz para sa inyong kuwento</p>
                     <button
                         type="button"
                         onClick={addQuizItem}
                         disabled={disabled}
                         className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md"
                     >
-                        Add Your First Question
+                        Magdagdag ng Inyong Unang Tanong
                     </button>
                 </div>
             ) : (
@@ -164,14 +164,14 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                         {/* Question */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Question <span className="text-red-500">*</span>
+                                                Tanong <span className="text-red-500">*</span>
                                             </label>
                                             <textarea
                                                 value={quizItem.question}
                                                 onChange={(e) => updateQuizItem(quizIndex, 'question', e.target.value)}
                                                 rows={3}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter your question here..."
+                                                placeholder="Ilagay ang inyong tanong dito..."
                                                 disabled={disabled}
                                             />
                                         </div>
@@ -179,7 +179,7 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                         {/* Choices */}
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Answer Choices <span className="text-red-500">*</span>
+                                                Mga Pagpipilian sa Sagot <span className="text-red-500">*</span>
                                             </label>
                                             <div className="space-y-2">
                                                 {quizItem.choices.map((choice, choiceIndex) => (
@@ -200,7 +200,7 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                                             value={choice.text}
                                                             onChange={(e) => updateChoice(quizIndex, choiceIndex, e.target.value)}
                                                             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                            placeholder={`Choice ${String.fromCharCode(65 + choiceIndex)}`}
+                                                            placeholder={`Pagpipilian ${String.fromCharCode(65 + choiceIndex)}`}
                                                             disabled={disabled}
                                                         />
                                                         <button
@@ -208,7 +208,7 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                                             onClick={() => removeChoice(quizIndex, choiceIndex)}
                                                             disabled={disabled || quizItem.choices.length <= (config?.minChoicesCount || 2)}
                                                             className="text-red-400 hover:text-red-600"
-                                                            title="Remove choice"
+                                                            title="Tanggalin ang pagpipilian"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -221,13 +221,13 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                                 disabled={disabled || quizItem.choices.length >= (config?.maxChoicesCount || 10)}
                                                 className="mt-2 text-blue-600 hover:underline disabled:text-gray-400 disabled:cursor-not-allowed"
                                             >
-                                                + Add Choice {config?.maxChoicesCount && quizItem.choices.length >= config.maxChoicesCount ? `(Max: ${config.maxChoicesCount})` : ''}
+                                                + Magdagdag ng Pagpipilian {config?.maxChoicesCount && quizItem.choices.length >= config.maxChoicesCount ? `(Max: ${config.maxChoicesCount})` : ''}
                                             </button>
                                             <p className="text-xs text-gray-500 mt-2">
-                                                Select the radio button next to the correct answer
+                                                Piliin ang radio button sa tabi ng tamang sagot
                                                 {config && (
                                                     <span className="block mt-1">
-                                                        Choices: {config.minChoicesCount} - {config.maxChoicesCount} allowed
+                                                        Mga Pagpipilian: {config.minChoicesCount} - {config.maxChoicesCount} ang pwede
                                                     </span>
                                                 )}
                                             </p>
@@ -241,7 +241,7 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                             onClick={() => moveQuizItem(quizIndex, quizIndex - 1)}
                                             disabled={disabled || quizIndex === 0}
                                             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="Move up"
+                                            title="Ilipat pataas"
                                         >
                                             ↑
                                         </button>
@@ -250,7 +250,7 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                             onClick={() => moveQuizItem(quizIndex, quizIndex + 1)}
                                             disabled={disabled || quizIndex === quizItems.length - 1}
                                             className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="Move down"
+                                            title="Ilipat pababa"
                                         >
                                             ↓
                                         </button>
@@ -259,7 +259,7 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                             onClick={() => removeQuizItem(quizIndex)}
                                             disabled={disabled}
                                             className="p-1 text-red-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="Delete question"
+                                            title="Tanggalin ang tanong"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -275,10 +275,10 @@ export default function QuizForm({ quizItems, onQuizItemsChange, disabled = fals
                                         onClick={addQuizItem}
                                         disabled={disabled}
                                         className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-1.5 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm"
-                                        title="Add question after this one"
+                                        title="Magdagdag ng tanong pagkatapos nito"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
-                                        Add Question
+                                        Magdagdag ng Tanong
                                     </button>
                                 </div>
                             )}

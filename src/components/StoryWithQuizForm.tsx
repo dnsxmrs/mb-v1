@@ -81,7 +81,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                     setCategories(result.data)
                 }
             } catch (error) {
-                console.error('Error fetching categories:', error)
+                console.error('Error sa pag-fetch ng mga kategorya:', error)
             }
         }
         fetchCategories()
@@ -92,51 +92,51 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
 
         // Story validation
         if (!formData.title.trim()) {
-            newErrors.title = 'Title is required'
+            newErrors.title = 'Kinakailangan ang pamagat'
         }
 
         // For new stories, require either video file or existing fileLink
         if (!isEditing) {
             if (!videoFile && !formData.fileLink.trim()) {
-                newErrors.fileLink = 'Video file is required'
+                newErrors.fileLink = 'Kinakailangan ang video file'
             }
         } else {
             // For editing, allow keeping existing video if no new file is selected
             if (!videoFile && !formData.fileLink.trim()) {
-                newErrors.fileLink = 'Video file is required'
+                newErrors.fileLink = 'Kinakailangan ang video file'
             }
         }
 
         // Validate video file if provided
         if (videoFile && !isValidVideoFile(videoFile)) {
-            newErrors.fileLink = 'Please select a valid video file (MP4, MOV, AVI, WMV, FLV, WEBM)'
+            newErrors.fileLink = 'Pakipili ang valid na video file (MP4, MOV, AVI, WMV, FLV, WEBM)'
         }
 
         // Check file size (50MB limit)
         if (videoFile && videoFile.size > 50 * 1024 * 1024) {
-            newErrors.fileLink = 'Video file size must be less than 50MB'
+            newErrors.fileLink = 'Ang laki ng video file ay dapat na mas mababa sa 50MB'
         }
 
         // Quiz validation
         if (quizItems.length === 0) {
-            newErrors.quiz = 'At least one quiz question is required'
+            newErrors.quiz = 'Kailangan ng kahit isang tanong sa quiz'
         } else {
             for (let i = 0; i < quizItems.length; i++) {
                 const item = quizItems[i]
 
                 if (!item.question.trim()) {
-                    newErrors.quiz = `Question ${i + 1} cannot be empty`
+                    newErrors.quiz = `Hindi maaaring walang laman ang Tanong ${i + 1}`
                     break
                 }
 
                 const validChoices = item.choices.filter(choice => choice.text.trim() !== '')
                 if (validChoices.length < 2) {
-                    newErrors.quiz = `Question ${i + 1} must have at least 2 answer choices`
+                    newErrors.quiz = `Ang Tanong ${i + 1} ay dapat may kahit 2 pagpipilian sa sagot`
                     break
                 }
 
                 if (!item.correctAnswer || !item.choices.some(choice => choice.id === item.correctAnswer)) {
-                    newErrors.quiz = `Question ${i + 1} must have a correct answer selected`
+                    newErrors.quiz = `Ang Tanong ${i + 1} ay dapat may napiling tamang sagot`
                     break
                 }
             }
@@ -197,14 +197,14 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                 setIsUploading(false)
 
                 if (!uploadResult.success) {
-                    const errorMsg = uploadResult.error || 'Failed to upload video'
+                    const errorMsg = uploadResult.error || 'Hindi na-upload ang video'
                     setErrors({ fileLink: errorMsg })
                     toast.error(errorMsg)
                     return
                 }
 
                 videoUrl = uploadResult.url || ''
-                toast.success('Video uploaded successfully!')
+                toast.success('Matagumpay na na-upload ang video!')
             }
 
             const subtitlesArray = formData.subtitles
@@ -235,7 +235,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
 
                 const storyResult = await updateStory(story.id, storyData)
                 if (!storyResult.success) {
-                    const errorMsg = storyResult.error || 'Failed to update story'
+                    const errorMsg = storyResult.error || 'Hindi na-update ang kuwento'
                     setErrors({ general: errorMsg })
                     toast.error(errorMsg)
                     return
@@ -274,12 +274,12 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
             if (result.success) {
                 onSuccess?.()
             } else {
-                const errorMsg = result.error || 'An error occurred'
+                const errorMsg = result.error || 'May naganap na error'
                 setErrors({ general: errorMsg })
                 toast.error(errorMsg)
             }
         } catch {
-            const errorMsg = 'An unexpected error occurred'
+            const errorMsg = 'May naganap na hindi inaasahang error'
             setErrors({ general: errorMsg })
             toast.error(errorMsg)
         } finally {
@@ -327,12 +327,12 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                 {/* Left Column - Story Information */}
                 <div className="space-y-6">
                     <div className="bg-gray-50 p-6 rounded-lg">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Story Information</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Impormasyon ng Kuwento</h3>
 
                         <div className="space-y-4">
                             <div>
                                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Story Title <span className="text-red-500">*</span>
+                                    Pamagat ng Kuwento <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
@@ -341,7 +341,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                                     onChange={(e) => handleInputChange('title', e.target.value)}
                                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-500' : 'border-gray-300'
                                         }`}
-                                    placeholder="Enter story title"
+                                    placeholder="Ilagay ang pamagat ng kuwento"
                                     disabled={isSubmitting}
                                 />
                                 {errors.title && (
@@ -351,7 +351,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
 
                             <div>
                                 <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Author
+                                    May-akda
                                 </label>
                                 <input
                                     type="text"
@@ -359,17 +359,17 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                                     value={formData.author}
                                     onChange={(e) => handleInputChange('author', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter author name (optional)"
+                                    placeholder="Ilagay ang pangalan ng may-akda (opsyonal)"
                                     disabled={isSubmitting}
                                 />
                                 <p className="text-gray-500 text-sm mt-1">
-                                    If left empty, will default to &ldquo;Anonymous&rdquo;
+                                    Kapag walang laman, magiging &ldquo;Anonymous&rdquo; ang default
                                 </p>
                             </div>
 
                             <div>
                                 <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Category
+                                    Kategorya
                                 </label>
                                 <select
                                     id="category"
@@ -385,13 +385,13 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                                     ))}
                                 </select>
                                 <p className="text-gray-500 text-sm mt-1">
-                                    Select a category to help organize your stories
+                                    Pumili ng kategorya para makatulong sa pag-organize ng inyong mga kuwento
                                 </p>
                             </div>
 
                             <div>
                                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Description
+                                    Paglalarawan
                                 </label>
                                 <textarea
                                     id="description"
@@ -399,22 +399,22 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                                     onChange={(e) => handleInputChange('description', e.target.value)}
                                     rows={4}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter story description (optional)"
+                                    placeholder="Ilagay ang paglalarawan ng kuwento (opsyonal)"
                                     disabled={isSubmitting}
                                 />
                             </div>
 
                             <div>
                                 <label htmlFor="videoFile" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Story Video <span className="text-red-500">*</span>
+                                    Video ng Kuwento <span className="text-red-500">*</span>
                                 </label>
-                                
+
                                 {/* Show current video info if editing and no new file selected */}
                                 {isEditing && formData.fileLink && !videoFile && (
                                     <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                                        <p className="text-sm text-blue-700 mb-2">Current video:</p>
-                                        <video 
-                                            src={formData.fileLink} 
+                                        <p className="text-sm text-blue-700 mb-2">Kasalukuyang video:</p>
+                                        <video
+                                            src={formData.fileLink}
                                             className="w-full max-w-xs h-32 object-cover rounded-md mb-2"
                                             controls
                                         />
@@ -436,7 +436,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                                                 className="text-red-500 hover:text-red-700 text-sm"
                                                 disabled={isSubmitting || isUploading}
                                             >
-                                                Remove
+                                                Tanggalin
                                             </button>
                                         </div>
                                     </div>
@@ -451,24 +451,24 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                                         }`}
                                     disabled={isSubmitting || isUploading}
                                 />
-                                
+
                                 {errors.fileLink && (
                                     <p className="text-red-500 text-sm mt-1">{errors.fileLink}</p>
                                 )}
-                                
+
                                 <p className="text-gray-500 text-sm mt-1">
-                                    Select a video file (MP4, MOV, AVI, WMV, FLV, WEBM). Maximum size: 50MB
+                                    Pumili ng video file (MP4, MOV, AVI, WMV, FLV, WEBM). Pinakamataas na laki: 50MB
                                 </p>
-                                
+
                                 {isUploading && (
                                     <div className="mt-2">
                                         <div className="flex items-center justify-between mb-1">
-                                            <span className="text-sm text-blue-600">Uploading video...</span>
+                                            <span className="text-sm text-blue-600">Nag-uupload ng video...</span>
                                             <span className="text-sm text-blue-600">{uploadProgress}%</span>
                                         </div>
                                         <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div 
-                                                className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out" 
+                                            <div
+                                                className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
                                                 style={{ width: `${uploadProgress}%` }}
                                             ></div>
                                         </div>
@@ -518,7 +518,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                     disabled={isSubmitting || isUploading}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isUploading ? `Uploading Video... ${uploadProgress}%` : (isSubmitting ? 'Saving...' : (isEditing ? 'Update Story & Quiz' : 'Create Story & Quiz'))}
+                    {isUploading ? `Nag-uupload ng Video... ${uploadProgress}%` : (isSubmitting ? 'Sine-save...' : (isEditing ? 'I-update ang Kuwento at Quiz' : 'Gumawa ng Kuwento at Quiz'))}
                 </SubmitButton>
 
                 {onCancel && (
@@ -528,7 +528,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                         disabled={isSubmitting || isUploading}
                         className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-3 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Cancel
+                        Kanselahin
                     </button>
                 )}
             </div>

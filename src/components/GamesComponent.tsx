@@ -20,7 +20,7 @@ export default function GamesComponent() {
             {/* Games Grid */}
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                 {/* Word Search Game */}
-                <Link href="/games/word-search">
+                <Link href="/mga-laro/hanap-salita">
                     <div className="relative bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-blue-300 overflow-hidden">
                         {/* Content */}
                         <div className="relative z-10 p-6 flex flex-col items-center text-center space-y-3">
@@ -28,20 +28,20 @@ export default function GamesComponent() {
                                 <Search size={40} />
                             </div>
                             <h3 className="text-xl font-bold text-white">
-                                Word Search
+                                Hanap-Salita
                             </h3>
                             <p className="text-white text-opacity-95 text-sm leading-relaxed">
                                 Hanapin ang mga nakatagong salita sa isang grid ng mga letra. Perpekto para sa pagpapabuti ng bokabularyo at kakayahan sa pagkilala ng pattern.
                             </p>
                             <div className="bg-white text-blue-600 font-semibold py-2 px-4 rounded-lg text-sm shadow-md">
-                                Play Now
+                                Maglaro Ngayon
                             </div>
                         </div>
                     </div>
                 </Link>
 
                 {/* Mystery Box Game */}
-                <Link href="/games/mystery-box">
+                <Link href="/mga-laro/mystery-box">
                     <div className="relative bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-purple-300 overflow-hidden">
                         {/* Content */}
                         <div className="relative z-10 p-6 flex flex-col items-center text-center space-y-3">
@@ -55,7 +55,7 @@ export default function GamesComponent() {
                                 Tuklasin ang mga sorpresa at lutasin ang mga palaisipan sa kapana-panabik na larong ito na hamon sa iyong kritikal na pag-iisip.
                             </p>
                             <div className="bg-white text-purple-600 font-semibold py-2 px-4 rounded-lg text-sm shadow-md">
-                                Play Now
+                                Maglaro Ngayon
                             </div>
                         </div>
                     </div>

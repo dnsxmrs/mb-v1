@@ -60,7 +60,7 @@ export default function InteractiveQuiz({
         const unansweredQuestions = quizItems.filter(quiz => !answers[quiz.id])
 
         if (unansweredQuestions.length > 0) {
-            toast.error(`Please answer all questions. ${unansweredQuestions.length} question(s) remaining.`)
+            toast.error(`Paki-sagutan ang lahat ng tanong. ${unansweredQuestions.length} tanong ang natitira.`)
             return
         }
 
@@ -85,17 +85,17 @@ export default function InteractiveQuiz({
             const result = await submitQuizAnswers(submissionData)
 
             if (result.success) {
-                toast.success('Quiz submitted successfully!')
+                toast.success('Matagumpay na naisumite ang pagsusulit!')
                 // Redirect to results page
                 router.push(`/student/quiz/${code}/results`)
             } else {
-                toast.error(result.error || 'Failed to submit quiz')
+                toast.error(result.error || 'Nabigong isumite ang pagsusulit')
             }
         } catch (error) {
             console.error('Error submitting quiz:', error)
-            toast.error('An unexpected error occurred')
+            toast.error('Isang hindi inaasahang error ang naganap')
         } finally {
-            // setIsSubmitting(false)
+            setIsSubmitting(false)
         }
     }
 
@@ -189,10 +189,10 @@ export default function InteractiveQuiz({
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Submitting Quiz...
+                            Isinusumite ang pagsusulit...
                         </div>
                     ) : (
-                        'Submit Quiz'
+                        'Isumite ang Pagsusulit'
                     )}
                 </button>
             </div>

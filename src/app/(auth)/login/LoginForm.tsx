@@ -18,7 +18,7 @@ const LoginForm = () => {
 
     useEffect(() => {
         if (isSignedIn) {
-            router.push('/dashboard')
+            router.push('/ulatan')
         }
     }, [isSignedIn, router])
 
@@ -29,7 +29,7 @@ const LoginForm = () => {
                     {/* Loading Animation */}
                     <div className="flex flex-col items-center justify-center space-y-4">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <p className="text-gray-600 text-sm sm:text-base animate-pulse">Loading...</p>
+                        <p className="text-gray-600 text-sm sm:text-base animate-pulse">Naglo-load...</p>
                     </div>
                 </div>
             </div>
@@ -68,8 +68,8 @@ const LoginForm = () => {
                 } catch {
                 }
 
-                toast.success('Login successful')
-                router.push('/dashboard')
+                toast.success('Matagumpay na nag-login')
+                router.push('/ulatan')
             } else {
                 if (env.NODE_ENV === "development") {
                     console.log(result)
@@ -79,7 +79,7 @@ const LoginForm = () => {
             if (err && typeof err === 'object' && 'errors' in err && Array.isArray(err.errors) && err.errors[0]?.longMessage) {
                 setError(err.errors[0].longMessage)
             } else {
-                setError('An unexpected error occurred')
+                setError('May nangyaring hindi inaasahang pagkakamali')
             }
         } finally {
             // setLoading(false)
@@ -106,8 +106,8 @@ const LoginForm = () => {
 
                     {/* Header */}
                     <div className="text-center mb-5">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-                        <p className="text-gray-600 text-sm sm:text-base">Please sign in to your account</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Maligayang Pagbabalik</h1>
+                        <p className="text-gray-600 text-sm sm:text-base">Mangyaring mag-sign in sa inyong account</p>
                     </div>
 
                     {error && (
@@ -128,7 +128,7 @@ const LoginForm = () => {
                                 <input
                                     type="email"
                                     id="email"
-                                    placeholder="e.g john@doe.com"
+                                    placeholder="juan@cruz.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full px-4 py-3 text-black bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
@@ -156,7 +156,7 @@ const LoginForm = () => {
                                     type="button"
                                     className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-blue-600 focus:outline-none transition-colors duration-200"
                                     onClick={() => setShowPassword((prev) => !prev)}
-                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                    aria-label={showPassword ? "Itago ang password" : "Ipakita ang password"}
                                 >
                                     {showPassword ? (
                                         // Eye Off Icon
@@ -207,7 +207,7 @@ const LoginForm = () => {
                                 href="/reset-password"
                                 className="text-sm text-blue-600 hover:text-blue-700 transition duration-200 hover:underline"
                             >
-                                Forgot password?
+                                Nakalimutan ang password?
                             </a>
                         </div>
 
@@ -222,10 +222,10 @@ const LoginForm = () => {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Signing in...
+                                    Nag-sign in...
                                 </div>
                             ) : (
-                                'Sign In'
+                                'Mag-sign In'
                             )}
                         </button>
                     </form>

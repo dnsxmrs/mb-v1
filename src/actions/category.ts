@@ -91,7 +91,8 @@ export async function createCategory(data: CreateCategoryData) {
             }
         })
 
-        await createNotification('category_created', `Category '${category.name}' created`)
+    await createNotification('category_created', `Nagawa ang kategoryang '${category.name}'`);
+
 
         return { success: true, data: category }
     } catch (error) {
@@ -114,7 +115,7 @@ export async function updateCategory(id: number, data: UpdateCategoryData) {
             }
         })
 
-        await createNotification('category_updated', `Category '${category.name}' updated`)
+        await createNotification('category_updated', `Na-update ang kategoryang '${category.name}'`);
 
         return { success: true, data: category }
     } catch (error) {
@@ -162,7 +163,7 @@ export async function deleteCategory(id: number) {
             }
         })
 
-        await createNotification('category_deleted', `Category '${category.name}' deleted`)
+        await createNotification('category_deleted', `Na-delete ang kategoryang '${category.name}'`)
 
         return { success: true, data: category }
     } catch (error) {

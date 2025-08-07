@@ -74,7 +74,7 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
     }
 
     const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('en-US', {
+        return new Date(date).toLocaleDateString('fil-PH', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -135,10 +135,10 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                     className="flex items-center gap-2 text-black p-2 hover:bg-gray-100 rounded-lg"
                 >
                     <ArrowLeft className="h-5 w-5" />
-                    <span>Back</span>
+                    <span>Bumalik</span>
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Student Activity</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Aktibidad ng Estudyante</h1>
                     <p className="text-gray-600">
                         Code: <span className="font-medium">{code.code}</span> - {code.Story.title}
                     </p>
@@ -153,7 +153,7 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                             <Eye className="h-5 w-5 text-blue-600" />
                         </div>
                         <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-600">Total Views</p>
+                            <p className="text-sm font-medium text-gray-600">Kabuuang View</p>
                             <p className="text-2xl font-bold text-gray-900">{stats.totalViews}</p>
                         </div>
                     </div>
@@ -165,7 +165,7 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                             <FileText className="h-5 w-5 text-green-600" />
                         </div>
                         <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-600">Submissions</p>
+                            <p className="text-sm font-medium text-gray-600">Mga Sagot</p>
                             <p className="text-2xl font-bold text-gray-900">{stats.totalSubmissions}</p>
                         </div>
                     </div>
@@ -177,7 +177,7 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                             <BarChart3 className="h-5 w-5 text-yellow-600" />
                         </div>
                         <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-600">Submission Rate</p>
+                            <p className="text-sm font-medium text-gray-600">Porsyento ng Pagsasagot</p>
                             <p className="text-2xl font-bold text-gray-900">{stats.submissionRate}%</p>
                         </div>
                     </div>
@@ -189,7 +189,7 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                             <Award className="h-5 w-5 text-purple-600" />
                         </div>
                         <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-600">Average Score</p>
+                            <p className="text-sm font-medium text-gray-600">Karaniwang Iskor</p>
                             <p className="text-2xl font-bold text-gray-900">{stats.averageScore}%</p>
                         </div>
                     </div>
@@ -201,7 +201,7 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                 <div className="relative flex-1">
                     <input
                         type="text"
-                        placeholder="Search students..."
+                        placeholder="Maghanap ng mga estudyante..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="text-[#1E3A8A] w-full pl-9 pr-4 py-2 bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#3B82F6] border border-[#3B82F6] rounded-lg  focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]"
@@ -214,9 +214,9 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                         onChange={(e) => setFilterStatus(e.target.value as 'all' | 'viewed' | 'submitted')}
                         className="text-black px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                        <option value="all">All Students</option>
-                        <option value="viewed">Viewed Only</option>
-                        <option value="submitted">Submitted</option>
+                        <option value="all">Lahat ng Estudyante</option>
+                        <option value="viewed">Nakita Lamang</option>
+                        <option value="submitted">Nag-submit na</option>
                     </select>
                 </div>
             </div>
@@ -227,19 +227,19 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Student
+                                Estudyante
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Viewed At
+                                Nakita noong
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Submission
+                                Pagsasagot
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Score
+                                Iskor
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Action
+                                Aksyon
                             </th>
                         </tr>
                     </thead>
@@ -274,13 +274,13 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                                         <div className="flex items-center text-green-600">
                                             <CheckCircle className="h-4 w-4 mr-1" />
                                             <span className="text-sm">
-                                                {student.submittedAt ? formatDate(student.submittedAt) : 'Submitted'}
+                                                {student.submittedAt ? formatDate(student.submittedAt) : 'Nag-submit na'}
                                             </span>
                                         </div>
                                     ) : (
                                         <div className="flex items-center text-red-600">
                                             <XCircle className="h-4 w-4 mr-1" />
-                                            <span className="text-sm">Not submitted</span>
+                                            <span className="text-sm">Hindi pa nag-submit</span>
                                         </div>
                                     )}
                                 </td>
@@ -299,10 +299,10 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                                             onClick={() => onViewSubmission(code.id, student.fullName, student.section)}
                                             className="text-blue-600 hover:text-blue-900 text-sm font-medium"
                                         >
-                                            View Submission
+                                            Tingnan ang Sagot
                                         </button>
                                     ) : (
-                                        <span className="text-gray-400 text-sm">No submission</span>
+                                        <span className="text-gray-400 text-sm">Walang sagot</span>
                                     )}
                                 </td>
                             </tr>
@@ -343,20 +343,20 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                         <div className="grid grid-cols-1 gap-2 text-sm mb-3">
                             <div className="flex items-center text-gray-600">
                                 <Clock className="h-4 w-4 mr-2" />
-                                <span>Viewed: {formatDate(student.viewedAt)}</span>
+                                <span>Nakita: {formatDate(student.viewedAt)}</span>
                             </div>
                             <div className="flex items-center">
                                 {student.hasSubmission ? (
                                     <>
                                         <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
                                         <span className="text-green-600">
-                                            Submitted: {student.submittedAt ? formatDate(student.submittedAt) : 'Yes'}
+                                            Nag-submit na: {student.submittedAt ? formatDate(student.submittedAt) : 'Oo'}
                                         </span>
                                     </>
                                 ) : (
                                     <>
                                         <XCircle className="h-4 w-4 mr-2 text-red-600" />
-                                        <span className="text-red-600">Not submitted</span>
+                                        <span className="text-red-600">Hindi pa nag-submit</span>
                                     </>
                                 )}
                             </div>
@@ -367,7 +367,7 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                                 onClick={() => onViewSubmission(code.id, student.fullName, student.section)}
                                 className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-md text-sm"
                             >
-                                View Submission Details
+                                Tingnan ang Mga Detalye ng Sagot
                             </button>
                         )}
                     </div>
@@ -379,12 +379,12 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                 <div className="text-center py-12 bg-gray-50 rounded-lg">
                     <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {searchTerm ? 'No students found' : 'No student activity yet'}
+                        {searchTerm ? 'Walang nakitang estudyante' : 'Wala pang aktibidad ng estudyante'}
                     </h3>
                     <p className="text-gray-600">
                         {searchTerm
-                            ? 'Try adjusting your search terms or filters'
-                            : 'Student activity will appear here when they access this story'
+                            ? 'Subukan na baguhin ang inyong mga salitang hinahanap o mga filter'
+                            : 'Makikita dito ang aktibidad ng estudyante kapag nag-access sila sa kuwentong ito'
                         }
                     </p>
                 </div>

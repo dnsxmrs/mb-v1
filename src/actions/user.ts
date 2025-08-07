@@ -91,7 +91,7 @@ export async function createUser(data: CreateUserData) {
             }
         })
 
-        await createNotification('user_created', `User '${data.first_name} ${data.last_name}' created`)
+        await createNotification('user_created', `Nagawa ang user na '${data.first_name} ${data.last_name}'`)
 
         // Send Clerk invitation if requested
         if (data.sendInvitation) {
@@ -110,7 +110,7 @@ export async function createUser(data: CreateUserData) {
             }
         }
 
-        revalidatePath('/user-management')
+        revalidatePath('/pamamahala-ng-user')
         return { success: true, user }
     } catch (error) {
         console.error('Error creating user:', error)
@@ -154,9 +154,9 @@ export async function inviteUser(data: InviteUserData) {
             redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
         })
 
-        await createNotification('user_created', `User '${data.first_name} ${data.last_name}' created`)
+        await createNotification('user_created', `Nagawa ang user na '${data.first_name} ${data.last_name}'`)
 
-        revalidatePath('/user-management')
+        revalidatePath('/pamamahala-ng-user')
         return {
             success: true,
             user,
@@ -265,9 +265,9 @@ export async function updateUser(id: number, data: UpdateUserData) {
             data: updateData
         })
 
-        await createNotification('user_updated', `User '${data.first_name} ${data.last_name}' updated`)
+        await createNotification('user_updated', `Na-update ang user na '${data.first_name} ${data.last_name}'`)
 
-        revalidatePath('/user-management')
+        revalidatePath('/pamamahala-ng-user')
         return { success: true, user }
     } catch (error) {
         console.error('Error updating user:', error)
@@ -383,9 +383,9 @@ export async function deleteUser(id: number) {
             }
         })
 
-        await createNotification('user_deleted', `User '${user.first_name} ${user.last_name}' deleted`)
+        await createNotification('user_deleted', `Na-delete ang user na '${user.first_name} ${user.last_name}'`)
 
-        revalidatePath('/user-management')
+        revalidatePath('/pamamahala-ng-user')
         return {
             success: true,
             message: `${clerkMessage}user record has been deleted successfully`

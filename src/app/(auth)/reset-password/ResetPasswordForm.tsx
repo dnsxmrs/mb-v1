@@ -8,6 +8,8 @@ const ResetPasswordForm = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [code, setCode] = useState('')
   const [successfulCreation, setSuccessfulCreation] = useState(false)
   const [secondFactor, setSecondFactor] = useState(false)
@@ -25,7 +27,7 @@ const ResetPasswordForm = () => {
           {/* Loading Animation */}
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="text-gray-600 text-sm sm:text-base animate-pulse">Loading...</p>
+            <p className="text-gray-600 text-sm sm:text-base animate-pulse">Naglo-load...</p>
           </div>
         </div>
       </div>
@@ -49,10 +51,10 @@ const ResetPasswordForm = () => {
       if (err && typeof err === 'object' && 'errors' in err && Array.isArray(err.errors) && err.errors[0]?.longMessage) {
         setError(err.errors[0].longMessage)
       } else {
-        setError('An unexpected error occurred')
+        setError('May nangyaring hindi inaasahang pagkakamali')
       }
     } finally {
-      // setIsCreating(false)
+      setIsCreating(false)
     }
   }
 
@@ -66,7 +68,7 @@ const ResetPasswordForm = () => {
 
     // confirm first if password and confirmPassword are the same
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError('Hindi magkatugma ang mga password')
       setIsResetting(false)
       return
     }
@@ -86,8 +88,8 @@ const ResetPasswordForm = () => {
         // the newly created session (user is now signed in)
         await setActive?.({ session: result.createdSessionId })
         setError('')
-        toast.success('Password reset successful')
-        router.push('/dashboard')
+        toast.success('Matagumpay na na-reset ang password')
+        router.push('/ulatan')
       } else {
         if (env.NODE_ENV === "development") {
           console.log(result)
@@ -97,10 +99,10 @@ const ResetPasswordForm = () => {
       if (err && typeof err === 'object' && 'errors' in err && Array.isArray(err.errors) && err.errors[0]?.longMessage) {
         setError(err.errors[0].longMessage)
       } else {
-        setError('An unexpected error occurred')
+        setError('May nangyaring hindi inaasahang pagkakamali')
       }
     } finally {
-      // setIsResetting(false)
+      setIsResetting(false)
     }
   }
 
@@ -123,10 +125,10 @@ const ResetPasswordForm = () => {
               clipRule="evenodd"
             />
           </svg>
-          Back
+          Bumalik
         </button>
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#1E3A8A] mb-4 sm:mb-6 text-center">
-          Forgot Password?
+          Nakalimutan ang Password?
         </h1>
 
         {error && (
@@ -141,16 +143,16 @@ const ResetPasswordForm = () => {
           {!successfulCreation && (
             <>
               <div>
-                <label htmlFor="email" className="block text-sm sm:text-base font-medium text-[#1E3A8A] mb-1.5 sm:mb-2">
-                  Provide your email address
+                <label htmlFor="email" className="text-center block text-sm sm:text-base font-medium text-[#1E3A8A] mb-1.5 sm:mb-2">
+                  Magbigay ng inyong email address
                 </label>
                 <input
                   type="email"
                   id="email"
-                  placeholder="e.g john@doe.com"
+                  placeholder="juan@cruz.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-[#1E3A8A] bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm"
+                  className="text-center w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-[#1E3A8A] bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm"
                 />
               </div>
 
@@ -162,10 +164,10 @@ const ResetPasswordForm = () => {
                 {isCreating ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Sending...
+                    Nagpapadala...
                   </>
                 ) : (
-                  'Send password reset code'
+                  'Magpadala ng password reset code'
                 )}
               </button>
             </>
@@ -175,9 +177,10 @@ const ResetPasswordForm = () => {
             <>
               <div>
                 <label htmlFor="code" className="block text-sm sm:text-base font-medium text-[#1E3A8A] mb-1.5 sm:mb-2">
-                  Enter the password reset code that was sent to your email
+                  Ilagay ang password reset code na naipadala sa inyong email
                 </label>
                 <input
+                  placeholder="XXXXXX"
                   type="text"
                   id="code"
                   value={code}
@@ -188,28 +191,126 @@ const ResetPasswordForm = () => {
 
               <div>
                 <label htmlFor="password" className="block text-sm sm:text-base font-medium text-[#1E3A8A] mb-1.5 sm:mb-2">
-                  Enter your new password
+                  Ilagay ang inyong bagong password
                 </label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-[#1E3A8A] bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="********"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 pr-10 text-sm sm:text-base text-[#1E3A8A] bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm"
+                  />
+                  {/* Eye Icon Button */}
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#60A5FA] hover:text-[#1E3A8A] focus:outline-none transition-colors duration-200"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Itago ang password" : "Ipakita ang password"}
+                  >
+                    {showPassword ? (
+                      // Eye Off Icon
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-4 h-4 sm:w-5 sm:h-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 3l18 18M10.477 10.477a3 3 0 004.242 4.242M6.672 6.672A8.963 8.963 0 003 12c1.5 3.5 5.03 6 9 6a8.96 8.96 0 004.776-1.318M9.53 9.53a3 3 0 014.94 2.47c0 .647-.207 1.244-.56 1.73M12 4.5c3.727 0 6.885 2.534 8.25 6-.376.94-.92 1.798-1.607 2.54"
+                        />
+                      </svg>
+                    ) : (
+                      // Eye Icon
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-4 h-4 sm:w-5 sm:h-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.458 12C3.732 7.943 7.522 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm sm:text-base font-medium text-[#1E3A8A] mb-1.5 sm:mb-2">
-                  Confirm your new password
+                  Kumpirmahin ang inyong bagong password
                 </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-[#1E3A8A] bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="********"
+                    id="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 pr-10 text-sm sm:text-base text-[#1E3A8A] bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm"
+                  />
+                  {/* Eye Icon Button */}
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#60A5FA] hover:text-[#1E3A8A] focus:outline-none transition-colors duration-200"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={showConfirmPassword ? "Itago ang confirm password" : "Ipakita ang confirm password"}
+                  >
+                    {showConfirmPassword ? (
+                      // Eye Off Icon
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-4 h-4 sm:w-5 sm:h-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 3l18 18M10.477 10.477a3 3 0 004.242 4.242M6.672 6.672A8.963 8.963 0 003 12c1.5 3.5 5.03 6 9 6a8.96 8.96 0 004.776-1.318M9.53 9.53a3 3 0 014.94 2.47c0 .647-.207 1.244-.56 1.73M12 4.5c3.727 0 6.885 2.534 8.25 6-.376.94-.92 1.798-1.607 2.54"
+                        />
+                      </svg>
+                    ) : (
+                      // Eye Icon
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-4 h-4 sm:w-5 sm:h-5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.458 12C3.732 7.943 7.522 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7s-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button
@@ -220,10 +321,10 @@ const ResetPasswordForm = () => {
                 {isResetting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Resetting...
+                    Nire-reset...
                   </>
                 ) : (
-                  'Reset Password'
+                  'I-reset ang Password'
                 )}
               </button>
             </>
@@ -231,7 +332,7 @@ const ResetPasswordForm = () => {
 
           {secondFactor && (
             <p className="text-[#1E3A8A] text-xs sm:text-sm text-center">
-              2FA is required, but this UI does not handle that
+              Kailangan ang 2FA, ngunit hindi ito ginagawa ng UI na ito
             </p>
           )}
         </form>

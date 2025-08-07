@@ -58,7 +58,7 @@ export default function Home() {
                   {/* use next image */}
                   <Image
                     src="/images/books.svg"
-                    alt="Pile of books"
+                    alt="Bunton ng mga libro"
                     width={500}
                     height={500}
                     className="w-full h-full object-contain drop-shadow-2xl"

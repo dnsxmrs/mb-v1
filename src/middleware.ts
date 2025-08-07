@@ -4,11 +4,11 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher([
   '/login',
   '/reset-password',
-  '/privacy-statement',
+  '/privacy-notice',
   '/student(.*)',
   '/',
-  '/games(.*)',
-  '/libraries(.*)',
+  '/mga-laro(.*)',
+  '/aklatan(.*)',
 ])
 
 const isStudentRoute = createRouteMatcher(['/student(.*)'])

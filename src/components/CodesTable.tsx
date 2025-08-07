@@ -62,7 +62,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
     }, [])
 
     const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('en-US', {
+        return new Date(date).toLocaleDateString('fil-PH', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -85,7 +85,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
 
         try {
             // Show loading toast
-            const loadingToast = toast.loading(`${newStatus === 'active' ? 'Activating' : 'Deactivating'} code...`)
+            const loadingToast = toast.loading(`${newStatus === 'active' ? 'Ina-activate' : 'Dina-deactivate'} ang code...`)
 
 
             // code.ts/updateCodeStatus
@@ -100,7 +100,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                     [codeId]: newStatus
                 }))
 
-                toast.success(`Code ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`, {
+                toast.success(`Matagumpay ${newStatus === 'active' ? 'na-activate' : 'na-deactivate'} ang code!`, {
                     duration: 3000,
                     // icon: newStatus === 'active' ? '✅' : '❌'
                 })
@@ -108,7 +108,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                 throw new Error('Failed to update code status')
             }
         } catch {
-            toast.error(`Failed to ${newStatus === 'active' ? 'activate' : 'deactivate'} code. Please try again.`, {
+            toast.error(`Hindi ma-${newStatus === 'active' ? 'activate' : 'deactivate'} ang code. Subukan ulit.`, {
                 duration: 4000
             })
         } finally {
@@ -136,13 +136,13 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
             if (result.success) {
                 // Remove from local state
                 setLocalCodes(localCodes.filter(localCode => localCode.id !== code.id))
-                toast.success(result.message || 'Code deleted successfully')
+                toast.success(result.message || 'Matagumpay na natanggal ang code')
             } else {
-                toast.error(result.error || 'Failed to delete code')
+                toast.error(result.error || 'Hindi matanggal ang code')
             }
         } catch (error) {
             console.error('Error deleting code:', error)
-            toast.error('Failed to delete code. Please try again.')
+            toast.error('Hindi matanggal ang code. Subukan ulit.')
         } finally {
             setIsDeleting(false)
             setDeletingCode(null)
@@ -156,7 +156,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                 <div className="relative flex-1 max-w-md">
                     <input
                         type="text"
-                        placeholder="Search codes or stories..."
+                        placeholder="Maghanap ng mga code o kuwento..."
                         value={searchTerm}
                         onChange={(e) => handleSearchChange(e.target.value)}
                         className="text-[#1E3A8A] w-full pl-9 pr-4 py-2 bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#3B82F6] border border-[#3B82F6] rounded-lg  focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]"
@@ -176,22 +176,22 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Code & Story
+                                Code at Kuwento
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Created
+                                Ginawa
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Views
+                                Mga View
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Submissions
+                                Mga Sagot
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
+                                Mga Aksyon
                             </th>
                         </tr>
                     </thead>
@@ -236,7 +236,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                                 ? 'text-green-800'
                                                 : 'text-gray-600'
                                                 }`}>
-                                                {loadingToggles.has(code.id) ? 'Loading...' : currentStatus}
+                                                {loadingToggles.has(code.id) ? 'Naglo-load...' : currentStatus}
                                             </span>
                                         </div>
                                     </td>
@@ -264,13 +264,13 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                                 onClick={() => onCodeClick(code.id)}
                                                 className="text-blue-600 hover:text-blue-900 text-sm font-medium inline-flex items-center"
                                             >
-                                                View Details
+                                                Tingnan ang Mga Detalye
                                                 <ChevronRight className="h-4 w-4 ml-1" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(code.id)}
                                                 className="text-red-600 hover:text-red-900 text-sm font-medium inline-flex items-center"
-                                                title="Delete code"
+                                                title="Tanggalin ang code"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -326,7 +326,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                         ? 'text-green-800'
                                         : 'text-gray-600'
                                         }`}>
-                                        {loadingToggles.has(code.id) ? 'Loading...' : currentStatus}
+                                        {loadingToggles.has(code.id) ? 'Naglo-load...' : currentStatus}
                                     </span>
                                 </div>
                             </div>
@@ -335,17 +335,17 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                 <div>
                                     <Eye className="h-4 w-4 mx-auto mb-1" />
                                     <div className="font-medium">{code.viewCount}</div>
-                                    <div className="text-xs">Views</div>
+                                    <div className="text-xs">Mga View</div>
                                 </div>
                                 <div>
                                     <FileText className="h-4 w-4 mx-auto mb-1" />
                                     <div className="font-medium">{code.submissionCount}</div>
-                                    <div className="text-xs">Submissions</div>
+                                    <div className="text-xs">Mga Sagot</div>
                                 </div>
                                 <div>
                                     <Calendar className="h-4 w-4 mx-auto mb-1" />
                                     <div className="font-medium text-xs">{formatDate(code.createdAt)}</div>
-                                    <div className="text-xs">Created</div>
+                                    <div className="text-xs">Ginawa</div>
                                 </div>
                             </div>
 
@@ -354,13 +354,13 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                     onClick={() => onCodeClick(code.id)}
                                     className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-md text-sm inline-flex items-center justify-center"
                                 >
-                                    View Details
+                                    Tingnan ang Mga Detalye
                                     <ChevronRight className="h-4 w-4 ml-1" />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(code.id)}
                                     className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-3 rounded-md text-sm inline-flex items-center justify-center"
-                                    title="Delete code"
+                                    title="Tanggalin ang code"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </button>
@@ -379,14 +379,14 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                             disabled={currentPage === 1}
                             className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Previous
+                            Nakaraan
                         </button>
                         <button
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
                             className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Next
+                            Susunod
                         </button>
                     </div>
                     <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-end">
@@ -397,7 +397,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                     disabled={currentPage === 1}
                                     className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <span className="sr-only">Previous</span>
+                                    <span className="sr-only">Nakaraan</span>
                                     <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                                 </button>
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -418,7 +418,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                     disabled={currentPage === totalPages}
                                     className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <span className="sr-only">Next</span>
+                                    <span className="sr-only">Susunod</span>
                                     <ChevronRight className="h-5 w-5" aria-hidden="true" />
                                 </button>
                             </nav>
@@ -432,12 +432,12 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                 <div className="text-center py-12 bg-gray-50 rounded-lg">
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {searchTerm ? 'No codes found' : 'No codes available'}
+                        {searchTerm ? 'Walang nakitang code' : 'Walang available na code'}
                     </h3>
                     <p className="text-gray-600">
                         {searchTerm
-                            ? 'Try adjusting your search terms'
-                            : 'Codes will appear here when stories are shared with students'
+                            ? 'Subukan mo na baguhin ang inyong mga salitang hinahanap'
+                            : 'Makikita dito ang mga code kapag nai-share na ang mga kuwento sa mga estudyante'
                         }
                     </p>
                 </div>
@@ -454,7 +454,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900">Delete Code</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">Tanggalin ang Code</h3>
                             <button
                                 onClick={() => setDeletingCode(null)}
                                 className="text-gray-400 hover:text-gray-600"
@@ -465,10 +465,10 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
 
                         <div className="space-y-4">
                             <p className="text-gray-700">
-                                Are you sure you want to delete code &ldquo;<strong className="font-mono">{deletingCode.code}</strong>&rdquo; for story &ldquo;<strong>{deletingCode.storyTitle}</strong>&rdquo;?
+                                Sigurado ka ba na gusto mong tanggalin ang code &ldquo;<strong className="font-mono">{deletingCode.code}</strong>&rdquo; para sa kuwentong &ldquo;<strong>{deletingCode.storyTitle}</strong>&rdquo;?
                             </p>
                             <p className="text-red-600 text-sm">
-                                This action cannot be undone. The code will be permanently deleted and students will no longer be able to access the story using this code.
+                                Hindi na maibabalik ang aksyong ito. Tuluyang matatanggal ang code at hindi na makakapag-access ang mga estudyante sa kuwentong ito gamit ang code na ito.
                             </p>
                             <div className="flex gap-3 pt-4">
                                 <button
@@ -476,7 +476,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                     disabled={isDeleting}
                                     className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Cancel
+                                    Kanselahin
                                 </button>
                                 <button
                                     onClick={() => confirmDelete(deletingCode)}
@@ -489,7 +489,7 @@ export default function CodesTable({ codes, onCodeClick }: CodesTableProps) {
                                             Deleting...
                                         </>
                                     ) : (
-                                        'Delete Code'
+                                        'Tanggalin ang Code'
                                     )}
                                 </button>
                             </div>

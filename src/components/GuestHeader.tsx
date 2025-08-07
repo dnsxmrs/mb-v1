@@ -11,11 +11,11 @@ export default function GuestHeader() {
     const [loadingStates, setLoadingStates] = useState({
         home: false,
         teachers: false,
-        dashboard: false
+        ulatan: false
     });
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    const handleNavigation = (type: 'home' | 'teachers' | 'dashboard') => {
+    const handleNavigation = (type: 'home' | 'teachers' | 'ulatan') => {
         setLoadingStates(prev => ({ ...prev, [type]: true }));
         setIsMobileMenuOpen(false); // Close mobile menu on navigation
         // Reset loading state after a short delay (optional, for better UX)
@@ -52,10 +52,10 @@ export default function GuestHeader() {
                     <Link href="/" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
                         Home
                     </Link>
-                    <Link href="/libraries" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
+                    <Link href="/aklatan" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
                         Aklatan
                     </Link>
-                    <Link href="/games" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
+                    <Link href="/mga-laro" className="font-medium text-[#1E3A8A] hover:underline text-sm lg:text-base">
                         Mga Laro
                     </Link>
                 </div>
@@ -98,14 +98,14 @@ export default function GuestHeader() {
                     </SignedOut>
 
                     <SignedIn>
-                        <Link href="/dashboard" className='mr-1 xs:mr-2 sm:mr-4'>
+                        <Link href="/ulatan" className='mr-1 xs:mr-2 sm:mr-4'>
                             <button
                                 className="bg-[#1E40AF] hover:bg-[#3B82F6] text-white text-xs sm:text-sm lg:text-base rounded-full px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 font-medium transition duration-200 shadow-sm flex items-center justify-center"
-                                onClick={() => handleNavigation('dashboard')}
+                                onClick={() => handleNavigation('ulatan')}
                             >
-                                {loadingStates.dashboard && <LoadingSpinner />}
+                                {loadingStates.ulatan && <LoadingSpinner />}
                                 <span className="hidden xs:inline">Pumunta sa Ulat</span>
-                                <span className="xs:hidden">Ulat at Datos</span>
+                                <span className="xs:hidden">Ulatan</span>
                             </button>
                         </Link>
                         {/* center the user button in the div */}
@@ -164,14 +164,14 @@ export default function GuestHeader() {
                                 Home
                             </Link>
                             <Link
-                                href="/libraries"
+                                href="/aklatan"
                                 className="font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2 px-10 text-sm"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 Aklatan
                             </Link>
                             <Link
-                                href="/games"
+                                href="/mga-laro"
                                 className="font-medium text-[#1E3A8A] hover:text-[#60A5FA] py-2 px-10 text-sm"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
@@ -205,12 +205,12 @@ export default function GuestHeader() {
 
                             <SignedIn>
                                 <div className="flex items-center space-x-3">
-                                    <Link href="/dashboard" className="flex-1">
+                                    <Link href="/ulatan" className="flex-1">
                                         <button
                                             className="w-full bg-[#1E40AF] hover:bg-[#3B82F6] text-white text-sm rounded-lg px-4 py-2.5 font-medium transition duration-200"
-                                            onClick={() => handleNavigation('dashboard')}
+                                            onClick={() => handleNavigation('ulatan')}
                                         >
-                                            {loadingStates.dashboard && <LoadingSpinner />}
+                                            {loadingStates.ulatan && <LoadingSpinner />}
                                             Pumunta sa Ulat
                                         </button>
                                     </Link>

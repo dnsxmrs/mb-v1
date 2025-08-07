@@ -77,10 +77,10 @@ export default function StoryList() {
             if (result.success && result.data) {
                 setCategories(result.data)
             } else {
-                console.error('Failed to fetch categories:', result.error)
+                console.error('Hindi na-fetch ang mga kategorya:', result.error)
             }
         } catch {
-            console.error('An unexpected error occurred while loading categories')
+            console.error('May naganap na hindi inaasahang error habang nilo-load ang mga kategorya')
         }
     }
 
@@ -104,12 +104,12 @@ export default function StoryList() {
                 setStories(transformedStories)
                 setError('')
             } else {
-                const errorMsg = result.error || 'Failed to fetch stories'
+                const errorMsg = result.error || 'Hindi na-fetch ang mga kuwento'
                 setError(errorMsg)
                 toast.error(errorMsg)
             }
         } catch {
-            const errorMsg = 'An unexpected error occurred while loading stories'
+            const errorMsg = 'May naganap na hindi inaasahang error habang nilo-load ang mga kuwento'
             setError(errorMsg)
             toast.error(errorMsg)
         } finally {
@@ -118,13 +118,13 @@ export default function StoryList() {
     }
 
     const handleAddSuccess = () => {
-        toast.success('Story and quiz have been created successfully!')
+        toast.success('Ang kuwento at quiz ay na-create na ng matagumpay!')
         setShowAddForm(false)
         fetchStories()
     }
 
     const handleEditSuccess = () => {
-        toast.success('Story and quiz have been updated successfully!')
+        toast.success('Ang kuwento at quiz ay na-update na ng matagumpay!')
         setEditingStory(null)
         fetchStories()
     }
@@ -133,15 +133,15 @@ export default function StoryList() {
         try {
             const result = await deleteStory(story.id)
             if (result.success) {
-                toast.success(`Story "${story.title}" has been deleted successfully`)
+                toast.success(`Ang kuwentong "${story.title}" ay na-delete na ng matagumpay`)
                 setDeletingStory(null)
                 fetchStories()
             } else {
-                toast.error(result.error || 'Failed to delete story')
-                setError(result.error || 'Failed to delete story')
+                toast.error(result.error || 'Hindi na-delete ang kuwento')
+                setError(result.error || 'Hindi na-delete ang kuwento')
             }
         } catch {
-            const errorMsg = 'An unexpected error occurred while deleting the story'
+            const errorMsg = 'May naganap na hindi inaasahang error habang dine-delete ang kuwento'
             toast.error(errorMsg)
             setError(errorMsg)
         }
@@ -150,7 +150,7 @@ export default function StoryList() {
     const formatDate = (date: Date) => {
         // Use a more deterministic date formatting to avoid hydration issues
         const d = new Date(date)
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        const months = ['Enero', 'Pebrero', 'Marso', 'Abril', 'Mayo', 'Hunyo', 'Hulyo', 'Agosto', 'Setyembre', 'Oktubre', 'Nobyembre', 'Disyembre']
         return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
     }
 
@@ -172,8 +172,8 @@ export default function StoryList() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Story Management</h1>
-                        <p className="text-gray-600">Manage your educational stories and content</p>
+                        <h1 className="text-2xl font-bold text-gray-900">Pamamahala ng Kuwento</h1>
+                        <p className="text-gray-600">Pamahalaan ang inyong mga pang-edukasyong kuwento at nilalaman</p>
                     </div>
                 </div>
 
@@ -184,7 +184,7 @@ export default function StoryList() {
                         onChange={(e) => setSelectedCategory(e.target.value ? parseInt(e.target.value) : null)}
                         className="bg-white border border-gray-300 text-gray-700 py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base w-full sm:w-auto"
                     >
-                        <option value="">All Categories</option>
+                        <option value="">Lahat ng Kategorya</option>
                         {categories.map((category) => (
                             <option key={category.id} value={category.id}>
                                 {category.name} ({category._count.Stories})
@@ -196,7 +196,7 @@ export default function StoryList() {
                         className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm sm:text-base whitespace-nowrap"
                     >
                         <Plus className="inline-block mr-1" size={16} />
-                        Add New Story
+                        Magdagdag ng Bagong Kuwento
                     </button>
                 </div>
             </div>
@@ -216,13 +216,13 @@ export default function StoryList() {
                     return (
                         <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg px-4">
                             <div className="text-gray-400 text-4xl sm:text-6xl mb-3 sm:mb-4">📚</div>
-                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No stories yet</h3>
-                            <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">Create your first story to get started</p>
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Wala pang mga kuwento</h3>
+                            <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">Gumawa ng inyong unang kuwento para makapagsimula</p>
                             <button
                                 onClick={() => setShowAddForm(true)}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md text-sm sm:text-base"
                             >
-                                Add Your First Story
+                                Magdagdag ng Inyong Unang Kuwento
                             </button>
                         </div>
                     );
@@ -233,8 +233,8 @@ export default function StoryList() {
                     return (
                         <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg px-4">
                             <div className="text-gray-400 text-4xl sm:text-6xl mb-3 sm:mb-4">📖</div>
-                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No stories in {categoryName}</h3>
-                            <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">There are no stories available in this category yet</p>
+                            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Walang mga kuwento sa {categoryName}</h3>
+                            <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">Wala pang mga kuwentong available sa kategoryang ito</p>
                             {/* <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
                                 <button
                                     onClick={() => setSelectedCategory(null)}
@@ -287,7 +287,7 @@ export default function StoryList() {
                                         </h3>
 
                                         <p className="text-gray-500 text-xs sm:text-sm mb-2 italic">
-                                            by {story.author}
+                                            ni {story.author}
                                         </p>
 
                                         {story.description && (
@@ -297,18 +297,18 @@ export default function StoryList() {
                                         )}
 
                                         <div className="text-xs text-gray-500 mb-3 sm:mb-4">
-                                            Created: {formatDate(story.createdAt)}
+                                            Ginawa: {formatDate(story.createdAt)}
                                         </div>
 
                                         {/* Stats */}
                                         <div className="flex flex-row justify-center gap-4 sm:gap-8 mb-3 sm:mb-4 text-center text-xs text-gray-500">
                                             <div>
                                                 <div className="font-medium text-gray-700">{story._count.QuizItems}</div>
-                                                <div className="text-xs">Quiz Items</div>
+                                                <div className="text-xs">Mga Quiz Item</div>
                                             </div>
                                             <div>
                                                 <div className="font-medium text-gray-700">{story._count.Codes}</div>
-                                                <div className="text-xs">Access Codes</div>
+                                                <div className="text-xs">Mga Access Code</div>
                                             </div>
                                         </div>
 
@@ -319,14 +319,14 @@ export default function StoryList() {
                                                 className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md border border-blue-200"
                                             >
                                                 <Pen className="inline-block mr-2" size={16} />
-                                                Edit
+                                                I-edit
                                             </button>
                                             <button
                                                 onClick={() => setDeletingStory(story)}
                                                 className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 text-xs sm:text-sm font-medium py-2 px-2 sm:px-3 rounded-md border border-red-200"
                                             >
                                                 <Trash className="inline-block mr-2" size={16} />
-                                                Delete
+                                                Tanggalin
                                             </button>
                                         </div>
                                     </div>
@@ -340,7 +340,7 @@ export default function StoryList() {
             <Modal
                 isOpen={showAddForm}
                 onClose={() => setShowAddForm(false)}
-                title="Add New Story & Quiz"
+                title="Magdagdag ng Bagong Kuwento at Quiz"
             >
                 <StoryWithQuizForm
                     onSuccess={handleAddSuccess}
@@ -352,7 +352,7 @@ export default function StoryList() {
             <Modal
                 isOpen={!!editingStory}
                 onClose={() => setEditingStory(null)}
-                title="Edit Story & Quiz"
+                title="I-edit ang Kuwento at Quiz"
             >
                 {editingStory && (
                     <StoryWithQuizForm
@@ -367,28 +367,28 @@ export default function StoryList() {
             <Modal
                 isOpen={!!deletingStory}
                 onClose={() => setDeletingStory(null)}
-                title="Delete Story"
+                title="Tanggalin ang Kuwento"
             >
                 {deletingStory && (
                     <div className="space-y-4">
                         <p className="text-gray-700">
-                            Are you sure you want to delete &ldquo;<strong>{deletingStory.title}</strong>&rdquo;?
+                            Sigurado ba kayong gusto ninyong tanggalin ang &ldquo;<strong>{deletingStory.title}</strong>&rdquo;?
                         </p>
                         <p className="text-red-600 text-sm">
-                            This action cannot be undone. All associated quiz items, codes, and submissions will also be deleted.
+                            Hindi na mababalik ang aksyong ito. Lahat ng mga kaugnay na quiz item, code, at submission ay matatanggal din.
                         </p>
                         <div className="flex gap-3 pt-4">
                             <button
                                 onClick={() => setDeletingStory(null)}
                                 className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md"
                             >
-                                Cancel
+                                Kanselahin
                             </button>
                             <button
                                 onClick={() => handleDelete(deletingStory)}
                                 className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md"
                             >
-                                Delete Story
+                                Tanggalin ang Kuwento
                             </button>
                         </div>
                     </div>

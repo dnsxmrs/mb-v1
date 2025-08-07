@@ -7,7 +7,7 @@ import { handleCodeSubmit } from "@/actions/code";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Student Information | E-KWENTO',
+  title: 'Impormasyon ng Estudyante | E-KWENTO',
   description: 'Provide your information',
 }
 

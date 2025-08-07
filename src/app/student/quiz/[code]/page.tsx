@@ -64,7 +64,7 @@ export default async function QuizPage({
         href="/"
         className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
       >
-        Go back home
+        Bumalik sa Home
       </LoadingLink>
     </div>
   );
@@ -73,8 +73,8 @@ export default async function QuizPage({
   const storyResult = await getStoryByCode(code);
   if (!storyResult.success || !storyResult.data) {
     return renderError(
-      "Story not found",
-      storyResult.error || "Sorry, the story you are looking for does not exist or the code is invalid."
+      "Hindi mahanap ang pagsusulit",
+      storyResult.error || "Paumanhin, ang pagsusulit na hinahanap mo ay hindi umiiral o ang code ay hindi wasto."
     );
   }
 
@@ -89,8 +89,8 @@ export default async function QuizPage({
   // If student has viewed the story, they can access regardless of code status (library access)
   if (!hasViewed || !isActive) {
     return renderError(
-      "Quiz not available",
-      "This quiz is currently not available. Please check with your teacher."
+      "Hindi available ang pagsusulit",
+      "Ang pagsusulit na ito ay kasalukuyang hindi available. Mangyaring kumonsulta sa iyong guro."
     );
   }
 
@@ -125,12 +125,12 @@ export default async function QuizPage({
               />
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No quiz questions available for this story.</p>
+                <p className="text-gray-500 text-lg">Walang available na tanong para sa pagsusulit na ito.</p>
                 <LoadingLink
                   href={`/student/story/${code}`}
                   className="inline-flex items-center mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  Back to Story
+                  Bumalik sa Kwento
                 </LoadingLink>
               </div>
             )}

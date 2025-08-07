@@ -65,15 +65,15 @@ export default async function ResultPage({
     if (!storyResult.success || !storyResult.data) {
         return (
             <div className="h-[85vh] flex flex-col items-center justify-center mx-4">
-                <h1 className="text-3xl font-extrabold text-blue-700 mb-2">Quiz not found</h1>
+                <h1 className="text-3xl font-extrabold text-blue-700 mb-2">Hindi mahanap ang pagsusulit</h1>
                 <p className="text-gray-500 mb-6 text-center">
-                    {storyResult.error || "Sorry, the story you are looking for does not exist or the code is invalid."}
+                    {storyResult.error || "Paumanhin, ang pagsusulit na hinahanap mo ay hindi umiiral o ang code ay hindi wasto."}
                 </p>
                 <LoadingLink
                     href="/"
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
                 >
-                    Go back home
+                    Bumalik sa Home
                 </LoadingLink>
             </div>
         );
@@ -88,22 +88,22 @@ export default async function ResultPage({
         return (
             <div className="h-[85vh] flex flex-col items-center justify-center mx-4">
                 <div className="text-center">
-                    <h1 className="text-3xl font-extrabold text-blue-800 mb-2">No Results Found</h1>
+                    <h1 className="text-3xl font-extrabold text-blue-800 mb-2">Walang Natagpuang Resulta</h1>
                     <p className="text-gray-500 mb-6">
-                        You haven&apos;t submitted the quiz yet or there was an error retrieving your results.
+                        Hindi mo pa nasasagutan ang pagsusulit o kaya may nangyaring error sa pagkuha ng iyong resulta.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         <LoadingLink
                             href={`/student/quiz/${code}`}
                             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition text-center"
                         >
-                            Take the Quiz
+                            Tumuloy sa Pagsusulit
                         </LoadingLink>
                         <LoadingLink
                             href="/"
                             className="px-6 py-2 bg-gray-600 text-white rounded-lg font-semibold shadow hover:bg-gray-700 transition text-center"
                         >
-                            Go to Homepage
+                            Bumalik sa Home
                         </LoadingLink>
                     </div>
                 </div>
@@ -229,7 +229,7 @@ export default async function ResultPage({
                             Bumalik sa Kwento
                         </LoadingLink>
                         <LoadingLink
-                            href="/libraries"
+                            href="/aklatan"
                             className="px-8 py-3 bg-blue-600 text-white rounded-xl font-medium text-lg shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
                         >
                             Aklatan

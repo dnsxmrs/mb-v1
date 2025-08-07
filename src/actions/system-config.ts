@@ -88,7 +88,7 @@ export async function updateSystemConfig(data: UpdateSystemConfigData) {
             })
         }
 
-        await createNotification('system_config_updated', `System configuration updated`)
+        await createNotification('system_config_updated', `Na-update ang system configuration`)
 
         return { success: true, data: config }
     } catch (error) {
@@ -122,7 +122,7 @@ export async function resetSystemConfig() {
             })
         }
 
-        await createNotification('system_config_reset', `System configuration reset to defaults`)
+        await createNotification('system_config_reset', `Na-reset ang system configuration sa mga default na halaga`)
 
         return { success: true, data: config }
     } catch (error) {

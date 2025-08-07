@@ -127,7 +127,7 @@ export async function createStory(data: CreateStoryData) {
             }
         })
 
-        await createNotification('story_created', `Story '${story.title}' created`)
+        await createNotification('story_created', `Nalikha ang kuwentong '${story.title}'`)
 
         return { success: true, data: story }
     } catch (error) {
@@ -154,7 +154,7 @@ export async function updateStory(id: number, data: UpdateStoryData) {
             }
         })
 
-        await createNotification('story_updated', `Story '${story.title}' updated`)
+        await createNotification('story_updated', `Na-update ang kuwentong '${story.title}'`)
 
         return { success: true, data: story }
     } catch (error) {
@@ -177,7 +177,7 @@ export async function deleteStory(id: number) {
             }
         })
 
-        await createNotification('story_deleted', `Story '${story.title}' deleted`)
+        await createNotification('story_deleted', `Na-delete ang kuwentong '${story.title}'`)
 
         return { success: true, data: story }
     } catch (error) {

@@ -42,11 +42,11 @@ export default function WordSearchListing() {
                     const activeWordSearches = result.data.filter(ws => ws.status === 'active')
                     setWordSearches(activeWordSearches)
                 } else {
-                    setError(result.error || 'Failed to load word searches')
+                    setError(result.error || 'Hindi ma-load ang mga hanap salita')
                 }
             } catch (err) {
                 console.error('Error fetching word searches:', err)
-                setError('An unexpected error occurred')
+                setError('May nangyaring hindi inaasahang pagkakamali')
             } finally {
                 setIsLoading(false)
             }
@@ -81,13 +81,13 @@ export default function WordSearchListing() {
         return (
             <div className="text-center py-12">
                 <Search className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-lg font-medium text-gray-900">Error Loading Games</h3>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">May Error sa Paglo-load ng mga Laro</h3>
                 <p className="mt-1 text-sm text-gray-500">{error}</p>
                 <button
                     onClick={() => window.location.reload()}
                     className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                    Try Again
+                    Subukan Ulit
                 </button>
             </div>
         )
@@ -98,8 +98,8 @@ export default function WordSearchListing() {
         return (
             <div className="text-center py-12">
                 <Search className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-lg font-medium text-gray-900">No Word Search Games Available</h3>
-                <p className="mt-1 text-sm text-gray-500">Check back later for new word search puzzles!</p>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">Walang Makitang Hanap Salita na Laro</h3>
+                <p className="mt-1 text-sm text-gray-500">Bumalik sa ibang araw para sa mga bagong hanap salita na palaisipan!</p>
             </div>
         )
     }
@@ -111,18 +111,18 @@ export default function WordSearchListing() {
                 {/* Back Button */}
                 <div className="flex justify-start mb-6">
                     <Link
-                        href="/games"
+                        href="/mga-laro"
                         className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors group"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                        <span>Back to Games</span>
+                        <span>Bumalik sa mga Laro</span>
                     </Link>
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Word Search Games</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Mga Laro ng Hanap-Salita</h1>
                 <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                    Challenge yourself with our collection of educational word search puzzles.
-                    Find hidden words and expand your vocabulary!
+                    Subukan ang inyong sarili sa aming koleksyon ng educational word search puzzles.
+                    Hanapin ang mga nakatagong salita at palawakin ang inyong bokabularyo!
                 </p>
             </div>
 
@@ -131,7 +131,7 @@ export default function WordSearchListing() {
                 {wordSearches.map((wordSearch) => (
                     <Link
                         key={wordSearch.id}
-                        href={`/games/word-search/${wordSearch.id}`}
+                        href={`/mga-laro/hanap-salita/${wordSearch.id}`}
                         className="group"
                     >
                         <div className="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all duration-300 p-6 h-full flex flex-col">
@@ -169,7 +169,7 @@ export default function WordSearchListing() {
                                 </div>
                                 <div className="flex items-center text-sm text-gray-500">
                                     <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-                                    <span className="truncate">Added {new Date(wordSearch.createdAt).toLocaleDateString('en-US', {
+                                    <span className="truncate">Added {new Date(wordSearch.createdAt).toLocaleDateString('fil-PH', {
                                         year: 'numeric',
                                         month: 'short',
                                         day: 'numeric'
@@ -186,17 +186,17 @@ export default function WordSearchListing() {
                                         : 'bg-red-100 text-red-800'
                                     }`}>
                                     {wordSearch.items.length <= 5
-                                        ? 'Easy'
+                                        ? 'Madali'
                                         : wordSearch.items.length <= 10
-                                            ? 'Medium'
-                                            : 'Hard'
+                                            ? 'Katamtaman'
+                                            : 'Mahirap'
                                     }
                                 </span>
 
                                 {/* Play Button */}
                                 <div className="flex items-center text-blue-600 group-hover:text-blue-700 font-medium flex-shrink-0">
                                     <Play className="w-4 h-4 mr-1" />
-                                    <span>Play</span>
+                                    <span>Maglaro</span>
                                 </div>
                             </div>
                         </div>
@@ -206,7 +206,7 @@ export default function WordSearchListing() {
 
             {/* Footer Info */}
             <div className="text-center text-sm text-gray-500 mt-12">
-                <p>Click on any word search to start playing!</p>
+                <p>Mag-click sa kahit anong hanap salita para magsimula na!</p>
             </div>
         </div>
     )
