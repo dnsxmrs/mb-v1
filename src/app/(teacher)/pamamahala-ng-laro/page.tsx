@@ -16,7 +16,7 @@ export default function GamesManagementPage() {
                 <div className="flex items-center gap-3">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Pamamahala ng Laro</h1>
-                        <p className="text-gray-600">Pamahalaan ang nilalaman para sa Hanap-Salita at Mystery Box na laro</p>
+                        <p className="text-gray-600">Pamahalaan ang nilalaman para sa Hanap-Salita at Kahon ng Misteryo na laro</p>
                     </div>
                 </div>
 

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Search, Play, 
-    // Users, Calendar, 
-    ArrowLeft } from 'lucide-react'
-import { getWordSearches } from '@/actions/word-search'
+import { useState, useEffect, useCallback } from 'react'
+import {
+    Search, Play, ArrowLeft, CircleCheckBig
+} from 'lucide-react'
+import { getWordSearches, getWordSearchProgress } from '@/actions/word-search'
 import Link from 'next/link'
 
 interface WordSearchData {
@@ -30,6 +30,29 @@ export default function WordSearchListing() {
     const [wordSearches, setWordSearches] = useState<WordSearchData[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [completedWordSearches, setCompletedWordSearches] = useState<Set<number>>(new Set())
+    const [isCheckingCompletion, setIsCheckingCompletion] = useState(false)
+
+    // Function to check completion status for all word searches
+    const checkCompletionStatus = useCallback(async (wordSearchIds: number[]) => {
+        setIsCheckingCompletion(true)
+        const completed = new Set<number>()
+
+        // Check completion status for each word search
+        await Promise.all(wordSearchIds.map(async (id) => {
+            try {
+                const progressResult = await getWordSearchProgress(id)
+                if (progressResult.success && progressResult.data.isFinished) {
+                    completed.add(id)
+                }
+            } catch (error) {
+                console.error(`Error checking completion for word search ${id}:`, error)
+            }
+        }))
+
+        setCompletedWordSearches(completed)
+        setIsCheckingCompletion(false)
+    }, [])
 
     useEffect(() => {
         const fetchWordSearches = async () => {
@@ -41,6 +64,10 @@ export default function WordSearchListing() {
                     // Filter only active word searches
                     const activeWordSearches = result.data.filter(ws => ws.status === 'active')
                     setWordSearches(activeWordSearches)
+
+                    // Check completion status for all word searches
+                    const wordSearchIds = activeWordSearches.map(ws => ws.id)
+                    await checkCompletionStatus(wordSearchIds)
                 } else {
                     setError(result.error || 'Hindi ma-load ang mga hanap salita')
                 }
@@ -53,7 +80,7 @@ export default function WordSearchListing() {
         }
 
         fetchWordSearches()
-    }, [])
+    }, [checkCompletionStatus])
 
     // Loading skeleton
     if (isLoading) {
@@ -124,90 +151,109 @@ export default function WordSearchListing() {
                     Subukan ang inyong sarili sa aming koleksyon ng educational word search puzzles.
                     Hanapin ang mga nakatagong salita at palawakin ang inyong bokabularyo!
                 </p>
+                {isCheckingCompletion && (
+                    <p className="text-sm text-blue-600 mt-2">
+                        Checking progress status...
+                    </p>
+                )}
             </div>
 
             {/* Word Search Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {wordSearches.map((wordSearch) => (
-                    <Link
-                        key={wordSearch.id}
-                        href={`/mga-laro/hanap-salita/${wordSearch.id}`}
-                        className="group"
-                    >
-                        <div className="bg-white rounded-xl shadow-md border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all duration-300 p-6 h-full flex flex-col">
-                            {/* Title */}
-                            <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors"
-                                style={{
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical' as const,
-                                    overflow: 'hidden'
-                                }}
-                                title={wordSearch.title}>
-                                {wordSearch.title}
-                            </h3>
+                {wordSearches.map((wordSearch) => {
+                    const isCompleted = completedWordSearches.has(wordSearch.id)
 
-                            {/* Description */}
-                            {wordSearch.description && (
-                                <p className="text-gray-600 text-sm mb-4 flex-grow"
+                    return (
+                        <Link
+                            key={wordSearch.id}
+                            href={`/mga-laro/hanap-salita/${wordSearch.id}`}
+                            className="group"
+                        >
+                            <div className={`bg-white rounded-xl shadow-md border transition-all duration-300 p-6 h-full flex flex-col relative ${isCompleted
+                                    ? 'border-green-300 hover:shadow-lg hover:border-green-400 bg-green-50'
+                                    : 'border-gray-200 hover:shadow-lg hover:border-blue-300'
+                                }`}>
+                                {/* Completion Check Mark */}
+                                {isCompleted && (
+                                    <div className="absolute top-4 right-4 z-10">
+                                        <CircleCheckBig className="w-6 h-6 text-green-600" />
+                                    </div>
+                                )}
+
+                                {/* Title */}
+                                <h3 className={`text-xl font-semibold mb-3 transition-colors pr-8 ${isCompleted
+                                        ? 'text-green-900 group-hover:text-green-700'
+                                        : 'text-gray-900 group-hover:text-blue-600'
+                                    }`}
                                     style={{
                                         display: '-webkit-box',
-                                        WebkitLineClamp: 3,
+                                        WebkitLineClamp: 2,
                                         WebkitBoxOrient: 'vertical' as const,
                                         overflow: 'hidden'
                                     }}
-                                    title={wordSearch.description}>
-                                    {wordSearch.description}
-                                </p>
-                            )}
+                                    title={wordSearch.title}>
+                                    {wordSearch.title}
+                                </h3>
 
-                            {/* Stats */}
-                            {/* <div className="space-y-3 mb-4">
-                                <div className="flex items-center text-sm text-gray-500">
-                                    <Users className="w-4 h-4 mr-2 flex-shrink-0" />
-                                    <span className="truncate">{wordSearch.items.length} words to find</span>
-                                </div>
-                                <div className="flex items-center text-sm text-gray-500">
-                                    <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-                                    <span className="truncate">Added {new Date(wordSearch.createdAt).toLocaleDateString('fil-PH', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                    })}</span>
-                                </div>
-                            </div> */}
+                                {/* Description */}
+                                {wordSearch.description && (
+                                    <p className={`text-sm mb-4 flex-grow ${isCompleted ? 'text-green-700' : 'text-gray-600'
+                                        }`}
+                                        style={{
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 3,
+                                            WebkitBoxOrient: 'vertical' as const,
+                                            overflow: 'hidden'
+                                        }}
+                                        title={wordSearch.description}>
+                                        {wordSearch.description}
+                                    </p>
+                                )}
 
-                            {/* Difficulty Badge */}
-                            <div className="flex justify-between items-center gap-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${wordSearch.items.length <= 5
-                                    ? 'bg-green-100 text-green-800'
-                                    : wordSearch.items.length <= 10
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : 'bg-red-100 text-red-800'
-                                    }`}>
-                                    {wordSearch.items.length <= 5
-                                        ? 'Madali'
-                                        : wordSearch.items.length <= 10
-                                            ? 'Katamtaman'
-                                            : 'Mahirap'
-                                    }
-                                </span>
+                                {/* Difficulty Badge and Play Button */}
+                                <div className="flex justify-between items-center gap-2">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${isCompleted
+                                            ? 'bg-green-200 text-green-800'
+                                            : wordSearch.items.length <= 5
+                                                ? 'bg-green-100 text-green-800'
+                                                : wordSearch.items.length <= 10
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : 'bg-red-100 text-red-800'
+                                        }`}>
+                                        {isCompleted
+                                            ? 'Tapos na'
+                                            : wordSearch.items.length <= 5
+                                                ? 'Madali'
+                                                : wordSearch.items.length <= 10
+                                                    ? 'Katamtaman'
+                                                    : 'Mahirap'
+                                        }
+                                    </span>
 
-                                {/* Play Button */}
-                                <div className="flex items-center text-blue-600 group-hover:text-blue-700 font-medium flex-shrink-0">
-                                    <Play className="w-4 h-4 mr-1" />
-                                    <span>Maglaro</span>
+                                    {/* Play Button */}
+                                    <div className={`flex items-center font-medium flex-shrink-0 ${isCompleted
+                                            ? 'text-green-600 group-hover:text-green-700'
+                                            : 'text-blue-600 group-hover:text-blue-700'
+                                        }`}>
+                                        <Play className="w-4 h-4 mr-1" />
+                                        <span>{isCompleted ? 'Ulitin' : 'Maglaro'}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Link>
-                ))}
+                        </Link>
+                    )
+                })}
             </div>
 
             {/* Footer Info */}
-            <div className="text-center text-sm text-gray-500 mt-12">
+            {/* <div className="text-center text-sm text-gray-500 mt-12 space-y-2">
                 <p>Mag-click sa kahit anong hanap salita para magsimula na!</p>
-            </div>
+                {completedWordSearches.size > 0 && (
+                    <p className="text-green-600 font-medium">
+                        ✓ Natapos mo na ang {completedWordSearches.size} sa {wordSearches.length} na hanap-salita!
+                    </p>
+                )}
+            </div> */}
         </div>
     )
 }

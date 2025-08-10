@@ -41,7 +41,7 @@ export default function GamesComponent() {
                 </Link>
 
                 {/* Mystery Box Game */}
-                <Link href="/mga-laro/mystery-box">
+                <Link href="/mga-laro/kahon-ng-misteryo">
                     <div className="relative bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer border-2 border-transparent hover:border-purple-300 overflow-hidden">
                         {/* Content */}
                         <div className="relative z-10 p-6 flex flex-col items-center text-center space-y-3">
@@ -49,7 +49,7 @@ export default function GamesComponent() {
                                 <Gift size={40} />
                             </div>
                             <h3 className="text-xl font-bold text-white">
-                                Mystery Box
+                                Kahon ng Misteryo
                             </h3>
                             <p className="text-white text-opacity-95 text-sm leading-relaxed">
                                 Tuklasin ang mga sorpresa at lutasin ang mga palaisipan sa kapana-panabik na larong ito na hamon sa iyong kritikal na pag-iisip.

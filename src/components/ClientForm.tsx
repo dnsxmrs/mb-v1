@@ -45,6 +45,8 @@ export default function ClientForm() {
                     placeholder="Ilagay ang iyong code dito"
                     className="w-full px-3 xs:px-4 sm:px-5 py-2 xs:py-2.5 sm:py-3 text-[#1E3A8A] text-center bg-[#DBEAFE]/80 backdrop-blur-sm placeholder:text-[#60A5FA] border border-[#3B82F6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] shadow-sm text-xs xs:text-sm sm:text-base"
                     required
+                    spellCheck={false}
+                    autoComplete="off"
                 />
             </div>
             <button

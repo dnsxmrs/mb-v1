@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ArrowLeft, RotateCcw, Trophy, Clock, Volume2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { markWordSearchCompleted } from '@/actions/word-search'
 
 interface WordSearchData {
     id: number
@@ -532,8 +533,21 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     }, [foundWords, placedWords, gameCompleted, modalDismissed])
 
     // Handle pending game completion after TTS finishes
-    const triggerGameCompletion = useCallback(() => {
+    const triggerGameCompletion = useCallback(async () => {
         if (pendingGameCompletion) {
+            // Save game completion status to session
+            try {
+                const foundWordsArray = Array.from(foundWords)
+                const result = await markWordSearchCompleted(wordSearch.id, foundWordsArray)
+                if (result.success) {
+                    console.log('Game completion saved to session:', result.data)
+                } else {
+                    console.error('Failed to save game completion:', result.error)
+                }
+            } catch (error) {
+                console.error('Error saving game completion:', error)
+            }
+
             setEndTime(new Date())
             setGameCompleted(true)
             setPendingGameCompletion(false)
@@ -541,7 +555,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
             playSound('complete')
             console.log('TTS finished - showing game completion modal with sound effect.')
         }
-    }, [pendingGameCompletion, playSound])
+    }, [pendingGameCompletion, playSound, wordSearch.id, foundWords])
 
     // Fallback timeout for game completion in case TTS fails
     useEffect(() => {

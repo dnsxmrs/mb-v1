@@ -28,7 +28,7 @@ export default function GamesManagementClient() {
         },
         {
             id: 'mystery-box' as GameType,
-            name: 'Mystery Box',
+            name: 'Kahon ng Misteryo',
             icon: Gift,
             color: 'purple'
         }
@@ -64,7 +64,7 @@ export default function GamesManagementClient() {
             {/* Add Content Button */}
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-900">
-                    {activeTab === 'word-search' ? 'Nilalaman ng Hanap-Salita' : 'Nilalaman ng Mystery Box'}
+                    {activeTab === 'word-search' ? 'Nilalaman ng Hanap-Salita' : 'Nilalaman ng Kahon ng Misteryo'}
                 </h2>
                 <button
                     onClick={() => setShowAddModal(true)}

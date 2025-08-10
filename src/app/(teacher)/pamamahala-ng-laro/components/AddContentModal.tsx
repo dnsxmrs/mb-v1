@@ -67,10 +67,10 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
                 const result = await createMysteryBoxItems(mysteryBoxData)
 
                 if (result.success) {
-                    toast.success(result.message || 'Matagumpay na nagawa ang mga mystery box items!')
+                    toast.success(result.message || 'Matagumpay na nagawa ang mga kahon ng misteryo aytems!')
                     onSuccess?.()
                 } else {
-                    toast.error(result.error || 'Hindi magawa ang mga mystery box items')
+                    toast.error(result.error || 'Hindi magawa ang mga kahon ng misteryo aytems')
                 }
             } catch (error) {
                 console.error('Error submitting form:', error)
@@ -133,7 +133,7 @@ export default function AddContentModal({ gameType, onClose, onSuccess }: AddCon
                 {/* Header */}
                 <div className="flex items-center justify-between p-6">
                     <h2 className="text-xl font-semibold text-black">
-                        Magdagdag ng {gameType === 'word-search' ? 'Hanap Salita' : 'Mystery Box'} na Nilalaman
+                        Magdagdag ng {gameType === 'word-search' ? 'Hanap Salita' : 'Kahon ng Misteryo'} na Nilalaman
                     </h2>
                     <button
                         onClick={onClose}

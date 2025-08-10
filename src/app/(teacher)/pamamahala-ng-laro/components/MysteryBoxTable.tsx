@@ -41,11 +41,11 @@ export default function MysteryBoxTable() {
             if (result.success && result.data) {
                 setData(result.data)
             } else {
-                toast.error(result.error || 'Hindi makuha ang mga mystery box items')
+                toast.error(result.error || 'Hindi makuha ang mga kahon ng misteryo aytems')
             }
         } catch (error) {
             console.error('Error fetching data:', error)
-            toast.error('Hindi makuha ang mga mystery box items')
+            toast.error('Hindi makuha ang mga kahon ng misteryo aytems')
         } finally {
             setIsLoading(false)
         }
@@ -102,13 +102,13 @@ export default function MysteryBoxTable() {
             if (result.success) {
                 // Remove from local state
                 setData(data.filter(dataItem => dataItem.id !== item.id))
-                toast.success(result.message || 'Matagumpay na natanggal ang mystery box item')
+                toast.success(result.message || 'Matagumpay na natanggal ang kahon ng misteryo aytem')
             } else {
-                toast.error(result.error || 'Hindi matanggal ang mystery box item')
+                toast.error(result.error || 'Hindi matanggal ang kahon ng misteryo aytem')
             }
         } catch (error) {
             console.error('Error deleting mystery box item:', error)
-            toast.error('Hindi matanggal ang mystery box item. Subukan muli.')
+            toast.error('Hindi matanggal ang kahon ng misteryo aytem. Subukan muli.')
         } finally {
             setIsDeleting(false)
             setDeletingItem(null)
@@ -187,14 +187,14 @@ export default function MysteryBoxTable() {
                         return item
                     })
                 )
-                toast.success(result.message || 'Matagumpay na na-update ang mystery box item')
+                toast.success(result.message || 'Matagumpay na na-update ang kahon ng misteryo aytem')
                 setEditingItem(null)
             } else {
-                toast.error(result.error || 'Hindi ma-update ang mystery box item')
+                toast.error(result.error || 'Hindi ma-update ang kahon ng misteryo aytem')
             }
         } catch (error) {
-            console.error('Error updating mystery box item:', error)
-            toast.error('Hindi ma-update ang mystery box item. Subukan muli.')
+            console.error('Error updating kahon ng misteryo aytem:', error)
+            toast.error('Hindi ma-update ang kahon ng misteryo aytem. Subukan muli.')
         } finally {
             setIsSaving(false)
         }
@@ -466,8 +466,8 @@ export default function MysteryBoxTable() {
                     {!isLoading && data.length === 0 && (
                         <div className="text-center py-12">
                             <Gift className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">Walang mystery box na nilalaman</h3>
-                            <p className="mt-1 text-sm text-gray-500">Magsimula sa pamamagitan ng paggawa ng inyong unang mystery box puzzle.</p>
+                            <h3 className="mt-2 text-sm font-medium text-gray-900">Walang kahon ng misteryo na nilalaman</h3>
+                            <p className="mt-1 text-sm text-gray-500">Magsimula sa pamamagitan ng paggawa ng inyong unang kahon ng misteryo puzzle.</p>
                         </div>
                     )}
 
@@ -558,7 +558,7 @@ export default function MysteryBoxTable() {
                                 <div className="p-6">
                                     {/* Header */}
                                     <div className="flex justify-between items-center mb-6">
-                                        <h2 className="text-2xl font-bold text-black">I-edit ang Mystery Box Item</h2>
+                                        <h2 className="text-2xl font-bold text-black">I-edit ang Kahon ng Misteryo Aytem</h2>
                                     </div>
 
                                     <form onSubmit={(e) => {
@@ -654,7 +654,7 @@ export default function MysteryBoxTable() {
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-gray-900">Tanggalin ang Mystery Box Item</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900">Tanggalin ang Kahon ng Misteryo Aytem</h3>
                                     <button
                                         onClick={() => setDeletingItem(null)}
                                         className="text-gray-400 hover:text-gray-600"
@@ -668,7 +668,7 @@ export default function MysteryBoxTable() {
                                         Sigurado ka bang gusto mong tanggalin ang &ldquo;<strong>{deletingItem.word}</strong>&rdquo;?
                                     </p>
                                     <p className="text-red-600 text-sm">
-                                        Ang aksyong ito ay hindi na mababalik. Ang mystery box item at ang kasamang larawan nito ay permanenteng matatanggal.
+                                        Ang aksyong ito ay hindi na mababalik. Ang Kahon ng Misteryo Aytem at ang kasamang larawan nito ay permanenteng matatanggal.
                                     </p>
                                     <div className="flex gap-3 pt-4">
                                         <button

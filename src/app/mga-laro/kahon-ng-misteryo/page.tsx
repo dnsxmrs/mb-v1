@@ -4,7 +4,7 @@ import MysteryBoxGame from "@/components/MysteryBoxGame";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: 'Mystery Box | E-KWENTO',
+    title: 'Kahon ng Misteryo | E-KWENTO',
     description: 'Explore our collection of educational games',
 }
 

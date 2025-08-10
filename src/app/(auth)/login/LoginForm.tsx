@@ -82,7 +82,7 @@ const LoginForm = () => {
                 setError('May nangyaring hindi inaasahang pagkakamali')
             }
         } finally {
-            // setLoading(false)
+            setLoading(false)
         }
     }
 

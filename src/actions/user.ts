@@ -143,27 +143,93 @@ export async function inviteUser(data: InviteUserData) {
         })
 
         // Send Clerk invitation
-        const invitation = await clerkClient.invitations.createInvitation({
-            emailAddress: data.email,
-            // publicMetadata: {
-            //     role: data.role,
-            //     first_name: data.first_name,
-            //     last_name: data.last_name,
-            //     userId: user.id
-            // },
-            redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
-        })
-
-        await createNotification('user_created', `Nagawa ang user na '${data.first_name} ${data.last_name}'`)
-
-        revalidatePath('/pamamahala-ng-user')
-        return {
-            success: true,
-            user,
-            invitation: {
-                id: invitation.id,
-                status: invitation.status
+        try {
+            // Validate environment variables
+            if (!process.env.NEXT_PUBLIC_APP_URL) {
+                console.error('NEXT_PUBLIC_APP_URL is not set')
+                return { success: false, error: 'Server configuration error: Missing app URL' }
             }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(data.email)) {
+                return { success: false, error: 'Invalid email format' }
+            }
+
+            // Check if there's already a pending invitation for this email
+            try {
+                const existingInvitations = await clerkClient.invitations.getInvitationList({
+                    status: 'pending'
+                })
+
+                const existingInvitation = existingInvitations.data.find(
+                    inv => inv.emailAddress.toLowerCase() === data.email.toLowerCase()
+                )
+
+                if (existingInvitation) {
+                    // Delete the user we just created since invitation already exists
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { deleted_at: new Date() }
+                    })
+                    return { success: false, error: 'An invitation is already pending for this email address' }
+                }
+            } catch (invitationCheckError) {
+                console.warn('Could not check existing invitations:', invitationCheckError)
+                // Continue with invitation creation anyway
+            }
+
+            console.log('Creating invitation for:', {
+                email: data.email,
+                redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
+            })
+
+            const invitation = await clerkClient.invitations.createInvitation({
+                emailAddress: data.email,
+                redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL}/login`
+            })
+
+            await createNotification('user_created', `Nagawa ang user na '${data.first_name} ${data.last_name}'`)
+
+            revalidatePath('/pamamahala-ng-user')
+            return {
+                success: true,
+                user,
+                invitation: {
+                    id: invitation.id,
+                    status: invitation.status
+                }
+            }
+        } catch (clerkError: unknown) {
+            const error = clerkError as {
+                message?: string
+                status?: number
+                clerkTraceId?: string
+                errors?: Array<{ message?: string; longMessage?: string; code?: string }>
+            }
+
+            console.error('Detailed Clerk error:', {
+                message: error.message,
+                status: error.status,
+                clerkTraceId: error.clerkTraceId,
+                errors: error.errors,
+                fullError: error
+            })
+
+            // Delete the user we just created since invitation failed
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { deleted_at: new Date() }
+            })
+
+            // Return more specific error message
+            let errorMessage = 'Failed to send invitation'
+            if (error.errors && Array.isArray(error.errors)) {
+                const errorDetails = error.errors.map((err) => err.message || err.longMessage || err.code).join(', ')
+                errorMessage = `Clerk error: ${errorDetails}`
+            }
+
+            return { success: false, error: errorMessage }
         }
     } catch (error) {
         console.error('Error inviting user:', error)
