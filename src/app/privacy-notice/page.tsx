@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyNotice() {
   // const [language, setLanguage] = useState<'en' | 'tl'>('tl');
-  const language: 'en' | 'tl' = 'tl'; // Default to Tagalog
+  const language = 'tl' as 'en' | 'tl'; // Default to Tagalog
 
   return (
     <div className="flex flex-col min-h-screen">
