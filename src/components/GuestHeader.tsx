@@ -36,7 +36,7 @@ export default function GuestHeader() {
             <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 py-3 xs:py-4 sm:py-6 flex justify-between items-center">
                 <Link href="/" className="flex items-center">
                     <Image
-                        src="/images/magandang-buhay-rbg.png"
+                        src="/images/magandang-buhay-rbg.webp"
                         alt="E-KWENTO Logo"
                         width={40}
                         height={40}

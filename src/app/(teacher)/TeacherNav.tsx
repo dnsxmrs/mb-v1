@@ -93,7 +93,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
             className="text-[10px] font-medium text-blue-800 px-2 mt-1 text-center items-center flex-col align-center flex gap-2 hover:text-blue-800 transition-colors"
           >
             <Image
-              src="/images/magandang-buhay-rbg.png"
+              src="/images/magandang-buhay-rbg.webp"
               alt="logo"
               width={30}
               height={30}
@@ -135,7 +135,7 @@ export default function TeacherNav({ children }: TeacherNavProps) {
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <Link href="/ulatan" className="flex items-center gap-2">
             <Image
-              src="/images/magandang-buhay-rbg.png"
+              src="/images/magandang-buhay-rbg.webp"
               alt="logo"
               width={24}
               height={24}
