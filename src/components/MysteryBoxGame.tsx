@@ -31,7 +31,7 @@ const setCookie = (name: string, value: string, days: number): void => {
 const getCompletedItemsFromCookie = (): Set<number> => {
     const cookieValue = getCookie(COOKIE_NAME)
     if (!cookieValue) return new Set()
-    
+
     try {
         const completedIds = JSON.parse(cookieValue)
         return new Set(Array.isArray(completedIds) ? completedIds : [])
@@ -305,9 +305,10 @@ export default function MysteryBoxGame() {
         if (openedBoxId === item.id) {
             setOpenedBoxId(null)
         } else {
+            // Immediately set the opened box to trigger the box animation
             setOpenedBoxId(item.id)
-            
-            // If the item is completed, show the answer, otherwise initialize empty inputs
+
+            // Prepare the input values first
             if (completedItems.has(item.id)) {
                 // Pre-fill with the correct answer for viewing
                 const correctAnswer = item.word.replace(/\s/g, '').toUpperCase()
@@ -365,7 +366,7 @@ export default function MysteryBoxGame() {
             </div>
 
             {/* Mystery Items - Clean Responsive Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 lg:gap-12 px-4 sm:px-0 place-items-center max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 sm:gap-10 lg:gap-12 xl:gap-16 px-4 sm:px-6 place-items-center max-w-7xl mx-auto">
                 <AnimatePresence>
                     {availableItems.map((item, index) => (
                         <motion.div
@@ -374,224 +375,223 @@ export default function MysteryBoxGame() {
                             className="relative flex flex-col items-center w-full max-w-sm cursor-pointer"
                             onClick={() => handleItemClick(item)}
                         >
-                                    {/* Mystery Box Image Container */}
-                                    <div className="relative" data-box-id={item.id}>
-                                        <MysteryBoxImage
-                                            isOpen={openedBoxId === item.id}
-                                            isCompleted={completedItems.has(item.id)}
-                                            boxNumber={index + 1}
-                                            size="lg"
-                                            colorVariant={getBoxColor(item.id)}
-                                        // className="mb-4 sm:mb-6"
-                                        />
+                            {/* Mystery Box Image Container */}
+                            <div className="relative" data-box-id={item.id}>
+                                <MysteryBoxImage
+                                    isOpen={openedBoxId === item.id}
+                                    isCompleted={completedItems.has(item.id)}
+                                    boxNumber={index + 1}
+                                    size="lg"
+                                    colorVariant={getBoxColor(item.id)}
+                                // className="mb-4 sm:mb-6"
+                                />
 
-                                        {/* Card that pops out */}
-                                        <AnimatePresence mode="wait">
-                                            {openedBoxId === item.id && (
-                                                <motion.div
-                                                    variants={cardVariants}
-                                                    initial="initial"
-                                                    animate="animate"
-                                                    exit="exit"
-                                                    transition={{
-                                                        duration: 0.4,
-                                                        ease: [0.4, 0, 0.2, 1]
-                                                    }}
-                                                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20"
-                                                >
-                                                    {/* Card */}
-                                                    <div
-                                                        data-card-id={item.id}
-                                                        className={`rounded-xl p-2 sm:p-3 lg:p-4 shadow-2xl border-2 sm:border-4 relative overflow-hidden ${
-                                                            completedItems.has(item.id)
-                                                                ? 'bg-gradient-to-br from-green-100 to-green-200 border-green-300'
-                                                                : 'bg-gradient-to-br from-amber-100 to-amber-200 border-amber-300'
-                                                        }`}
-                                                        style={{
-                                                            minWidth: '10rem',
-                                                            width: itemCalculations.get(item.id)?.cardWidth || '12rem',
-                                                            maxWidth: '85vw'
-                                                        }}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        {/* Success Overlay */}
-                                                        <AnimatePresence>
-                                                            {showSuccess === item.id && (
-                                                                <motion.div
-                                                                    initial={{ opacity: 0, scale: 0.8 }}
-                                                                    animate={{ opacity: 1, scale: 1 }}
-                                                                    exit={{ opacity: 0, scale: 0.8 }}
-                                                                    className="absolute inset-0 bg-green-500/90 rounded-xl flex items-center justify-center z-10"
-                                                                >
-                                                                    <div className="text-center text-white">
-                                                                        <CheckCircle className="w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 mx-auto mb-2" />
-                                                                        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold">Tama!</h3>
-                                                                        <p className="text-sm sm:text-base lg:text-lg">Magaling!</p>
-                                                                    </div>
-                                                                </motion.div>
-                                                            )}
-                                                        </AnimatePresence>
-                                                        {/* Card Image */}
-                                                        <div className="bg-white rounded-lg p-1 sm:p-2 lg:p-3 mb-2 sm:mb-3 aspect-square flex items-center justify-center mx-auto max-w-24 sm:max-w-32 lg:max-w-36">
-                                                            {item.imageUrl ? (
-                                                                <Image
-                                                                    src={item.imageUrl}
-                                                                    alt="Misteriosong item"
-                                                                    width={100}
-                                                                    height={100}
-                                                                    className="max-w-full max-h-full object-contain rounded sm:w-[80px] sm:h-[80px] lg:w-[100px] lg:h-[100px]"
-                                                                />
-                                                            ) : (
-                                                                <div className="text-center">
-                                                                    <Gift size={30} className="mx-auto text-purple-400 mb-1 sm:mb-2 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
-                                                                    <p className="text-gray-500 text-xs sm:text-sm">Walang Larawan</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Card Content */}
-                                                        <div className="text-center">
-                                                        {item.description && (
-                                                            <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 leading-relaxed">
-                                                                {completedItems.has(item.id) && (
-                                                                    <span className="inline-flex items-center text-green-600 font-medium mb-2">
-                                                                        <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                                                        Tapos na!
-                                                                    </span>
-                                                                )}
-                                                                <br />
-                                                                {item.description}
-                                                            </p>
-                                                        )}                                                            {/* Answer blanks - Responsive word layout */}
-                                                            <div className="flex justify-center mb-3 sm:mb-4">
-                                                                <motion.div
-                                                                    className="bg-white/90 rounded-lg"
-                                                                    style={{
-                                                                        padding: itemCalculations.get(item.id)?.padding || '0.375rem 0.375rem',
-                                                                        minWidth: 'fit-content',
-                                                                        width: 'auto'
-                                                                    }}
-                                                                    animate={showError === item.id ? { x: [-10, 10, -10, 10, 0] } : { x: 0 }}
-                                                                    transition={{ duration: 0.5 }}
-                                                                >
-                                                                    {(() => {
-                                                                        const words = item.word.split(' ')
-                                                                        // const totalChars = item.word.replace(/\s/g, '').length
-
-                                                                        // Determine input size based on longest word to ensure proper fit
-                                                                        const getInputSize = () => {
-                                                                            const longestWord = Math.max(...words.map(w => w.length))
-
-                                                                            // More conservative sizing to ensure containment
-                                                                            if (longestWord <= 3) {
-                                                                                return 'w-8 h-8 sm:w-9 sm:h-9 text-lg sm:text-xl'
-                                                                            }
-                                                                            if (longestWord <= 5) {
-                                                                                return 'w-6 h-6 sm:w-7 sm:h-7 text-base sm:text-lg'
-                                                                            }
-                                                                            if (longestWord <= 7) {
-                                                                                return 'w-5 h-5 sm:w-6 sm:h-6 text-sm sm:text-base'
-                                                                            }
-                                                                            if (longestWord <= 9) {
-                                                                                return 'w-4 h-4 sm:w-5 sm:h-5 text-xs sm:text-sm'
-                                                                            }
-                                                                            return 'w-3 h-3 sm:w-4 sm:h-4 text-xs'
-                                                                        }
-
-                                                                        const inputSizeClass = getInputSize()
-                                                                        let currentInputIndex = 0
-
-                                                                        return (
-                                                                            <div className="flex flex-col items-center gap-1 sm:gap-2">
-                                                                                {words.map((word, wordIndex) => {
-                                                                                    const longestWord = Math.max(...words.map(w => w.length))
-                                                                                    const gapClass = longestWord > 7 ? 'gap-0.5 sm:gap-1' : longestWord > 5 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'
-                                                                                    return (
-                                                                                        <div key={wordIndex} className={`flex justify-center items-center ${gapClass}`}>
-                                                                                            {word.split('').map((char, charIndex) => {
-                                                                                                const inputIndex = currentInputIndex++
-                                                                                                return (
-                                                                                                    <input
-                                                                                                        key={`input-${wordIndex}-${charIndex}`}
-                                                                                                        id={`input-${item.id}-${inputIndex}`}
-                                                                                                        type="text"
-                                                                                                        maxLength={1}
-                                                                                                        value={inputValues[item.id]?.[inputIndex] || ''}
-                                                                                                        onChange={(e) => !completedItems.has(item.id) ? handleInputChange(item.id, inputIndex, e.target.value) : undefined}
-                                                                                                        onKeyDown={(e) => !completedItems.has(item.id) ? handleKeyDown(item.id, inputIndex, e) : undefined}
-                                                                                                        onClick={(e) => e.stopPropagation()}
-                                                                                                        onFocus={(e) => e.stopPropagation()}
-                                                                                                        spellCheck={false}
-                                                                                                        autoComplete="off"
-                                                                                                        readOnly={completedItems.has(item.id)}
-                                                                                                        className={`${inputSizeClass} text-center border-2 rounded-md font-bold text-gray-800 focus:outline-none bg-white shadow-sm transition-colors ${
-                                                                                                            completedItems.has(item.id)
-                                                                                                                ? 'border-green-500 bg-green-50 cursor-default'
-                                                                                                                : showError === item.id
-                                                                                                                ? 'border-red-500 bg-red-50'
-                                                                                                                : 'border-gray-300 focus:border-purple-500'
-                                                                                                            }`}
-                                                                                                    />
-                                                                                                )
-                                                                                            })}
-                                                                                        </div>
-                                                                                    )
-                                                                                })}
-                                                                            </div>
-                                                                        )
-                                                                    })()}
-                                                                </motion.div>
-                                                            </div>
-
-                                                            <div
-                                                                className="text-xs sm:text-sm text-gray-600 bg-white/70 rounded-full px-3 sm:px-4 py-1 sm:py-2 cursor-pointer hover:bg-white/90 transition-all duration-200"
-                                                                onClick={() => setOpenedBoxId(null)}
-                                                            >
-                                                                {completedItems.has(item.id) ? 'Tapos na ✓' : 'I-click upang isara'}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-
-                                        {/* Floating animation for closed boxes (only for non-completed items) */}
-                                        {openedBoxId !== item.id && !completedItems.has(item.id) && (
-                                            <motion.div
-                                                animate={floatingAnimation}
-                                                className="absolute inset-0"
-                                            />
-                                        )}
-                                    </div>
-
-                                    {/* Item info below the box (only show when closed) */}
-                                    <AnimatePresence>
-                                        {openedBoxId !== item.id && (
-                                            <motion.div
-                                                initial={{ opacity: 1 }}
-                                                exit={{ opacity: 0 }}
-                                                className="text-center"
+                                {/* Card that pops out */}
+                                <AnimatePresence mode="wait">
+                                    {openedBoxId === item.id && (
+                                        <motion.div
+                                            variants={cardVariants}
+                                            initial="initial"
+                                            animate="animate"
+                                            exit="exit"
+                                            transition={{
+                                                duration: 0.6,
+                                                ease: [0.4, 0, 0.2, 1],
+                                                delay: 0.3 // Delay the card appearance to see box animation first
+                                            }}
+                                            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20"
+                                        >
+                                            {/* Card */}
+                                            <div
+                                                data-card-id={item.id}
+                                                className={`rounded-xl p-2 sm:p-3 lg:p-4 shadow-2xl border-2 sm:border-4 relative overflow-hidden ${completedItems.has(item.id)
+                                                        ? 'bg-gradient-to-br from-green-100 to-green-200 border-green-300'
+                                                        : 'bg-gradient-to-br from-amber-100 to-amber-200 border-amber-300'
+                                                    }`}
+                                                style={{
+                                                    minWidth: '10rem',
+                                                    width: itemCalculations.get(item.id)?.cardWidth || '12rem',
+                                                    maxWidth: '85vw'
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
                                             >
-                                                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1">
-                                                    #{index + 1}
-                                                </h3>
+                                                {/* Success Overlay */}
+                                                <AnimatePresence>
+                                                    {showSuccess === item.id && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, scale: 0.8 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            exit={{ opacity: 0, scale: 0.8 }}
+                                                            className="absolute inset-0 bg-green-500/90 rounded-xl flex items-center justify-center z-10"
+                                                        >
+                                                            <div className="text-center text-white">
+                                                                <CheckCircle className="w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-16 mx-auto mb-2" />
+                                                                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold">Tama!</h3>
+                                                                <p className="text-sm sm:text-base lg:text-lg">Magaling!</p>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                                {/* Card Image */}
+                                                <div className="bg-white rounded-lg p-1 sm:p-2 lg:p-3 mb-2 sm:mb-3 aspect-square flex items-center justify-center mx-auto max-w-24 sm:max-w-32 lg:max-w-36">
+                                                    {item.imageUrl ? (
+                                                        <Image
+                                                            src={item.imageUrl}
+                                                            alt="Misteriosong item"
+                                                            width={100}
+                                                            height={100}
+                                                            className="max-w-full max-h-full object-contain rounded sm:w-[80px] sm:h-[80px] lg:w-[100px] lg:h-[100px]"
+                                                        />
+                                                    ) : (
+                                                        <div className="text-center">
+                                                            <Gift size={30} className="mx-auto text-purple-400 mb-1 sm:mb-2 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
+                                                            <p className="text-gray-500 text-xs sm:text-sm">Walang Larawan</p>
+                                                        </div>
+                                                    )}
+                                                </div>
 
-                                                {/* {item.description && (
+                                                {/* Card Content */}
+                                                <div className="text-center">
+                                                    {item.description && (
+                                                        <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4 leading-relaxed">
+                                                            {completedItems.has(item.id) && (
+                                                                <span className="inline-flex items-center text-green-600 font-medium mb-2">
+                                                                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                                                    Tapos na!
+                                                                </span>
+                                                            )}
+                                                            <br />
+                                                            {item.description}
+                                                        </p>
+                                                    )}                                                            {/* Answer blanks - Responsive word layout */}
+                                                    <div className="flex justify-center mb-3 sm:mb-4">
+                                                        <motion.div
+                                                            className="bg-white/90 rounded-lg"
+                                                            style={{
+                                                                padding: itemCalculations.get(item.id)?.padding || '0.375rem 0.375rem',
+                                                                minWidth: 'fit-content',
+                                                                width: 'auto'
+                                                            }}
+                                                            animate={showError === item.id ? { x: [-10, 10, -10, 10, 0] } : { x: 0 }}
+                                                            transition={{ duration: 0.5 }}
+                                                        >
+                                                            {(() => {
+                                                                const words = item.word.split(' ')
+                                                                // const totalChars = item.word.replace(/\s/g, '').length
+
+                                                                // Determine input size based on longest word to ensure proper fit
+                                                                const getInputSize = () => {
+                                                                    const longestWord = Math.max(...words.map(w => w.length))
+
+                                                                    // More conservative sizing to ensure containment
+                                                                    if (longestWord <= 3) {
+                                                                        return 'w-8 h-8 sm:w-9 sm:h-9 text-lg sm:text-xl'
+                                                                    }
+                                                                    if (longestWord <= 5) {
+                                                                        return 'w-6 h-6 sm:w-7 sm:h-7 text-base sm:text-lg'
+                                                                    }
+                                                                    if (longestWord <= 7) {
+                                                                        return 'w-5 h-5 sm:w-6 sm:h-6 text-sm sm:text-base'
+                                                                    }
+                                                                    if (longestWord <= 9) {
+                                                                        return 'w-4 h-4 sm:w-5 sm:h-5 text-xs sm:text-sm'
+                                                                    }
+                                                                    return 'w-3 h-3 sm:w-4 sm:h-4 text-xs'
+                                                                }
+
+                                                                const inputSizeClass = getInputSize()
+                                                                let currentInputIndex = 0
+
+                                                                return (
+                                                                    <div className="flex flex-col items-center gap-1 sm:gap-2">
+                                                                        {words.map((word, wordIndex) => {
+                                                                            const longestWord = Math.max(...words.map(w => w.length))
+                                                                            const gapClass = longestWord > 7 ? 'gap-0.5 sm:gap-1' : longestWord > 5 ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'
+                                                                            return (
+                                                                                <div key={wordIndex} className={`flex justify-center items-center ${gapClass}`}>
+                                                                                    {word.split('').map((char, charIndex) => {
+                                                                                        const inputIndex = currentInputIndex++
+                                                                                        return (
+                                                                                            <input
+                                                                                                key={`input-${wordIndex}-${charIndex}`}
+                                                                                                id={`input-${item.id}-${inputIndex}`}
+                                                                                                type="text"
+                                                                                                maxLength={1}
+                                                                                                value={inputValues[item.id]?.[inputIndex] || ''}
+                                                                                                onChange={(e) => !completedItems.has(item.id) ? handleInputChange(item.id, inputIndex, e.target.value) : undefined}
+                                                                                                onKeyDown={(e) => !completedItems.has(item.id) ? handleKeyDown(item.id, inputIndex, e) : undefined}
+                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                onFocus={(e) => e.stopPropagation()}
+                                                                                                spellCheck={false}
+                                                                                                autoComplete="off"
+                                                                                                readOnly={completedItems.has(item.id)}
+                                                                                                className={`${inputSizeClass} text-center border-2 rounded-md font-bold text-gray-800 focus:outline-none bg-white shadow-sm transition-colors ${completedItems.has(item.id)
+                                                                                                        ? 'border-green-500 bg-green-50 cursor-default'
+                                                                                                        : showError === item.id
+                                                                                                            ? 'border-red-500 bg-red-50'
+                                                                                                            : 'border-gray-300 focus:border-purple-500'
+                                                                                                    }`}
+                                                                                            />
+                                                                                        )
+                                                                                    })}
+                                                                                </div>
+                                                                            )
+                                                                        })}
+                                                                    </div>
+                                                                )
+                                                            })()}
+                                                        </motion.div>
+                                                    </div>
+
+                                                    <div
+                                                        className="text-xs sm:text-sm text-gray-600 bg-white/70 rounded-full px-3 sm:px-4 py-1 sm:py-2 cursor-pointer hover:bg-white/90 transition-all duration-200"
+                                                        onClick={() => setOpenedBoxId(null)}
+                                                    >
+                                                        {completedItems.has(item.id) ? 'Tapos na ✓' : 'I-click upang isara'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Floating animation for closed boxes (only for non-completed items) */}
+                                {openedBoxId !== item.id && !completedItems.has(item.id) && (
+                                    <motion.div
+                                        animate={floatingAnimation}
+                                        className="absolute inset-0"
+                                    />
+                                )}
+                            </div>
+
+                            {/* Item info below the box (only show when closed) */}
+                            <AnimatePresence>
+                                {openedBoxId !== item.id && (
+                                    <motion.div
+                                        initial={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="text-center"
+                                    >
+                                        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1">
+                                            #{index + 1}
+                                        </h3>
+
+                                        {/* {item.description && (
                                                     <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3 max-w-32 sm:max-w-48 mx-auto">
                                                         {completedItems.has(item.id) ? 'Nasagutan na!' : ''}
                                                     </p>
                                                 )} */}
 
-                                                {/* <span className={`inline-block text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium shadow-lg transition-all ${completedItems.has(item.id)
+                                        {/* <span className={`inline-block text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium shadow-lg transition-all ${completedItems.has(item.id)
                                                     ? 'bg-gradient-to-r from-green-500 to-green-600 cursor-default'
                                                     : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-xl cursor-pointer'
                                                     }`}>
                                                     {completedItems.has(item.id) ? 'Tapos na ✓' : 'I-click para buksan'}
                                                 </span> */}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
                     ))}
                 </AnimatePresence>
             </div>

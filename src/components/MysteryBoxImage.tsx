@@ -17,13 +17,13 @@ interface MysteryBoxImageProps {
 const sizeClasses = {
     sm: 'w-16 h-16',
     md: 'w-24 h-24 sm:w-32 sm:h-32',
-    lg: 'w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40'
+    lg: 'w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48'
 }
 
 const iconSizes = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6 sm:w-8 sm:h-8',
-    lg: 'w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10'
+    lg: 'w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12'
 }
 
 // const numberSizes = {
