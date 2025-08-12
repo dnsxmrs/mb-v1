@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ArrowLeft, RotateCcw, Trophy, Clock, Volume2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { markWordSearchCompleted } from '@/actions/word-search'
+import { markWordSearchCompleted, getWordSearchProgress, resetWordSearchProgress } from '@/utils/client-word-search-progress'
 
 interface WordSearchData {
     id: number
@@ -481,6 +481,29 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         setGameGrid(grid)
         setPlacedWords(placed)
         setStartTime(new Date())
+
+        // Load existing progress if available
+        try {
+            const progress = getWordSearchProgress(wordSearch.id)
+            if (progress.foundWords.length > 0) {
+                console.log('Loading existing progress:', progress)
+                
+                // Convert found words to normalized format for comparison
+                const normalizedFoundWords = progress.foundWords.map(word => 
+                    word.toUpperCase().replace(/[^A-Z]/g, '')
+                )
+                
+                setFoundWords(new Set(normalizedFoundWords))
+                
+                // If game was already completed, set completion state
+                if (progress.isFinished) {
+                    setGameCompleted(true)
+                    setEndTime(new Date()) // Set approximate end time
+                }
+            }
+        } catch (error) {
+            console.error('Error loading existing progress:', error)
+        }
     }, [wordSearch])
 
     // Load speech synthesis voices
@@ -512,7 +535,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
 
     // Update timer every second
     useEffect(() => {
-        if (!gameCompleted && startTime) {
+        if (!endTime && startTime) {
             const timer = setInterval(() => {
                 const now = new Date()
                 const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000)
@@ -521,7 +544,7 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
 
             return () => clearInterval(timer)
         }
-    }, [gameCompleted, startTime])
+    }, [endTime, startTime])
 
     // Check if game is completed
     useEffect(() => {
@@ -535,27 +558,25 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     // Handle pending game completion after TTS finishes
     const triggerGameCompletion = useCallback(async () => {
         if (pendingGameCompletion) {
-            // Save game completion status to session
-            try {
-                const foundWordsArray = Array.from(foundWords)
-                const result = await markWordSearchCompleted(wordSearch.id, foundWordsArray)
-                if (result.success) {
-                    console.log('Game completion saved to session:', result.data)
-                } else {
-                    console.error('Failed to save game completion:', result.error)
-                }
-            } catch (error) {
-                console.error('Error saving game completion:', error)
+            // Only set endTime if it hasn't been set already (timer should have stopped when last word was found)
+            if (!endTime) {
+                setEndTime(new Date())
             }
-
-            setEndTime(new Date())
             setGameCompleted(true)
             setPendingGameCompletion(false)
             // Play completion sound effect
             playSound('complete')
             console.log('TTS finished - showing game completion modal with sound effect.')
+            // Save game completion status to cookies (client-side)
+            try {
+                const foundWordsArray = Array.from(foundWords)
+                const result = markWordSearchCompleted(wordSearch.id, foundWordsArray)
+                console.log('Game completion saved to cookies:', result)
+            } catch (error) {
+                console.error('Error saving game completion:', error)
+            }
         }
-    }, [pendingGameCompletion, playSound, wordSearch.id, foundWords])
+    }, [pendingGameCompletion, playSound, wordSearch.id, foundWords, endTime])
 
     // Fallback timeout for game completion in case TTS fails
     useEffect(() => {
@@ -580,6 +601,14 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
     useEffect(() => {
         const handleEscapeKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && gameCompleted) {
+                // Ensure completion is saved before closing with escape
+                try {
+                    const foundWordsArray = Array.from(foundWords)
+                    markWordSearchCompleted(wordSearch.id, foundWordsArray)
+                    console.log('Game completion saved via escape key')
+                } catch (error) {
+                    console.error('Error saving completion via escape key:', error)
+                }
                 setGameCompleted(false)
             }
         }
@@ -588,9 +617,37 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
         return () => {
             document.removeEventListener('keydown', handleEscapeKey)
         }
-    }, [gameCompleted])
+    }, [gameCompleted, foundWords, wordSearch.id])
+
+    // Save progress before page unload (refresh/navigation)
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (gameCompleted || (foundWords.size > 0 && foundWords.size === placedWords.length)) {
+                try {
+                    const foundWordsArray = Array.from(foundWords)
+                    markWordSearchCompleted(wordSearch.id, foundWordsArray)
+                    console.log('Game completion saved via beforeunload')
+                } catch (error) {
+                    console.error('Error saving completion via beforeunload:', error)
+                }
+            }
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+        }
+    }, [gameCompleted, foundWords, placedWords.length, wordSearch.id])
 
     const resetGame = () => {
+        // Clear saved progress
+        try {
+            resetWordSearchProgress(wordSearch.id)
+            console.log('Game progress cleared from cookies')
+        } catch (error) {
+            console.error('Error clearing game progress:', error)
+        }
+
         const words = wordSearch.items.map(item => item.word)
 
         // Calculate appropriate grid size based on words (same logic as initialization)
@@ -634,6 +691,14 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
 
     const closeModal = () => {
         console.log('Closing modal - current gameCompleted:', gameCompleted)
+        // Ensure completion is saved before closing modal
+        try {
+            const foundWordsArray = Array.from(foundWords)
+            markWordSearchCompleted(wordSearch.id, foundWordsArray)
+            console.log('Game completion saved via close modal')
+        } catch (error) {
+            console.error('Error saving completion via close modal:', error)
+        }
         setGameCompleted(false)
         setModalDismissed(true) // Mark that user dismissed the modal
         console.log('Modal should be closed now')
@@ -715,6 +780,10 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
             const isLastWord = newFoundWords.size === placedWords.length
 
             if (isLastWord) {
+                // Stop the timer immediately when the last word is found
+                setEndTime(new Date())
+                console.log('Last word found! Timer stopped.')
+                
                 // Speak the word with completion callback for the last word
                 if ('speechSynthesis' in window) {
                     speakWord(matchedWord.originalWord + ', ' + (wordItem?.description || ''), triggerGameCompletion)
@@ -1036,6 +1105,14 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                         className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
                         onClick={() => {
                             console.log('Background clicked')
+                            // Ensure completion is saved before closing
+                            try {
+                                const foundWordsArray = Array.from(foundWords)
+                                markWordSearchCompleted(wordSearch.id, foundWordsArray)
+                                console.log('Game completion saved via background click')
+                            } catch (error) {
+                                console.error('Error saving completion via background click:', error)
+                            }
                             closeModal()
                         }}
                     >
@@ -1052,6 +1129,14 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                                     console.log('Close button clicked')
                                     e.preventDefault()
                                     e.stopPropagation()
+                                    // Ensure completion is saved before closing
+                                    try {
+                                        const foundWordsArray = Array.from(foundWords)
+                                        markWordSearchCompleted(wordSearch.id, foundWordsArray)
+                                        console.log('Game completion saved via close button')
+                                    } catch (error) {
+                                        console.error('Error saving completion via close button:', error)
+                                    }
                                     closeModal()
                                 }}
                                 className="absolute top-4 right-4 text-black hover:text-gray-600 transition-colors z-10"
@@ -1070,13 +1155,33 @@ export default function WordSearchGame({ wordSearch }: WordSearchGameProps) {
                             </p>
                             <div className="flex gap-2 xs:gap-3">
                                 <button
-                                    onClick={resetGame}
+                                    onClick={() => {
+                                        // Ensure completion is saved before resetting
+                                        try {
+                                            const foundWordsArray = Array.from(foundWords)
+                                            markWordSearchCompleted(wordSearch.id, foundWordsArray)
+                                            console.log('Game completion saved via reset button')
+                                        } catch (error) {
+                                            console.error('Error saving completion via reset button:', error)
+                                        }
+                                        resetGame()
+                                    }}
                                     className="flex-1 px-3 xs:px-4 py-2 xs:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm xs:text-base font-medium"
                                 >
                                     Maglaro Muli
                                 </button>
                                 <Link
                                     href="/mga-laro/hanap-salita"
+                                    onClick={() => {
+                                        // Ensure completion is saved before navigating away
+                                        try {
+                                            const foundWordsArray = Array.from(foundWords)
+                                            markWordSearchCompleted(wordSearch.id, foundWordsArray)
+                                            console.log('Game completion saved via back button')
+                                        } catch (error) {
+                                            console.error('Error saving completion via back button:', error)
+                                        }
+                                    }}
                                     className="flex-1 px-3 xs:px-4 py-2 xs:py-2.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center text-sm xs:text-base font-medium"
                                 >
                                     <span className="hidden xs:inline">Bumalik sa Menu ng Hanap-Salita</span>
