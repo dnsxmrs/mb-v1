@@ -47,8 +47,12 @@ export async function getStories() {
                 },
                 _count: {
                     select: {
-                        QuizItems: true,
-                        Codes: true,
+                        QuizItems: {
+                            where: { deletedAt: null }
+                        },
+                        Codes: {
+                            where: { deletedAt: null }
+                        },
                         Submissions: true
                     }
                 }
@@ -238,8 +242,12 @@ export async function getStoriesWithQuiz() {
                 },
                 _count: {
                     select: {
-                        QuizItems: true,
-                        Codes: true,
+                        QuizItems: {
+                            where: { deletedAt: null }
+                        },
+                        Codes: {
+                            where: { deletedAt: null }
+                        },
                         Submissions: true
                     }
                 }
