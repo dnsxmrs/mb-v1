@@ -112,9 +112,9 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
             newErrors.fileLink = 'Pakipili ang valid na video file (MP4, MOV, AVI, WMV, FLV, WEBM)'
         }
 
-        // Check file size (50MB limit)
-        if (videoFile && videoFile.size > 50 * 1024 * 1024) {
-            newErrors.fileLink = 'Ang laki ng video file ay dapat na mas mababa sa 50MB'
+        // Check file size (200MB limit)
+        if (videoFile && videoFile.size > 200 * 1024 * 1024) {
+            newErrors.fileLink = 'Ang laki ng video file ay debe na mas mababa sa 200MB'
         }
 
         // Quiz validation
@@ -457,7 +457,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
                                 )}
 
                                 <p className="text-gray-500 text-sm mt-1">
-                                    Pumili ng video file (MP4, MOV, AVI, WMV, FLV, WEBM). Pinakamataas na laki: 50MB
+                                    Pumili ng video file (MP4, MOV, AVI, WMV, FLV, WEBM). Pinakamataas na laki: 200MB
                                 </p>
 
                                 {isUploading && (
@@ -499,7 +499,7 @@ export default function StoryWithQuizForm({ story, onSuccess, onCancel }: StoryW
 
                 {/* Right Column - Quiz Questions */}
                 <div className="space-y-6">
-                    <div className="bg-blue-50 p-6 rounded-lg">
+                    <div className="bg-blue-50 p-3 rounded-lg">
                         <QuizForm
                             quizItems={quizItems}
                             onQuizItemsChange={handleQuizItemsChange}

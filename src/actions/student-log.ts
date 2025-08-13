@@ -22,6 +22,7 @@ export interface StudentViewData {
     hasSubmission: boolean
     score?: number
     submittedAt?: Date
+    totalQuestions?: number
 }
 
 export interface StudentSubmissionDetail {
@@ -155,17 +156,31 @@ export async function getCodeDetailsWithStudentData(codeId: number) {
                 fullName: true,
                 section: true,
                 submittedAt: true,
-                score: true
+                score: true,
+                Answers: {
+                    select: {
+                        id: true
+                    }
+                }
+            }
+        })
+
+        // Get total questions count for this story
+        const totalQuestions = await prisma.quizItem.count({
+            where: {
+                storyId: code.Story.id,
+                deletedAt: null
             }
         })
 
         // Create a map of submissions by student
-        const submissionMap = new Map<string, { score: number; submittedAt: Date }>()
+        const submissionMap = new Map<string, { score: number; submittedAt: Date; totalQuestions: number }>()
         submissions.forEach(sub => {
             const key = `${sub.fullName}-${sub.section}`
             submissionMap.set(key, {
                 score: sub.score || 0,
-                submittedAt: sub.submittedAt
+                submittedAt: sub.submittedAt,
+                totalQuestions: sub.Answers.length // Use actual answered questions count
             })
         })
 
@@ -173,7 +188,7 @@ export async function getCodeDetailsWithStudentData(codeId: number) {
         const studentViews: StudentViewData[] = storyViews.map(view => {
             const key = `${view.fullName}-${view.section}`
             const submission = submissionMap.get(key)
-            
+
             return {
                 id: view.id,
                 fullName: view.fullName,
@@ -181,7 +196,8 @@ export async function getCodeDetailsWithStudentData(codeId: number) {
                 viewedAt: view.viewedAt,
                 hasSubmission: !!submission,
                 score: submission?.score,
-                submittedAt: submission?.submittedAt
+                submittedAt: submission?.submittedAt,
+                totalQuestions: submission?.totalQuestions || totalQuestions
             }
         })
 

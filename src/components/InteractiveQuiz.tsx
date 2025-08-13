@@ -46,9 +46,6 @@ export default function InteractiveQuiz({
     const { refreshSession } = useStudentSessionRefresh();
 
     const handleAnswerChange = async (quizItemId: number, selectedChoiceText: string) => {
-        // Refresh session on each answer change
-        await refreshSession();
-
         setAnswers(prev => ({
             ...prev,
             [quizItemId]: selectedChoiceText
@@ -56,6 +53,11 @@ export default function InteractiveQuiz({
     }
 
     const handleSubmit = async () => {
+        // Prevent multiple submissions
+        if (isSubmitting) {
+            return
+        }
+
         // Check if all questions are answered
         const unansweredQuestions = quizItems.filter(quiz => !answers[quiz.id])
 
@@ -64,8 +66,12 @@ export default function InteractiveQuiz({
             return
         }
 
-        // Refresh session before final submission
-        await refreshSession();
+        // Refresh session before final submission to ensure validity
+        try {
+            await refreshSession();
+        } catch (error) {
+            console.warn('Session refresh failed, continuing with submission:', error);
+        }
 
         setIsSubmitting(true)
 
@@ -89,11 +95,30 @@ export default function InteractiveQuiz({
                 // Redirect to results page
                 router.push(`/student/quiz/${code}/results`)
             } else {
-                toast.error(result.error || 'Nabigong isumite ang pagsusulit')
+                // Handle specific error messages
+                if (result.error?.includes('already been submitted')) {
+                    toast.error('Naisumite na ang pagsusulit na ito.')
+                    router.push(`/student/quiz/${code}/results`)
+                } else {
+                    toast.error(result.error || 'Nabigong isumite ang pagsusulit')
+                }
             }
         } catch (error) {
             console.error('Error submitting quiz:', error)
-            toast.error('Isang hindi inaasahang error ang naganap')
+
+            // Handle specific error types
+            if (error instanceof Error) {
+                if (error.message.includes('Transaction API error') || error.message.includes('P2028')) {
+                    toast.error('Ang database ay abala. Pakisubukan ulit pagkatapos ng ilang sandali.')
+                } else if (error.message.includes('already been submitted')) {
+                    toast.error('Naisumite na ang pagsusulit na ito.')
+                    router.push(`/student/quiz/${code}/results`)
+                } else {
+                    toast.error('Isang hindi inaasahang error ang naganap')
+                }
+            } else {
+                toast.error('Isang hindi inaasahang error ang naganap')
+            }
         } finally {
             setIsSubmitting(false)
         }

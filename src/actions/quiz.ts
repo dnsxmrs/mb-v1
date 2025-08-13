@@ -375,87 +375,133 @@ export async function updateStoryQuizItems(storyId: number, quizItems: CreateQui
 
 // Submit quiz answers and calculate score
 export async function submitQuizAnswers(data: QuizSubmissionData) {
-    try {
-        const result = await prisma.$transaction(async (tx) => {
-            // Get the quiz items for this story to calculate score
-            const quizItems = await tx.quizItem.findMany({
-                where: {
-                    storyId: data.storyId,
-                    deletedAt: null
-                },
-                select: {
-                    id: true,
-                    correctAnswer: true
-                }
-            })
+    // Retry mechanism for connection issues
+    const maxRetries = 3
+    let lastError: Error | unknown
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const result = await prisma.$transaction(async (tx) => {
+                // Check if student has already submitted for this quiz
+                const existingSubmission = await tx.studentSubmission.findFirst({
+                    where: {
+                        codeId: data.codeId,
+                        storyId: data.storyId,
+                        fullName: data.fullName,
+                        section: data.section,
+                        deviceId: data.deviceId,
+                        deletedAt: null
+                    }
+                })
 
-            if (quizItems.length === 0) {
-                throw new Error('No quiz items found for this story')
-            }
-
-            // Create the submission record
-            const submission = await tx.studentSubmission.create({
-                data: {
-                    codeId: data.codeId,
-                    storyId: data.storyId,
-                    fullName: data.fullName,
-                    section: data.section,
-                    deviceId: data.deviceId,
-                    score: null // Will be calculated after answers are saved
-                }
-            })
-
-            // Create answer records and calculate score
-            let correctCount = 0
-            const totalQuestions = quizItems.length
-
-            const answerPromises = data.answers.map(async (answer) => {
-                const quizItem = quizItems.find(qi => qi.id === answer.quizItemId)
-                if (!quizItem) {
-                    throw new Error(`Quiz item ${answer.quizItemId} not found`)
+                if (existingSubmission) {
+                    throw new Error('Quiz has already been submitted by this student')
                 }
 
-                // Check if the selected answer is correct
-                const isCorrect = quizItem.correctAnswer === answer.selectedAnswer
-                if (isCorrect) {
-                    correctCount++
+                // Get the quiz items for this story to calculate score
+                const quizItems = await tx.quizItem.findMany({
+                    where: {
+                        storyId: data.storyId,
+                        deletedAt: null
+                    },
+                    select: {
+                        id: true,
+                        correctAnswer: true
+                    }
+                })
+
+                if (quizItems.length === 0) {
+                    throw new Error('No quiz items found for this story')
                 }
 
-                return tx.studentAnswer.create({
+                // Calculate score before creating records
+                let correctCount = 0
+                const totalQuestions = quizItems.length
+                
+                // Pre-calculate scores and validate all answers
+                const answersWithValidation = data.answers.map(answer => {
+                    const quizItem = quizItems.find(qi => qi.id === answer.quizItemId)
+                    if (!quizItem) {
+                        throw new Error(`Quiz item ${answer.quizItemId} not found`)
+                    }
+                    
+                    const isCorrect = quizItem.correctAnswer === answer.selectedAnswer
+                    if (isCorrect) {
+                        correctCount++
+                    }
+                    
+                    return {
+                        quizItemId: answer.quizItemId,
+                        selectedAnswer: answer.selectedAnswer,
+                        isCorrect
+                    }
+                })
+
+                const percentage = (correctCount / totalQuestions) * 100
+                const score = correctCount // Store the number of correct answers as integer
+
+                // Create the submission record with the calculated score
+                const submission = await tx.studentSubmission.create({
                     data: {
+                        codeId: data.codeId,
+                        storyId: data.storyId,
+                        fullName: data.fullName,
+                        section: data.section,
+                        deviceId: data.deviceId,
+                        score: score
+                    }
+                })
+
+                // Create answer records in a single batch operation
+                await tx.studentAnswer.createMany({
+                    data: answersWithValidation.map(answer => ({
                         submissionId: submission.id,
                         quizItemId: answer.quizItemId,
                         selectedAnswer: answer.selectedAnswer
-                    }
+                    }))
                 })
+
+                return {
+                    submissionId: submission.id,
+                    score,
+                    totalQuestions,
+                    correctAnswers: correctCount,
+                    percentage
+                }
+            }, {
+                timeout: 25000, // 25 second timeout for quiz submissions
+                isolationLevel: 'ReadCommitted' // Use read committed isolation level for better performance
             })
 
-            await Promise.all(answerPromises)
-
-            // Calculate score as number of correct answers
-            const percentage = (correctCount / totalQuestions) * 100
-            const score = correctCount // Store the number of correct answers as integer
-
-            // Update submission with calculated score
-            await tx.studentSubmission.update({
-                where: { id: submission.id },
-                data: { score }
-            })
-
-            return {
-                submissionId: submission.id,
-                score,
-                totalQuestions,
-                correctAnswers: correctCount,
-                percentage
+            return { success: true, data: result }
+        } catch (error: unknown) {
+            lastError = error
+            console.error(`Quiz submission attempt ${attempt} failed:`, error)
+            
+            // Check error properties safely
+            const errorMessage = error instanceof Error ? error.message : String(error)
+            const errorCode = error && typeof error === 'object' && 'code' in error ? error.code : undefined
+            
+            // Don't retry for these specific errors
+            if (errorMessage.includes('already been submitted') ||
+                errorMessage.includes('not found') ||
+                errorCode === 'P2002') { // Unique constraint violation
+                break
             }
-        })
-
-        return { success: true, data: result }
-    } catch (error) {
-        console.error('Error submitting quiz answers:', error)
-        return { success: false, error: 'Failed to submit quiz answers' }
+            
+            // Don't retry on the last attempt
+            if (attempt === maxRetries) {
+                break
+            }
+            
+            // Wait before retrying (exponential backoff)
+            const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+            await new Promise(resolve => setTimeout(resolve, waitTime))
+        }
     }
+    
+    console.error('All quiz submission attempts failed:', lastError)
+    return { success: false, error: 'Failed to submit quiz answers' }
 }
 
 // Get submission results by submission ID

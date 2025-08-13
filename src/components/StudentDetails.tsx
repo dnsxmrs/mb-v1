@@ -59,14 +59,20 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
             const submittedStudents = studentViews.filter(s => s.hasSubmission && s.score !== undefined)
             if (submittedStudents.length === 0) return 0
 
-            // Calculate total questions from maximum score
-            const maxScore = Math.max(...submittedStudents.map(s => s.score || 0))
-            const estimatedTotal = maxScore < 3 ? 10 : maxScore
+            // Calculate average percentage using actual total questions when available
+            const totalPercentage = submittedStudents.reduce((sum, student) => {
+                if (student.totalQuestions) {
+                    // Use actual total questions
+                    return sum + ((student.score || 0) / student.totalQuestions) * 100
+                } else {
+                    // Fallback: estimate total questions from maximum score
+                    const maxScore = Math.max(...submittedStudents.map(s => s.score || 0))
+                    const estimatedTotal = maxScore < 3 ? 10 : maxScore
+                    return sum + ((student.score || 0) / estimatedTotal) * 100
+                }
+            }, 0)
 
-            // Calculate average percentage
-            const totalScore = submittedStudents.reduce((sum, s) => sum + (s.score || 0), 0)
-            const averageCorrect = totalScore / submittedStudents.length
-            return Math.round((averageCorrect / estimatedTotal) * 100)
+            return Math.round(totalPercentage / submittedStudents.length)
         })(),
         submissionRate: studentViews.length > 0
             ? Math.round((studentViews.filter(s => s.hasSubmission).length / studentViews.length) * 100)
@@ -84,46 +90,60 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
         })
     }
 
-    const getScoreBadgeColor = (score: number) => {
-        // Calculate total questions from existing submissions (since score is number of correct answers)
-        const submittedStudents = studentViews.filter(s => s.hasSubmission && s.score !== undefined)
-
-        if (submittedStudents.length === 0) {
-            // No submissions yet, treat score as percentage (fallback)
-            const percentage = score
-            if (percentage >= 80) return 'bg-green-100 text-green-800'
-            if (percentage >= 60) return 'bg-yellow-100 text-yellow-800'
-            return 'bg-red-100 text-red-800'
+    const getScoreBadgeColor = (student: StudentViewData) => {
+        if (!student.hasSubmission || student.score === undefined) {
+            return 'bg-gray-100 text-gray-800'
         }
 
-        // Estimate total questions from the maximum score (assuming perfect scores exist)
-        let estimatedTotal = Math.max(...submittedStudents.map(s => s.score || 0))
+        let percentage: number
 
-        // Fallback to reasonable defaults if max score seems too low
-        if (estimatedTotal < 3) {
-            estimatedTotal = 10 // reasonable default for quizzes
+        // Use actual total questions if available
+        if (student.totalQuestions) {
+            percentage = (student.score / student.totalQuestions) * 100
+        } else {
+            // Fallback: estimate from all submissions (old behavior)
+            const submittedStudents = studentViews.filter(s => s.hasSubmission && s.score !== undefined)
+
+            if (submittedStudents.length === 0) {
+                // No submissions yet, treat score as percentage (fallback)
+                percentage = student.score
+            } else {
+                // Estimate total questions from the maximum score
+                let estimatedTotal = Math.max(...submittedStudents.map(s => s.score || 0))
+                if (estimatedTotal < 3) {
+                    estimatedTotal = 10 // reasonable default for quizzes
+                }
+                percentage = (student.score / estimatedTotal) * 100
+            }
         }
 
-        const percentage = (score / estimatedTotal) * 100
         if (percentage >= 80) return 'bg-green-100 text-green-800'
         if (percentage >= 60) return 'bg-yellow-100 text-yellow-800'
         return 'bg-red-100 text-red-800'
     }
 
-    const getScoreDisplay = (score: number) => {
-        const submittedStudents = studentViews.filter(s => s.hasSubmission && s.score !== undefined)
-
-        if (submittedStudents.length === 0) {
-            return `${score}%` // fallback to percentage
+    const getScoreDisplay = (student: StudentViewData) => {
+        if (!student.hasSubmission || student.score === undefined) {
+            return '-'
         }
 
-        // Estimate total questions from maximum score
+        // Use actual total questions if available, otherwise fallback to estimation
+        if (student.totalQuestions) {
+            return `${student.score}/${student.totalQuestions}`
+        }
+
+        // Fallback: estimate from all submissions (old behavior)
+        const submittedStudents = studentViews.filter(s => s.hasSubmission && s.score !== undefined)
+        if (submittedStudents.length === 0) {
+            return `${student.score}%` // fallback to percentage
+        }
+
         let estimatedTotal = Math.max(...submittedStudents.map(s => s.score || 0))
         if (estimatedTotal < 3) {
             estimatedTotal = 10
         }
 
-        return `${score}/${estimatedTotal}`
+        return `${student.score}/${estimatedTotal}`
     }
 
     return (
@@ -286,8 +306,8 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                                 </td>
                                 <td className="px-6 py-4">
                                     {student.hasSubmission && student.score !== undefined ? (
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getScoreBadgeColor(student.score)}`}>
-                                            {getScoreDisplay(student.score)}
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getScoreBadgeColor(student)}`}>
+                                            {getScoreDisplay(student)}
                                         </span>
                                     ) : (
                                         <span className="text-gray-400 text-sm">-</span>
@@ -334,8 +354,8 @@ export default function StudentDetails({ codeData, onBack, onViewSubmission }: S
                                 </div>
                             </div>
                             {student.hasSubmission && student.score !== undefined && (
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getScoreBadgeColor(student.score)}`}>
-                                    {getScoreDisplay(student.score)}
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getScoreBadgeColor(student)}`}>
+                                    {getScoreDisplay(student)}
                                 </span>
                             )}
                         </div>

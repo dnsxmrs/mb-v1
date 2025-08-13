@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
     experimental: {
         authInterrupts: true,
         serverActions: {
-            bodySizeLimit: '50mb',
+            bodySizeLimit: '200mb',
         },
     },
     webpack: (config, { isServer }) => {
