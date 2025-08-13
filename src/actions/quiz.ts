@@ -176,34 +176,45 @@ export async function createStoryWithQuiz(data: CreateStoryWithQuizData) {
                 }
             })
 
-            // Create quiz items for the story
-            const quizItems = await Promise.all(
-                data.quizItems.map((quizItem) => {
-                    // Find the correct answer text by the choice id
-                    const correctAnswerText = quizItem.choices.find(choice => choice.id === quizItem.correctAnswer)?.text || ''
+            // Create quiz items in batches to avoid timeout
+            const batchSize = 10
+            const quizItems = []
 
-                    return tx.quizItem.create({
-                        data: {
-                            storyId: story.id,
-                            quizNumber: quizItem.quizNumber,
-                            question: quizItem.question,
-                            correctAnswer: correctAnswerText,
-                            choices: {
-                                create: quizItem.choices.map(choice => ({
-                                    text: choice.text
-                                }))
+            for (let i = 0; i < data.quizItems.length; i += batchSize) {
+                const batch = data.quizItems.slice(i, i + batchSize)
+                
+                const batchResults = await Promise.all(
+                    batch.map((quizItem) => {
+                        // Find the correct answer text by the choice id
+                        const correctAnswerText = quizItem.choices.find(choice => choice.id === quizItem.correctAnswer)?.text || ''
+
+                        return tx.quizItem.create({
+                            data: {
+                                storyId: story.id,
+                                quizNumber: quizItem.quizNumber,
+                                question: quizItem.question,
+                                correctAnswer: correctAnswerText,
+                                choices: {
+                                    create: quizItem.choices.map(choice => ({
+                                        text: choice.text
+                                    }))
+                                }
+                            },
+                            include: {
+                                choices: true
                             }
-                        },
-                        include: {
-                            choices: true
-                        }
+                        })
                     })
-                })
-            )
+                )
+                
+                quizItems.push(...batchResults)
+            }
 
             await createNotification('story_created', `Nalikha ang kuwentong '${data.title}' na may kasamang mga tanong sa pagsusulit`)
 
             return { story, quizItems }
+        }, {
+            timeout: 30000 // Increase timeout to 30 seconds
         })
 
         return { success: true, data: result }
@@ -316,32 +327,43 @@ export async function updateStoryQuizItems(storyId: number, quizItems: CreateQui
                 }
             })
 
-            // Then create new quiz items
-            const newQuizItems = await Promise.all(
-                quizItems.map((quizItem) => {
-                    // Find the correct answer text by the choice id
-                    const correctAnswerText = quizItem.choices.find(choice => choice.id === quizItem.correctAnswer)?.text || ''
+            // Process quiz items in smaller batches to reduce transaction time
+            const batchSize = 10
+            const newQuizItems = []
 
-                    return tx.quizItem.create({
-                        data: {
-                            storyId,
-                            quizNumber: quizItem.quizNumber,
-                            question: quizItem.question,
-                            correctAnswer: correctAnswerText,
-                            choices: {
-                                create: quizItem.choices.map(choice => ({
-                                    text: choice.text
-                                }))
+            for (let i = 0; i < quizItems.length; i += batchSize) {
+                const batch = quizItems.slice(i, i + batchSize)
+                
+                const batchResults = await Promise.all(
+                    batch.map((quizItem) => {
+                        // Find the correct answer text by the choice id
+                        const correctAnswerText = quizItem.choices.find(choice => choice.id === quizItem.correctAnswer)?.text || ''
+
+                        return tx.quizItem.create({
+                            data: {
+                                storyId,
+                                quizNumber: quizItem.quizNumber,
+                                question: quizItem.question,
+                                correctAnswer: correctAnswerText,
+                                choices: {
+                                    create: quizItem.choices.map(choice => ({
+                                        text: choice.text
+                                    }))
+                                }
+                            },
+                            include: {
+                                choices: true
                             }
-                        },
-                        include: {
-                            choices: true
-                        }
+                        })
                     })
-                })
-            )
+                )
+                
+                newQuizItems.push(...batchResults)
+            }
 
             return newQuizItems
+        }, {
+            timeout: 30000 // Increase timeout to 30 seconds
         })
 
         return { success: true, data: result }
